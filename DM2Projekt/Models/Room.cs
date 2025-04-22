@@ -1,14 +1,22 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace DM2Projekt.Models;
-
-public class Room
+namespace DM2Projekt.Models
 {
+    public class Room
+    {
+        [Key]
+        public int RoomId { get; set; }
 
-    public int RoomId { get; set; }
-    public string RoomName { get; set; }
-    public int Capacity { get; set; } // Number of people
-    public string RoomType { get; set; }
-    public bool CanBeShared { get; set; }
+        [Required]
+        public string RoomName { get; set; }
 
+        public int Capacity { get; set; }
+
+        public string RoomType { get; set; }
+
+        public bool CanBeShared { get; set; }
+
+        // Navigation Properties
+        public ICollection<Smartboard> Smartboards { get; set; } = new List<Smartboard>();
+    }
 }
