@@ -1,7 +1,12 @@
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+using DM2Projekt.Data;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddRazorPages();
+builder.Services.AddDbContext<DM2ProjektContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DM2ProjektContext") ?? throw new InvalidOperationException("Connection string 'DM2ProjektContext' not found.")));
 
 var app = builder.Build();
 
