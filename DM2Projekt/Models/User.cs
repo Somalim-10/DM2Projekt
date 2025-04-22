@@ -1,4 +1,6 @@
-﻿namespace DM2Projekt.Models;
+﻿using DM2Projekt.Models.Enums;
+
+namespace DM2Projekt.Models;
 
 public class User
 {

@@ -1,4 +1,4 @@
-﻿namespace DM2Projekt.Models;
+﻿namespace DM2Projekt.Models.Enums;
 
 public enum Role
 {
