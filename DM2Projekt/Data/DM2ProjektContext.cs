@@ -15,5 +15,6 @@ namespace DM2Projekt.Data
         }
 
         public DbSet<DM2Projekt.Models.Room> Room { get; set; } = default!;
+        public DbSet<DM2Projekt.Models.User> User { get; set; } = default!;
     }
 }
