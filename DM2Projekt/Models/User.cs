@@ -2,26 +2,24 @@
 using System.ComponentModel.DataAnnotations.Schema;
 using DM2Projekt.Models.Enums;
 
-namespace DM2Projekt.Models
+namespace DM2Projekt.Models;
+
+public class User
 {
-    public class User
-    {
-        [Key]
-        public int UserId { get; set; }
+    [Key]
+    public int UserId { get; set; }
 
-        [Required]
-        public string FirstName { get; set; }
+    [Required]
+    public string FirstName { get; set; }
 
-        [Required]
-        public string LastName { get; set; }
+    [Required]
+    public string LastName { get; set; }
 
-        [Required, EmailAddress]
-        public string Email { get; set; }
+    [Required, EmailAddress]
+    public string Email { get; set; }
 
-        [Required]
-        public Role Role { get; set; }
+    [Required]
+    public Role Role { get; set; }
 
-        // Navigation Properties
-        public ICollection<Group> Groups { get; set; } = new List<Group>();
-    }
+    public ICollection<Group> Groups { get; set; } = [];
 }
