@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Microsoft.AspNetCore.Mvc.ModelBinding;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace DM2Projekt.Models;
@@ -13,5 +14,6 @@ public class Smartboard
 
     public bool IsAvailable { get; set; }
 
-    public Room Room { get; set; }
+    [BindNever]
+    public Room? Room { get; set; }
 }
