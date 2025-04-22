@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using DM2Projekt.Models.Enums;
+using System.ComponentModel.DataAnnotations;
 
 namespace DM2Projekt.Models;
 
@@ -11,8 +12,7 @@ public class Room
     public string RoomName { get; set; }
 
     public int Capacity { get; set; }
-
-    public string RoomType { get; set; }
+    public RoomType RoomType { get; set; }
 
     public bool CanBeShared { get; set; }
 
