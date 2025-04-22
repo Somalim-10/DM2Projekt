@@ -1,0 +1,54 @@
+﻿@page
+@model DM2Projekt.Pages.Rooms.EditModel
+
+@{
+    ViewData["Title"] = "Edit";
+}
+
+<h1>Edit</h1>
+
+<h4>Room</h4>
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        <form method="post">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <input type="hidden" asp-for="Room.RoomId" />
+            <div class="form-group">
+                
+                <label asp-for="Room.RoomName" class="control-label"></label>
+                <input asp-for="Room.RoomName" class="form-control" />
+                <span asp-validation-for="Room.RoomName" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                
+                <label asp-for="Room.Capacity" class="control-label"></label>
+                <input asp-for="Room.Capacity" class="form-control" />
+                <span asp-validation-for="Room.Capacity" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                
+                <label asp-for="Room.RoomType" class="control-label"></label>
+                <input asp-for="Room.RoomType" class="form-control" />
+                <span asp-validation-for="Room.RoomType" class="text-danger"></span>
+            </div>
+            <div class="form-group form-check">
+                
+                <label class="form-check-label">
+                    <input class="form-check-input" asp-for="Room.CanBeShared" /> @Html.DisplayNameFor(model => model.Room.CanBeShared)
+                </label>
+            </div>
+            <div class="form-group">
+                <input type="submit" value="Save" class="btn btn-primary" />
+            </div>
+        </form>
+    </div>
+</div>
+
+<div>
+    <a asp-page="./Index">Back to List</a>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}
