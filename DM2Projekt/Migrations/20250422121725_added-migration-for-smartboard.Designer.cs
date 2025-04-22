@@ -3,6 +3,7 @@ using DM2Projekt.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DM2Projekt.Migrations
 {
     [DbContext(typeof(DM2ProjektContext))]
-    partial class DM2ProjektContextModelSnapshot : ModelSnapshot
+    [Migration("20250422121725_added-migration-for-smartboard")]
+    partial class addedmigrationforsmartboard
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -73,7 +76,7 @@ namespace DM2Projekt.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("SmartboardId"));
 
-                    b.Property<bool>("IsAvailable")
+                    b.Property<bool>("Availability")
                         .HasColumnType("bit");
 
                     b.Property<int>("RoomId")
