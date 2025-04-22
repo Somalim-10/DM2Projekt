@@ -3,6 +3,7 @@ using DM2Projekt.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DM2Projekt.Migrations
 {
     [DbContext(typeof(DM2ProjektContext))]
-    partial class DM2ProjektContextModelSnapshot : ModelSnapshot
+    [Migration("20250422123840_AddUserModel")]
+    partial class AddUserModel
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -20,23 +23,6 @@ namespace DM2Projekt.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
-
-            modelBuilder.Entity("DM2Projekt.Models.Group", b =>
-                {
-                    b.Property<int>("GroupId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("GroupId"));
-
-                    b.Property<string>("GroupName")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("GroupId");
-
-                    b.ToTable("Group");
-                });
 
             modelBuilder.Entity("DM2Projekt.Models.Room", b =>
                 {
@@ -65,27 +51,6 @@ namespace DM2Projekt.Migrations
                     b.ToTable("Room");
                 });
 
-            modelBuilder.Entity("DM2Projekt.Models.Smartboard", b =>
-                {
-                    b.Property<int>("SmartboardId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("SmartboardId"));
-
-                    b.Property<bool>("IsAvailable")
-                        .HasColumnType("bit");
-
-                    b.Property<int>("RoomId")
-                        .HasColumnType("int");
-
-                    b.HasKey("SmartboardId");
-
-                    b.HasIndex("RoomId");
-
-                    b.ToTable("Smartboard");
-                });
-
             modelBuilder.Entity("DM2Projekt.Models.User", b =>
                 {
                     b.Property<int>("UserId")
@@ -112,17 +77,6 @@ namespace DM2Projekt.Migrations
                     b.HasKey("UserId");
 
                     b.ToTable("User");
-                });
-
-            modelBuilder.Entity("DM2Projekt.Models.Smartboard", b =>
-                {
-                    b.HasOne("DM2Projekt.Models.Room", "Room")
-                        .WithMany()
-                        .HasForeignKey("RoomId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Room");
                 });
 #pragma warning restore 612, 618
         }
