@@ -24,5 +24,4 @@ app.MapRazorPages()
    .WithStaticAssets();
 
 app.Run();
-//hryyy
- // eafaef
+
