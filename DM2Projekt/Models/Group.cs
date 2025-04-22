@@ -1,8 +1,14 @@
-﻿namespace DM2Projekt.Models
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace DM2Projekt.Models;
+
+public class Group
 {
-    public class Group
-    {
-        public int GroupId { get; set; }
-        public string GroupName { get; set; }
-    }
+    [Key]
+    public int GroupId { get; set; }
+
+    [Required]
+    public string GroupName { get; set; }
+
+    public ICollection<User> Users { get; set; } = [];
 }
