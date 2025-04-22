@@ -24,3 +24,5 @@ app.MapRazorPages()
    .WithStaticAssets();
 
 app.Run();
+//hryyy
+
