@@ -45,5 +45,20 @@ namespace DM2Projekt.Pages.Bookings
 
             return RedirectToPage("./Index");
         }
+
+        public JsonResult OnGetSmartboardsByRoom(int roomId)
+        {
+            var smartboards = _context.Smartboard
+                .Where(sb => sb.RoomId == roomId && sb.IsAvailable == true)
+                .Select(sb => new
+                {
+                    sb.SmartboardId,
+                    Display = $"Smartboard {sb.SmartboardId}"
+                })
+                .ToList();
+
+            return new JsonResult(smartboards);
+        }
+
     }
 }

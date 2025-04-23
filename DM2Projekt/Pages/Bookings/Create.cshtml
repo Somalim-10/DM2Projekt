@@ -31,7 +31,9 @@
             </div>
             <div class="form-group">
                 <label asp-for="Booking.SmartboardId" class="control-label"></label>
-                <select asp-for="Booking.SmartboardId" class="form-control" asp-items="ViewBag.SmartboardId"></select>
+                <select asp-for="Booking.SmartboardId" class="form-control" id="SmartboardSelect">
+                    <option value="">-- Select Room First --</option>
+                </select>
             </div>
             <div class="form-group">
                 <span class="text-danger">*</span>
@@ -69,4 +71,50 @@
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const roomSelect = document.querySelector("#Booking_RoomId");
+            const smartboardSelect = document.querySelector("#SmartboardSelect");
+
+            function loadSmartboards(roomId) {
+                smartboardSelect.innerHTML = '<option value="">Loading...</option>';
+
+                fetch(`?handler=SmartboardsByRoom&roomId=${roomId}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        smartboardSelect.innerHTML = '';
+
+                        if (data.length === 0) {
+                            smartboardSelect.innerHTML = '<option value="">No smartboards available</option>';
+                        } else {
+                            smartboardSelect.innerHTML = '<option value="">-- Select Smartboard --</option>';
+                            data.forEach(sb => {
+                                const option = document.createElement("option");
+                                option.value = sb.smartboardId;
+                                option.textContent = sb.display;
+                                smartboardSelect.appendChild(option);
+                            });
+                        }
+                    })
+                    .catch(error => {
+                        console.error("Error loading smartboards:", error);
+                        smartboardSelect.innerHTML = '<option value="">Error loading smartboards</option>';
+                    });
+            }
+
+            roomSelect.addEventListener("change", function () {
+                const roomId = this.value;
+                if (roomId) {
+                    loadSmartboards(roomId);
+                }
+            });
+
+            // 🔥 Trigger the change manually on page load
+            if (roomSelect.value) {
+                roomSelect.dispatchEvent(new Event("change"));
+            }
+        });
+    </script>
 }
+
