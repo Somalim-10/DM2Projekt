@@ -32,10 +32,10 @@ namespace DM2Projekt.Pages.UserGroups
         // For more information, see https://aka.ms/RazorPagesCRUD.
         public async Task<IActionResult> OnPostAsync()
         {
-            //if (!ModelState.IsValid)
-            //{
-            //    return Page();
-            //}
+            if (!ModelState.IsValid)
+            {
+                return Page();
+            }
 
             _context.UserGroup.Add(UserGroup);
             await _context.SaveChangesAsync();
