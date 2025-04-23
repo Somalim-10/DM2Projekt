@@ -4,6 +4,7 @@ using DM2Projekt.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DM2Projekt.Migrations
 {
     [DbContext(typeof(DM2ProjektContext))]
-    partial class DM2ProjektContextModelSnapshot : ModelSnapshot
+    [Migration("20250423150449_TestIfFix")]
+    partial class TestIfFix
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -124,8 +127,7 @@ namespace DM2Projekt.Migrations
 
                     b.HasKey("SmartboardId");
 
-                    b.HasIndex("RoomId")
-                        .IsUnique();
+                    b.HasIndex("RoomId");
 
                     b.ToTable("Smartboard");
                 });
@@ -177,27 +179,26 @@ namespace DM2Projekt.Migrations
             modelBuilder.Entity("DM2Projekt.Models.Booking", b =>
                 {
                     b.HasOne("DM2Projekt.Models.User", "CreatedByUser")
-                        .WithMany("Bookings")
+                        .WithMany()
                         .HasForeignKey("CreatedByUserId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("DM2Projekt.Models.Group", "Group")
-                        .WithMany("Bookings")
+                        .WithMany()
                         .HasForeignKey("GroupId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("DM2Projekt.Models.Room", "Room")
-                        .WithMany("Bookings")
+                        .WithMany()
                         .HasForeignKey("RoomId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("DM2Projekt.Models.Smartboard", "Smartboard")
-                        .WithMany("Bookings")
-                        .HasForeignKey("SmartboardId")
-                        .OnDelete(DeleteBehavior.SetNull);
+                        .WithMany()
+                        .HasForeignKey("SmartboardId");
 
                     b.Navigation("CreatedByUser");
 
@@ -211,8 +212,8 @@ namespace DM2Projekt.Migrations
             modelBuilder.Entity("DM2Projekt.Models.Smartboard", b =>
                 {
                     b.HasOne("DM2Projekt.Models.Room", "Room")
-                        .WithOne("Smartboard")
-                        .HasForeignKey("DM2Projekt.Models.Smartboard", "RoomId")
+                        .WithMany("Smartboards")
+                        .HasForeignKey("RoomId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -240,27 +241,16 @@ namespace DM2Projekt.Migrations
 
             modelBuilder.Entity("DM2Projekt.Models.Group", b =>
                 {
-                    b.Navigation("Bookings");
-
                     b.Navigation("UserGroups");
                 });
 
             modelBuilder.Entity("DM2Projekt.Models.Room", b =>
                 {
-                    b.Navigation("Bookings");
-
-                    b.Navigation("Smartboard");
-                });
-
-            modelBuilder.Entity("DM2Projekt.Models.Smartboard", b =>
-                {
-                    b.Navigation("Bookings");
+                    b.Navigation("Smartboards");
                 });
 
             modelBuilder.Entity("DM2Projekt.Models.User", b =>
                 {
-                    b.Navigation("Bookings");
-
                     b.Navigation("UserGroups");
                 });
 #pragma warning restore 612, 618

@@ -16,4 +16,5 @@ public class Smartboard
 
     [BindNever]
     public Room? Room { get; set; }
+    public ICollection<Booking> Bookings { get; set; } = [];
 }

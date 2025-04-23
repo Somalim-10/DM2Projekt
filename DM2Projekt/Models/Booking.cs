@@ -33,5 +33,4 @@ public class Booking
     public User CreatedByUser { get; set; }
     public Group Group { get; set; }
     public Smartboard? Smartboard { get; set; }
-
 }
