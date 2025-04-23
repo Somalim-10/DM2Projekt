@@ -21,5 +21,5 @@ public class User
     [Required]
     public Role Role { get; set; }
 
-    public ICollection<Group> Groups { get; set; } = [];
+    public ICollection<UserGroup> UserGroups { get; set; } = new List<UserGroup>();
 }

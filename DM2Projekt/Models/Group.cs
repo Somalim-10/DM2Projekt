@@ -10,5 +10,5 @@ public class Group
     [Required]
     public string GroupName { get; set; }
 
-    public ICollection<User> Users { get; set; } = [];
+    public ICollection<UserGroup> UserGroups { get; set; } = new List<UserGroup>();
 }
