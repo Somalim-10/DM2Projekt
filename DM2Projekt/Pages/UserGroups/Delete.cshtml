@@ -1,4 +1,4 @@
-﻿@page
+﻿@page "{userId:int}/{groupId:int}"
 @model DM2Projekt.Pages.UserGroups.DeleteModel
 
 @{
@@ -25,7 +25,7 @@
             @Html.DisplayFor(model => model.UserGroup.Group.GroupName)
         </dd>
     </dl>
-    
+
     <form method="post">
         <input type="hidden" asp-for="UserGroup.UserId" />
         <input type="hidden" asp-for="UserGroup.GroupId" />

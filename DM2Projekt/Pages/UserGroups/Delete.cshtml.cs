@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
@@ -12,9 +9,9 @@ namespace DM2Projekt.Pages.UserGroups
 {
     public class DeleteModel : PageModel
     {
-        private readonly DM2Projekt.Data.DM2ProjektContext _context;
+        private readonly DM2ProjektContext _context;
 
-        public DeleteModel(DM2Projekt.Data.DM2ProjektContext context)
+        public DeleteModel(DM2ProjektContext context)
         {
             _context = context;
         }
@@ -22,37 +19,38 @@ namespace DM2Projekt.Pages.UserGroups
         [BindProperty]
         public UserGroup UserGroup { get; set; } = default!;
 
-        public async Task<IActionResult> OnGetAsync(int? id)
+        public async Task<IActionResult> OnGetAsync(int? userId, int? groupId)
         {
-            if (id == null)
+            if (userId == null || groupId == null)
             {
                 return NotFound();
             }
 
-            var usergroup = await _context.UserGroup.FirstOrDefaultAsync(m => m.UserId == id);
+            UserGroup = await _context.UserGroup
+                .Include(ug => ug.User)
+                .Include(ug => ug.Group)
+                .FirstOrDefaultAsync(m => m.UserId == userId && m.GroupId == groupId);
 
-            if (usergroup is not null)
+            if (UserGroup == null)
             {
-                UserGroup = usergroup;
-
-                return Page();
+                return NotFound();
             }
 
-            return NotFound();
+            return Page();
         }
 
-        public async Task<IActionResult> OnPostAsync(int? id)
+        public async Task<IActionResult> OnPostAsync(int? userId, int? groupId)
         {
-            if (id == null)
+            if (userId == null || groupId == null)
             {
                 return NotFound();
             }
 
-            var usergroup = await _context.UserGroup.FindAsync(id);
-            if (usergroup != null)
+            var userGroup = await _context.UserGroup.FindAsync(userId, groupId);
+
+            if (userGroup != null)
             {
-                UserGroup = usergroup;
-                _context.UserGroup.Remove(UserGroup);
+                _context.UserGroup.Remove(userGroup);
                 await _context.SaveChangesAsync();
             }
 

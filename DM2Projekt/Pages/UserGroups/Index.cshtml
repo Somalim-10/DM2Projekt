@@ -5,11 +5,12 @@
     ViewData["Title"] = "Index";
 }
 
-<h1>Index</h1>
+<h1>UserGroups</h1>
 
 <p>
     <a asp-page="Create">Create New</a>
 </p>
+
 <table class="table">
     <thead>
         <tr>
@@ -23,20 +24,21 @@
         </tr>
     </thead>
     <tbody>
-@foreach (var item in Model.UserGroup) {
-        <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.User.Email)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Group.GroupName)
-            </td>
-            <td>
-                @Html.ActionLink("Edit", "Edit", new { /* id=item.PrimaryKey */ }) |
-                @Html.ActionLink("Details", "Details", new { /* id=item.PrimaryKey */ }) |
-                @Html.ActionLink("Delete", "Delete", new { /* id=item.PrimaryKey */ })
-            </td>
-        </tr>
-}
+        @foreach (var item in Model.UserGroup)
+        {
+            <tr>
+                <td>
+                    @Html.DisplayFor(modelItem => item.User.Email)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Group.GroupName)
+                </td>
+                <td>
+                    <a asp-page="Edit" asp-route-userId="@item.UserId" asp-route-groupId="@item.GroupId">Edit</a> |
+                    <a asp-page="Details" asp-route-userId="@item.UserId" asp-route-groupId="@item.GroupId">Details</a> |
+                    <a asp-page="Delete" asp-route-userId="@item.UserId" asp-route-groupId="@item.GroupId">Delete</a>
+                </td>
+            </tr>
+        }
     </tbody>
 </table>
