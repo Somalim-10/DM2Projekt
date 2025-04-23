@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
@@ -13,9 +11,9 @@ namespace DM2Projekt.Pages.UserGroups
 {
     public class EditModel : PageModel
     {
-        private readonly DM2Projekt.Data.DM2ProjektContext _context;
+        private readonly DM2ProjektContext _context;
 
-        public EditModel(DM2Projekt.Data.DM2ProjektContext context)
+        public EditModel(DM2ProjektContext context)
         {
             _context = context;
         }
@@ -23,26 +21,29 @@ namespace DM2Projekt.Pages.UserGroups
         [BindProperty]
         public UserGroup UserGroup { get; set; } = default!;
 
-        public async Task<IActionResult> OnGetAsync(int? id)
+        public async Task<IActionResult> OnGetAsync(int? userId, int? groupId)
         {
-            if (id == null)
+            if (userId == null || groupId == null)
             {
                 return NotFound();
             }
 
-            var usergroup =  await _context.UserGroup.FirstOrDefaultAsync(m => m.UserId == id);
-            if (usergroup == null)
+            UserGroup = await _context.UserGroup
+                .Include(ug => ug.User)
+                .Include(ug => ug.Group)
+                .FirstOrDefaultAsync(m => m.UserId == userId && m.GroupId == groupId);
+
+            if (UserGroup == null)
             {
                 return NotFound();
             }
-            UserGroup = usergroup;
-           ViewData["GroupId"] = new SelectList(_context.Group, "GroupId", "GroupName");
-           ViewData["UserId"] = new SelectList(_context.User, "UserId", "Email");
+
+            ViewData["UserId"] = new SelectList(_context.User, "UserId", "Email", UserGroup.UserId);
+            ViewData["GroupId"] = new SelectList(_context.Group, "GroupId", "GroupName", UserGroup.GroupId);
+
             return Page();
         }
 
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more information, see https://aka.ms/RazorPagesCRUD.
         public async Task<IActionResult> OnPostAsync()
         {
             if (!ModelState.IsValid)
@@ -50,30 +51,25 @@ namespace DM2Projekt.Pages.UserGroups
                 return Page();
             }
 
-            _context.Attach(UserGroup).State = EntityState.Modified;
-
             try
             {
+                _context.Update(UserGroup);
                 await _context.SaveChangesAsync();
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (!UserGroupExists(UserGroup.UserId))
+                bool exists = _context.UserGroup.Any(e =>
+                    e.UserId == UserGroup.UserId && e.GroupId == UserGroup.GroupId);
+
+                if (!exists)
                 {
                     return NotFound();
                 }
-                else
-                {
-                    throw;
-                }
+
+                throw;
             }
 
             return RedirectToPage("./Index");
-        }
-
-        private bool UserGroupExists(int id)
-        {
-            return _context.UserGroup.Any(e => e.UserId == id);
         }
     }
 }

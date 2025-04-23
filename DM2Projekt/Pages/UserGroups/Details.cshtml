@@ -1,4 +1,4 @@
-﻿@page
+﻿@page "{userId:int}/{groupId:int}"
 @model DM2Projekt.Pages.UserGroups.DetailsModel
 
 @{
@@ -25,7 +25,10 @@
         </dd>
     </dl>
 </div>
+
 <div>
-    @Html.ActionLink("Edit", "Edit", new { /* id = Model.PrimaryKey */ }) |
+    <a asp-page="Edit"
+       asp-route-userId="@Model.UserGroup.UserId"
+       asp-route-groupId="@Model.UserGroup.GroupId">Edit</a> |
     <a asp-page="./Index">Back to List</a>
 </div>
