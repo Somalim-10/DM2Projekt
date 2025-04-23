@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -46,5 +46,6 @@ namespace DM2Projekt.Data
                 .WithMany(g => g.UserGroups)
                 .HasForeignKey(ug => ug.GroupId);
         }
+        public DbSet<DM2Projekt.Models.Booking> Booking { get; set; } = default!;
     }
 }

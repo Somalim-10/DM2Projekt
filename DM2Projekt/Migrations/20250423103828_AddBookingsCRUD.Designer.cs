@@ -4,6 +4,7 @@ using DM2Projekt.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DM2Projekt.Migrations
 {
     [DbContext(typeof(DM2ProjektContext))]
-    partial class DM2ProjektContextModelSnapshot : ModelSnapshot
+    [Migration("20250423103828_AddBookingsCRUD")]
+    partial class AddBookingsCRUD
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -30,7 +33,10 @@ namespace DM2Projekt.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("BookingId"));
 
-                    b.Property<int>("CreatedByUserId")
+                    b.Property<int>("CreateByUserId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("CreatedByUserUserId")
                         .HasColumnType("int");
 
                     b.Property<DateTime>("EndTime")
@@ -53,7 +59,7 @@ namespace DM2Projekt.Migrations
 
                     b.HasKey("BookingId");
 
-                    b.HasIndex("CreatedByUserId");
+                    b.HasIndex("CreatedByUserUserId");
 
                     b.HasIndex("GroupId");
 
@@ -158,26 +164,26 @@ namespace DM2Projekt.Migrations
                     b.ToTable("User");
                 });
 
-            modelBuilder.Entity("DM2Projekt.Models.UserGroup", b =>
+            modelBuilder.Entity("GroupUser", b =>
                 {
-                    b.Property<int>("UserId")
+                    b.Property<int>("GroupsGroupId")
                         .HasColumnType("int");
 
-                    b.Property<int>("GroupId")
+                    b.Property<int>("UsersUserId")
                         .HasColumnType("int");
 
-                    b.HasKey("UserId", "GroupId");
+                    b.HasKey("GroupsGroupId", "UsersUserId");
 
-                    b.HasIndex("GroupId");
+                    b.HasIndex("UsersUserId");
 
-                    b.ToTable("UserGroup");
+                    b.ToTable("GroupUser");
                 });
 
             modelBuilder.Entity("DM2Projekt.Models.Booking", b =>
                 {
                     b.HasOne("DM2Projekt.Models.User", "CreatedByUser")
                         .WithMany()
-                        .HasForeignKey("CreatedByUserId")
+                        .HasForeignKey("CreatedByUserUserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -217,38 +223,24 @@ namespace DM2Projekt.Migrations
                     b.Navigation("Room");
                 });
 
-            modelBuilder.Entity("DM2Projekt.Models.UserGroup", b =>
+            modelBuilder.Entity("GroupUser", b =>
                 {
-                    b.HasOne("DM2Projekt.Models.Group", "Group")
-                        .WithMany("UserGroups")
-                        .HasForeignKey("GroupId")
+                    b.HasOne("DM2Projekt.Models.Group", null)
+                        .WithMany()
+                        .HasForeignKey("GroupsGroupId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("DM2Projekt.Models.User", "User")
-                        .WithMany("UserGroups")
-                        .HasForeignKey("UserId")
+                    b.HasOne("DM2Projekt.Models.User", null)
+                        .WithMany()
+                        .HasForeignKey("UsersUserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.Navigation("Group");
-
-                    b.Navigation("User");
-                });
-
-            modelBuilder.Entity("DM2Projekt.Models.Group", b =>
-                {
-                    b.Navigation("UserGroups");
                 });
 
             modelBuilder.Entity("DM2Projekt.Models.Room", b =>
                 {
                     b.Navigation("Smartboards");
-                });
-
-            modelBuilder.Entity("DM2Projekt.Models.User", b =>
-                {
-                    b.Navigation("UserGroups");
                 });
 #pragma warning restore 612, 618
         }
