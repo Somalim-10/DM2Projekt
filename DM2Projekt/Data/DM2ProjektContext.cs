@@ -14,10 +14,11 @@ namespace DM2Projekt.Data
         {
         }
 
-        public DbSet<DM2Projekt.Models.Room> Room { get; set; } = default!;
-        public DbSet<DM2Projekt.Models.User> User { get; set; } = default!;
-        public DbSet<DM2Projekt.Models.Group> Group { get; set; } = default!;
-        public DbSet<DM2Projekt.Models.Smartboard> Smartboard { get; set; } = default!;
+        public DbSet<Room> Room { get; set; } = default!;
+        public DbSet<User> User { get; set; } = default!;
+        public DbSet<Group> Group { get; set; } = default!;
+        public DbSet<Smartboard> Smartboard { get; set; } = default!;
+        public DbSet<UserGroup> UserGroup { get; set; } = default!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -31,6 +32,19 @@ namespace DM2Projekt.Data
             modelBuilder.Entity<User>()
                 .Property(u => u.Role)
                 .HasConversion<string>();
+
+            modelBuilder.Entity<UserGroup>()
+    .HasKey(ug => new { ug.UserId, ug.GroupId });
+
+            modelBuilder.Entity<UserGroup>()
+                .HasOne(ug => ug.User)
+                .WithMany(u => u.UserGroups)
+                .HasForeignKey(ug => ug.UserId);
+
+            modelBuilder.Entity<UserGroup>()
+                .HasOne(ug => ug.Group)
+                .WithMany(g => g.UserGroups)
+                .HasForeignKey(ug => ug.GroupId);
         }
     }
 }
