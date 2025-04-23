@@ -10,6 +10,13 @@ builder.Services.AddDbContext<DM2ProjektContext>(options =>
 
 var app = builder.Build();
 
+// For seed data
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    SeedData.Initialize(services);
+}
+
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
 {
