@@ -4,6 +4,7 @@ using DM2Projekt.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DM2Projekt.Migrations
 {
     [DbContext(typeof(DM2ProjektContext))]
-    partial class DM2ProjektContextModelSnapshot : ModelSnapshot
+    [Migration("20250423103828_AddBookingsCRUD")]
+    partial class AddBookingsCRUD
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -30,7 +33,10 @@ namespace DM2Projekt.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("BookingId"));
 
-                    b.Property<int>("CreatedByUserId")
+                    b.Property<int>("CreateByUserId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("CreatedByUserUserId")
                         .HasColumnType("int");
 
                     b.Property<DateTime>("EndTime")
@@ -53,7 +59,7 @@ namespace DM2Projekt.Migrations
 
                     b.HasKey("BookingId");
 
-                    b.HasIndex("CreatedByUserId");
+                    b.HasIndex("CreatedByUserUserId");
 
                     b.HasIndex("GroupId");
 
@@ -177,7 +183,7 @@ namespace DM2Projekt.Migrations
                 {
                     b.HasOne("DM2Projekt.Models.User", "CreatedByUser")
                         .WithMany()
-                        .HasForeignKey("CreatedByUserId")
+                        .HasForeignKey("CreatedByUserUserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 

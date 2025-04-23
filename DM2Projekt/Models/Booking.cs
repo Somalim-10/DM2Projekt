@@ -15,7 +15,7 @@ public class Booking
     public int RoomId { get; set; }
 
     [Required]
-    public int CreateByUserId { get; set; }
+    public int CreatedByUserId { get; set; }
 
     public int? SmartboardId { get; set; }
 

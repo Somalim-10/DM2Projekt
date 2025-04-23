@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -32,5 +32,6 @@ namespace DM2Projekt.Data
                 .Property(u => u.Role)
                 .HasConversion<string>();
         }
+        public DbSet<DM2Projekt.Models.Booking> Booking { get; set; } = default!;
     }
 }
