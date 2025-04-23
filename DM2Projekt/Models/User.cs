@@ -1,5 +1,4 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 using DM2Projekt.Models.Enums;
 
 namespace DM2Projekt.Models;
@@ -21,5 +20,6 @@ public class User
     [Required]
     public Role Role { get; set; }
 
-    public ICollection<UserGroup> UserGroups { get; set; } = new List<UserGroup>();
+    public ICollection<UserGroup> UserGroups { get; set; } = [];
+    public ICollection<Booking> Bookings { get; set; } = [];
 }

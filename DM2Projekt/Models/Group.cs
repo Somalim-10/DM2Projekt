@@ -10,5 +10,6 @@ public class Group
     [Required]
     public string GroupName { get; set; }
 
-    public ICollection<UserGroup> UserGroups { get; set; } = new List<UserGroup>();
+    public ICollection<UserGroup> UserGroups { get; set; } = [];
+    public ICollection<Booking> Bookings { get; set; } = [];
 }

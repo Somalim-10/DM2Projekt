@@ -17,5 +17,6 @@ public class Room
     public bool CanBeShared { get; set; }
 
     public Smartboard? Smartboard { get; set; } // single smartboard
+    public ICollection<Booking> Bookings { get; set; } = [];
 
 }
