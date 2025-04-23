@@ -13,49 +13,58 @@
     <div class="col-md-4">
         <form method="post">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
             <div class="form-group">
                 <span class="text-danger">*</span>
                 <label asp-for="Booking.GroupId" class="control-label"></label>
                 <select asp-for="Booking.GroupId" class="form-control" asp-items="ViewBag.GroupId"></select>
             </div>
+
             <div class="form-group">
                 <span class="text-danger">*</span>
                 <label asp-for="Booking.RoomId" class="control-label"></label>
                 <select asp-for="Booking.RoomId" class="form-control" asp-items="ViewBag.RoomId"></select>
             </div>
+
             <div class="form-group">
                 <span class="text-danger">*</span>
                 <label asp-for="Booking.CreatedByUserId" class="control-label"></label>
                 <select asp-for="Booking.CreatedByUserId" class="form-control" asp-items="ViewBag.CreatedByUserId"></select>
                 <span asp-validation-for="Booking.CreatedByUserId" class="text-danger"></span>
             </div>
-            <div class="form-group">
+
+            <div class="form-group" id="SmartboardWrapper">
                 <label asp-for="Booking.SmartboardId" class="control-label"></label>
-                <select asp-for="Booking.SmartboardId" class="form-control" id="SmartboardSelect">
-                    <option value="">-- Select Room First --</option>
+                <select name="Booking.SmartboardId" class="form-control" id="SmartboardSelect" style="display: none;">
                 </select>
+                <span id="NoSmartboardMessage" class="form-text text-muted" style="display: none;">
+                    No smartboard is available for the selected room.
+                </span>
             </div>
+
             <div class="form-group">
                 <span class="text-danger">*</span>
                 <label asp-for="Booking.StartTime" class="control-label"></label>
                 <input asp-for="Booking.StartTime" class="form-control" />
                 <span asp-validation-for="Booking.StartTime" class="text-danger"></span>
             </div>
+
             <div class="form-group">
                 <span class="text-danger">*</span>
                 <label asp-for="Booking.EndTime" class="control-label"></label>
                 <input asp-for="Booking.EndTime" class="form-control" />
                 <span asp-validation-for="Booking.EndTime" class="text-danger"></span>
             </div>
+
             <div class="form-group">
                 <span class="text-danger">*</span>
                 <label asp-for="Booking.Status" class="control-label"></label>
                 <select asp-for="Booking.Status" class="form-control"
-                        asp-items="Html.GetEnumSelectList<DM2Projekt.Models.Enums.BookingStatus>
-                    ()">
+                        asp-items="Html.GetEnumSelectList<DM2Projekt.Models.Enums.BookingStatus>()">
                 </select>
                 <span asp-validation-for="Booking.Status" class="text-danger"></span>
             </div>
+
             <div class="form-group">
                 <input type="submit" value="Create" class="btn btn-primary" />
             </div>
@@ -76,9 +85,13 @@
         document.addEventListener("DOMContentLoaded", function () {
             const roomSelect = document.querySelector("#Booking_RoomId");
             const smartboardSelect = document.querySelector("#SmartboardSelect");
+            const smartboardWrapper = document.getElementById("SmartboardWrapper");
+            const noSmartboardMsg = document.getElementById("NoSmartboardMessage");
 
             function loadSmartboards(roomId) {
-                smartboardSelect.innerHTML = '<option value="">Loading...</option>';
+                smartboardSelect.innerHTML = '';
+                smartboardSelect.style.display = 'none';
+                noSmartboardMsg.style.display = 'none';
 
                 fetch(`?handler=SmartboardsByRoom&roomId=${roomId}`)
                     .then(response => response.json())
@@ -86,9 +99,17 @@
                         smartboardSelect.innerHTML = '';
 
                         if (data.length === 0) {
-                            smartboardSelect.innerHTML = '<option value="">No smartboards available</option>';
+                            noSmartboardMsg.style.display = 'block';
                         } else {
-                            smartboardSelect.innerHTML = '<option value="">-- Select Smartboard --</option>';
+                            // Show dropdown and populate
+                            smartboardSelect.style.display = 'block';
+
+                            // Add opt-out
+                            const optOut = document.createElement("option");
+                            optOut.value = "";
+                            optOut.textContent = "-- I don't want a smartboard --";
+                            smartboardSelect.appendChild(optOut);
+
                             data.forEach(sb => {
                                 const option = document.createElement("option");
                                 option.value = sb.smartboardId;
@@ -99,7 +120,8 @@
                     })
                     .catch(error => {
                         console.error("Error loading smartboards:", error);
-                        smartboardSelect.innerHTML = '<option value="">Error loading smartboards</option>';
+                        noSmartboardMsg.textContent = "Error loading smartboards.";
+                        noSmartboardMsg.style.display = 'block';
                     });
             }
 
@@ -107,14 +129,17 @@
                 const roomId = this.value;
                 if (roomId) {
                     loadSmartboards(roomId);
+                } else {
+                    smartboardSelect.innerHTML = '<option value="">-- Select Room First --</option>';
+                    smartboardSelect.style.display = 'block';
+                    noSmartboardMsg.style.display = 'none';
                 }
             });
 
-            // 🔥 Trigger the change manually on page load
+            // Trigger on load
             if (roomSelect.value) {
                 roomSelect.dispatchEvent(new Event("change"));
             }
         });
     </script>
 }
-

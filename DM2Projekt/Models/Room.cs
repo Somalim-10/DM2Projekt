@@ -16,7 +16,6 @@ public class Room
 
     public bool CanBeShared { get; set; }
 
-    //public ICollection<Smartboard> Smartboards { get; set; } = [];
     public Smartboard? Smartboard { get; set; } // single smartboard
 
 }

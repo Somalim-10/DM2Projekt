@@ -45,10 +45,12 @@ public class DM2ProjektContext : DbContext
             .WithMany(g => g.UserGroups)
             .HasForeignKey(ug => ug.GroupId);
 
-        // One-to-one: Room ↔ Smartboard
         modelBuilder.Entity<Room>()
-            .HasOne(r => r.Smartboard)
-            .WithOne(s => s.Room)
-            .HasForeignKey<Smartboard>(s => s.RoomId);
+    .HasOne(r => r.Smartboard)
+    .WithOne(sb => sb.Room)
+    .HasForeignKey<Smartboard>(sb => sb.RoomId);
+
+
+
     }
 }
