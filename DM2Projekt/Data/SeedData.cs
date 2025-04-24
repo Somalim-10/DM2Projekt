@@ -78,7 +78,6 @@ public static class SeedData
                 SmartboardId = 1,
                 StartTime = DateTime.Now.AddDays(1).AddHours(9),
                 EndTime = DateTime.Now.AddDays(1).AddHours(11),
-                Status = BookingStatus.Confirmed
             },
             new()
             {
@@ -88,7 +87,6 @@ public static class SeedData
                 SmartboardId = null,
                 StartTime = DateTime.Now.AddDays(2).AddHours(13),
                 EndTime = DateTime.Now.AddDays(2).AddHours(15),
-                Status = BookingStatus.Pending
             },
             new()
             {
@@ -98,7 +96,6 @@ public static class SeedData
                 SmartboardId = 3,
                 StartTime = DateTime.Now.AddDays(1).AddHours(10),
                 EndTime = DateTime.Now.AddDays(1).AddHours(12),
-                Status = BookingStatus.Confirmed
             },
             new()
             {
@@ -108,7 +105,6 @@ public static class SeedData
                 SmartboardId = 4,
                 StartTime = DateTime.Now.AddDays(3).AddHours(8),
                 EndTime = DateTime.Now.AddDays(3).AddHours(10),
-                Status = BookingStatus.Cancelled
             }
         };
         context.Booking.AddRange(bookings);

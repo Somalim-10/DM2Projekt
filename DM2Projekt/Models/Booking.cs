@@ -25,8 +25,6 @@ public class Booking
     [Required]
     public DateTime EndTime { get; set; }
 
-    [Required]
-    public BookingStatus Status { get; set; }
 
     // Navigation properties
     public Room Room { get; set; }
