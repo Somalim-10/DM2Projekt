@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -13,9 +13,9 @@ namespace DM2Projekt.Pages.Bookings
 {
     public class CreateModel : PageModel
     {
-        private readonly DM2Projekt.Data.DM2ProjektContext _context;
+        private readonly DM2ProjektContext _context;
 
-        public CreateModel(DM2Projekt.Data.DM2ProjektContext context)
+        public CreateModel(DM2ProjektContext context)
         {
             _context = context;
         }
@@ -47,12 +47,25 @@ namespace DM2Projekt.Pages.Bookings
             Booking.StartTime = startTime;
             Booking.EndTime = startTime.AddHours(2);
 
+            // Reapply dropdowns to prevent null ViewData on form redisplay
+            ViewData["GroupId"] = new SelectList(_context.Group, "GroupId", "GroupName");
+            ViewData["RoomId"] = new SelectList(_context.Room, "RoomId", "RoomName");
+            ViewData["SmartboardId"] = new SelectList(_context.Smartboard, "SmartboardId", "SmartboardId");
+            ViewData["CreatedByUserId"] = new SelectList(_context.User, "UserId", "Email");
+
+            // Extra safety check (not strictly needed with fixed intervals, but safe to keep)
+            TimeSpan bookingLength = Booking.EndTime - Booking.StartTime;
+            if (bookingLength.TotalHours > 2)
+            {
+                ModelState.AddModelError(string.Empty, "En booking må maksimalt vare 2 timer.");
+                return Page();
+            }
+
             _context.Booking.Add(Booking);
             await _context.SaveChangesAsync();
 
             return RedirectToPage("./Index");
         }
-
 
         public JsonResult OnGetSmartboardsByRoom(int roomId)
         {
@@ -103,7 +116,6 @@ namespace DM2Projekt.Pages.Bookings
                         end = slot.end.ToString("HH:mm"),
                         value = slot.start.ToString("o")
                     });
-
                 }
             }
 
@@ -114,14 +126,12 @@ namespace DM2Projekt.Pages.Bookings
         {
             var date = day.Date;
             return new List<(DateTime, DateTime)>
-    {
-        (date.AddHours(8), date.AddHours(10)),
-        (date.AddHours(10), date.AddHours(12)),
-        (date.AddHours(12), date.AddHours(14)),
-        (date.AddHours(14), date.AddHours(16))
-    };
+            {
+                (date.AddHours(8), date.AddHours(10)),
+                (date.AddHours(10), date.AddHours(12)),
+                (date.AddHours(12), date.AddHours(14)),
+                (date.AddHours(14), date.AddHours(16))
+            };
         }
-
-
     }
 }
