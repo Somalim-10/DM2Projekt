@@ -1,39 +1,40 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using DM2Projekt.Data;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddRazorPages();
 builder.Services.AddDbContext<DM2ProjektContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DM2ProjektContext") ?? throw new InvalidOperationException("Connection string 'DM2ProjektContext' not found.")));
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DM2ProjektContext")
+        ?? throw new InvalidOperationException("Connection string 'DM2ProjektContext' not found.")));
 
 var app = builder.Build();
 
-// For seed data
+// Apply migrations and seed data
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
-    SeedData.Initialize(services);
+    var context = services.GetRequiredService<DM2ProjektContext>();
+
+    context.Database.Migrate(); // Apply migrations
+    SeedData.Initialize(services); // Seed database
 }
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Error");
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
 
 app.UseHttpsRedirection();
+app.UseStaticFiles();
 
 app.UseRouting();
-
 app.UseAuthorization();
 
-app.MapStaticAssets();
-app.MapRazorPages()
-   .WithStaticAssets();
+app.MapRazorPages();
 
 app.Run();
-
