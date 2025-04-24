@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 using DM2Projekt.Data;
@@ -12,9 +8,9 @@ namespace DM2Projekt.Pages.Bookings
 {
     public class DetailsModel : PageModel
     {
-        private readonly DM2Projekt.Data.DM2ProjektContext _context;
+        private readonly DM2ProjektContext _context;
 
-        public DetailsModel(DM2Projekt.Data.DM2ProjektContext context)
+        public DetailsModel(DM2ProjektContext context)
         {
             _context = context;
         }
@@ -23,21 +19,19 @@ namespace DM2Projekt.Pages.Bookings
 
         public async Task<IActionResult> OnGetAsync(int? id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
+            if (id == null) return NotFound();
 
-            var booking = await _context.Booking.FirstOrDefaultAsync(m => m.BookingId == id);
+            var booking = await _context.Booking
+                .Include(b => b.Room)
+                .Include(b => b.Group)
+                .Include(b => b.Smartboard)
+                .Include(b => b.CreatedByUser)
+                .FirstOrDefaultAsync(m => m.BookingId == id);
 
-            if (booking is not null)
-            {
-                Booking = booking;
+            if (booking == null) return NotFound();
 
-                return Page();
-            }
-
-            return NotFound();
+            Booking = booking;
+            return Page();
         }
     }
 }

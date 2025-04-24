@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -60,6 +56,17 @@ namespace DM2Projekt.Pages.Bookings
                 ModelState.AddModelError(string.Empty, "En booking må maksimalt vare 2 timer.");
                 return Page();
             }
+
+            // Prevent multiple active bookings for the same group
+            bool groupHasActiveBooking = _context.Booking
+                .Any(b => b.GroupId == Booking.GroupId && b.EndTime > DateTime.Now);
+
+            if (groupHasActiveBooking)
+            {
+                ModelState.AddModelError(string.Empty, "This group already has an active booking.");
+                return Page();
+            }
+
 
             _context.Booking.Add(Booking);
             await _context.SaveChangesAsync();
