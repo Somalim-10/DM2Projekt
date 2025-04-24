@@ -22,7 +22,7 @@
             <th>
                 @Html.DisplayNameFor(model => model.Booking[0].EndTime)
             </th>
-            
+
             <th>
                 @Html.DisplayNameFor(model => model.Booking[0].Room)
             </th>
@@ -36,32 +36,32 @@
         </tr>
     </thead>
     <tbody>
-@foreach (var item in Model.Booking) {
-        <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.CreatedByUserId)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.StartTime)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.EndTime)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Room.RoomName)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Group.GroupName)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Smartboard.SmartboardId)
-            </td>
-            <td>
-                <a asp-page="./Edit" asp-route-id="@item.BookingId">Edit</a> |
-                <a asp-page="./Details" asp-route-id="@item.BookingId">Details</a> |
-                <a asp-page="./Delete" asp-route-id="@item.BookingId">Delete</a>
-            </td>
-        </tr>
-}
+        @foreach (var item in Model.Booking)
+        {
+            <tr>
+                <td>
+                    @Html.DisplayFor(modelItem => item.CreatedByUserId)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.StartTime)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.EndTime)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Room.RoomName)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Group.GroupName)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Smartboard.SmartboardId)
+                </td>
+                <td>
+                    <a asp-page="./Details" asp-route-id="@item.BookingId">Details</a> |
+                    <a asp-page="./Delete" asp-route-id="@item.BookingId" class="btn btn-outline-danger btn-sm">Cancel</a>
+                </td>
+            </tr>
+        }
     </tbody>
 </table>
