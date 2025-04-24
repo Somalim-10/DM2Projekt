@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -7,14 +7,15 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using DM2Projekt.Data;
 using DM2Projekt.Models;
+using DM2Projekt.Models.Enums;
 
 namespace DM2Projekt.Pages.Bookings
 {
     public class CreateModel : PageModel
     {
-        private readonly DM2Projekt.Data.DM2ProjektContext _context;
+        private readonly DM2ProjektContext _context;
 
-        public CreateModel(DM2Projekt.Data.DM2ProjektContext context)
+        public CreateModel(DM2ProjektContext context)
         {
             _context = context;
         }
@@ -32,20 +33,27 @@ namespace DM2Projekt.Pages.Bookings
         [BindProperty]
         public Booking Booking { get; set; } = default!;
 
-        // For more information, see https://aka.ms/RazorPagesCRUD.
+        [BindProperty]
+        public string SelectedTimeSlot { get; set; } = default!;
+
         public async Task<IActionResult> OnPostAsync()
         {
-            //if (!ModelState.IsValid)
-            //{
-            //    return Page();
-            //}
+            if (!DateTime.TryParse(SelectedTimeSlot, out var startTime))
+            {
+                ModelState.AddModelError("SelectedTimeSlot", "Invalid time slot selected.");
+                return Page();
+            }
 
+            Booking.StartTime = startTime;
+            Booking.EndTime = startTime.AddHours(2);
+
+            // Reapply dropdowns to prevent null ViewData on form redisplay
             ViewData["GroupId"] = new SelectList(_context.Group, "GroupId", "GroupName");
             ViewData["RoomId"] = new SelectList(_context.Room, "RoomId", "RoomName");
             ViewData["SmartboardId"] = new SelectList(_context.Smartboard, "SmartboardId", "SmartboardId");
             ViewData["CreatedByUserId"] = new SelectList(_context.User, "UserId", "Email");
 
-            // Begræns booking til max 2 timer
+            // Extra safety check (not strictly needed with fixed intervals, but safe to keep)
             TimeSpan bookingLength = Booking.EndTime - Booking.StartTime;
             if (bookingLength.TotalHours > 2)
             {
@@ -71,6 +79,59 @@ namespace DM2Projekt.Pages.Bookings
                 .ToList();
 
             return new JsonResult(smartboards);
+        }
+
+        public JsonResult OnGetAvailableTimeSlots(int roomId, DateTime date)
+        {
+            var room = _context.Room.FirstOrDefault(r => r.RoomId == roomId);
+            if (room == null)
+                return new JsonResult(new { error = "Room not found" });
+
+            var slots = GetFixedTimeSlots(date);
+
+            var bookings = _context.Booking
+                .Where(b => b.RoomId == roomId &&
+                            b.StartTime.Date == date.Date)
+                .ToList();
+
+            var availableSlots = new List<object>();
+
+            foreach (var slot in slots)
+            {
+                var bookingsInSlot = bookings.Count(b =>
+                    b.StartTime == slot.start && b.EndTime == slot.end);
+
+                bool isAvailable = room.RoomType switch
+                {
+                    RoomType.Classroom => bookingsInSlot < 2,
+                    RoomType.MeetingRoom => bookingsInSlot < 1,
+                    _ => false
+                };
+
+                if (isAvailable)
+                {
+                    availableSlots.Add(new
+                    {
+                        start = slot.start.ToString("HH:mm"),
+                        end = slot.end.ToString("HH:mm"),
+                        value = slot.start.ToString("o")
+                    });
+                }
+            }
+
+            return new JsonResult(availableSlots);
+        }
+
+        private static List<(DateTime start, DateTime end)> GetFixedTimeSlots(DateTime day)
+        {
+            var date = day.Date;
+            return new List<(DateTime, DateTime)>
+            {
+                (date.AddHours(8), date.AddHours(10)),
+                (date.AddHours(10), date.AddHours(12)),
+                (date.AddHours(12), date.AddHours(14)),
+                (date.AddHours(14), date.AddHours(16))
+            };
         }
     }
 }
