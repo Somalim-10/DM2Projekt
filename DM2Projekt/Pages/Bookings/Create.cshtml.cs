@@ -43,6 +43,20 @@ namespace DM2Projekt.Pages.Bookings
             Booking.StartTime = startTime;
             Booking.EndTime = startTime.AddHours(2);
 
+            // Prevent user from booking too many rooms (even in other groups)
+            bool userHasAnotherBookingAtSameTime = _context.Booking
+                .Any(b =>
+                    b.CreatedByUserId == Booking.CreatedByUserId &&
+                    b.StartTime < Booking.EndTime &&
+                    b.EndTime > Booking.StartTime);
+
+            if (userHasAnotherBookingAtSameTime)
+            {
+                ModelState.AddModelError(string.Empty, "This user already has a booking at the same time.");
+                return Page();
+            }
+
+
             // Reapply dropdowns to prevent null ViewData on form redisplay
             ViewData["GroupId"] = new SelectList(_context.Group, "GroupId", "GroupName");
             ViewData["RoomId"] = new SelectList(_context.Room, "RoomId", "RoomName");
