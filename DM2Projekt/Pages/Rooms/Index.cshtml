@@ -16,15 +16,11 @@
             <th>
                 @Html.DisplayNameFor(model => model.Room[0].RoomName)
             </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Room[0].Capacity)
-            </th>
+            
             <th>
                 @Html.DisplayNameFor(model => model.Room[0].RoomType)
             </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Room[0].CanBeShared)
-            </th>
+            
             <th></th>
         </tr>
     </thead>
@@ -35,13 +31,7 @@
                 @Html.DisplayFor(modelItem => item.RoomName)
             </td>
             <td>
-                @Html.DisplayFor(modelItem => item.Capacity)
-            </td>
-            <td>
                 @Html.DisplayFor(modelItem => item.RoomType)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.CanBeShared)
             </td>
             <td>
                 <a asp-page="./Edit" asp-route-id="@item.RoomId">Edit</a> |

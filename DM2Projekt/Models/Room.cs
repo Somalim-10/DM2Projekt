@@ -11,10 +11,7 @@ public class Room
     [Required]
     public string RoomName { get; set; }
 
-    public int Capacity { get; set; }
     public RoomType RoomType { get; set; }
-
-    public bool CanBeShared { get; set; }
 
     public Smartboard? Smartboard { get; set; } // single smartboard
     public ICollection<Booking> Bookings { get; set; } = [];

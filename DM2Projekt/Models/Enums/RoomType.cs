@@ -4,6 +4,4 @@ public enum RoomType
 {
     Classroom,
     MeetingRoom,
-    Auditorium,
-    Laboratory
 }

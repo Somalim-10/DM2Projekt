@@ -50,10 +50,8 @@ public static class SeedData
         // Rooms
         var rooms = new List<Room>
         {
-            new() { RoomName = "Auditorium A", Capacity = 100, RoomType = RoomType.Auditorium, CanBeShared = false },
-            new() { RoomName = "Lab 1", Capacity = 20, RoomType = RoomType.Laboratory, CanBeShared = true },
-            new() { RoomName = "Meeting Room 1", Capacity = 12, RoomType = RoomType.MeetingRoom, CanBeShared = true },
-            new() { RoomName = "Classroom 101", Capacity = 30, RoomType = RoomType.Classroom, CanBeShared = false }
+            new() { RoomName = "Meeting Room 1",   RoomType = RoomType.MeetingRoom},
+            new() { RoomName = "Classroom 101", RoomType = RoomType.Classroom }
         };
         context.Room.AddRange(rooms);
         context.SaveChanges();
