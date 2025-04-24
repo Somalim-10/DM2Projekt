@@ -19,14 +19,18 @@ namespace DM2Projekt.Pages.Bookings
             _context = context;
         }
 
-        public IList<Booking> Booking { get;set; } = default!;
+        public IList<Booking> Booking { get; set; } = default!;
 
         public async Task OnGetAsync()
         {
             Booking = await _context.Booking
                 .Include(b => b.Group)
                 .Include(b => b.Room)
-                .Include(b => b.Smartboard).ToListAsync();
+                .Include(b => b.Smartboard)
+                .Include(b => b.CreatedByUser)
+                .OrderBy(b => b.StartTime)
+                .ToListAsync();
         }
+
     }
 }
