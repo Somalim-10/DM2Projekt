@@ -11,16 +11,18 @@ public static class SeedData
         using var context = new DM2ProjektContext(
             serviceProvider.GetRequiredService<DbContextOptions<DM2ProjektContext>>());
 
-        // Avoid reseeding if data exists
         if (context.User.Any() || context.Room.Any() || context.Group.Any())
             return;
 
         // Users
         var users = new List<User>
         {
-            new() { FirstName = "Alice", LastName = "Admin", Email = "alice@example.com", Role = Role.Teacher },
-            new() { FirstName = "Bob", LastName = "Student", Email = "bob@example.com", Role = Role.Student },
-            new() { FirstName = "Charlie", LastName = "Student", Email = "charlie@example.com", Role = Role.Student }
+            new() { FirstName = "Alice", LastName = "Johnson", Email = "alice.johnson@example.com", Role = Role.Teacher },
+            new() { FirstName = "Bob", LastName = "Martinez", Email = "bob.martinez@example.com", Role = Role.Student },
+            new() { FirstName = "Charlie", LastName = "Nguyen", Email = "charlie.nguyen@example.com", Role = Role.Student },
+            new() { FirstName = "Diana", LastName = "Reed", Email = "diana.reed@example.com", Role = Role.Teacher },
+            new() { FirstName = "Edward", LastName = "Kim", Email = "edward.kim@example.com", Role = Role.Teacher },
+            new() { FirstName = "Fiona", LastName = "Bennett", Email = "fiona.bennett@example.com", Role = Role.Student }
         };
         context.User.AddRange(users);
 
@@ -28,7 +30,8 @@ public static class SeedData
         var groups = new List<Group>
         {
             new() { GroupName = "Group Alpha" },
-            new() { GroupName = "Group Beta" }
+            new() { GroupName = "Group Beta" },
+            new() { GroupName = "Group Gamma" }
         };
         context.Group.AddRange(groups);
         context.SaveChanges();
@@ -38,7 +41,9 @@ public static class SeedData
         {
             new() { UserId = 2, GroupId = 1 },
             new() { UserId = 3, GroupId = 1 },
-            new() { UserId = 2, GroupId = 2 }
+            new() { UserId = 2, GroupId = 2 },
+            new() { UserId = 6, GroupId = 3 },
+            new() { UserId = 3, GroupId = 3 }
         };
         context.UserGroup.AddRange(userGroups);
 
@@ -46,16 +51,20 @@ public static class SeedData
         var rooms = new List<Room>
         {
             new() { RoomName = "Auditorium A", Capacity = 100, RoomType = RoomType.Auditorium, CanBeShared = false },
-            new() { RoomName = "Lab 1", Capacity = 20, RoomType = RoomType.Laboratory, CanBeShared = true }
+            new() { RoomName = "Lab 1", Capacity = 20, RoomType = RoomType.Laboratory, CanBeShared = true },
+            new() { RoomName = "Meeting Room 1", Capacity = 12, RoomType = RoomType.MeetingRoom, CanBeShared = true },
+            new() { RoomName = "Classroom 101", Capacity = 30, RoomType = RoomType.Classroom, CanBeShared = false }
         };
         context.Room.AddRange(rooms);
         context.SaveChanges();
 
-        // Smartboards (1 per room)
+        // Smartboards
         var smartboards = new List<Smartboard>
         {
             new() { RoomId = 1, IsAvailable = true },
-            new() { RoomId = 2, IsAvailable = false }
+            new() { RoomId = 2, IsAvailable = false },
+            new() { RoomId = 3, IsAvailable = true },
+            new() { RoomId = 4, IsAvailable = true }
         };
         context.Smartboard.AddRange(smartboards);
         context.SaveChanges();
@@ -82,6 +91,26 @@ public static class SeedData
                 StartTime = DateTime.Now.AddDays(2).AddHours(13),
                 EndTime = DateTime.Now.AddDays(2).AddHours(15),
                 Status = BookingStatus.Pending
+            },
+            new()
+            {
+                GroupId = 3,
+                RoomId = 3,
+                CreatedByUserId = 4,
+                SmartboardId = 3,
+                StartTime = DateTime.Now.AddDays(1).AddHours(10),
+                EndTime = DateTime.Now.AddDays(1).AddHours(12),
+                Status = BookingStatus.Confirmed
+            },
+            new()
+            {
+                GroupId = 1,
+                RoomId = 4,
+                CreatedByUserId = 5,
+                SmartboardId = 4,
+                StartTime = DateTime.Now.AddDays(3).AddHours(8),
+                EndTime = DateTime.Now.AddDays(3).AddHours(10),
+                Status = BookingStatus.Cancelled
             }
         };
         context.Booking.AddRange(bookings);
