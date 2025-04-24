@@ -40,6 +40,19 @@ namespace DM2Projekt.Pages.Bookings
             //    return Page();
             //}
 
+            ViewData["GroupId"] = new SelectList(_context.Group, "GroupId", "GroupName");
+            ViewData["RoomId"] = new SelectList(_context.Room, "RoomId", "RoomName");
+            ViewData["SmartboardId"] = new SelectList(_context.Smartboard, "SmartboardId", "SmartboardId");
+            ViewData["CreatedByUserId"] = new SelectList(_context.User, "UserId", "Email");
+
+            // Begræns booking til max 2 timer
+            TimeSpan bookingLength = Booking.EndTime - Booking.StartTime;
+            if (bookingLength.TotalHours > 2)
+            {
+                ModelState.AddModelError(string.Empty, "En booking må maksimalt vare 2 timer.");
+                return Page();
+            }
+
             _context.Booking.Add(Booking);
             await _context.SaveChangesAsync();
 
@@ -59,6 +72,5 @@ namespace DM2Projekt.Pages.Bookings
 
             return new JsonResult(smartboards);
         }
-
     }
 }
