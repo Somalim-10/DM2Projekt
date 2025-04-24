@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using DM2Projekt.Data;
 using DM2Projekt.Models;
+using DM2Projekt.Models.Enums;
 
 namespace DM2Projekt.Pages.Bookings
 {
@@ -32,19 +33,26 @@ namespace DM2Projekt.Pages.Bookings
         [BindProperty]
         public Booking Booking { get; set; } = default!;
 
-        // For more information, see https://aka.ms/RazorPagesCRUD.
+        [BindProperty]
+        public string SelectedTimeSlot { get; set; } = default!;
+
         public async Task<IActionResult> OnPostAsync()
         {
-            //if (!ModelState.IsValid)
-            //{
-            //    return Page();
-            //}
+            if (!DateTime.TryParse(SelectedTimeSlot, out var startTime))
+            {
+                ModelState.AddModelError("SelectedTimeSlot", "Invalid time slot selected.");
+                return Page();
+            }
+
+            Booking.StartTime = startTime;
+            Booking.EndTime = startTime.AddHours(2);
 
             _context.Booking.Add(Booking);
             await _context.SaveChangesAsync();
 
             return RedirectToPage("./Index");
         }
+
 
         public JsonResult OnGetSmartboardsByRoom(int roomId)
         {
@@ -59,6 +67,61 @@ namespace DM2Projekt.Pages.Bookings
 
             return new JsonResult(smartboards);
         }
+
+        public JsonResult OnGetAvailableTimeSlots(int roomId, DateTime date)
+        {
+            var room = _context.Room.FirstOrDefault(r => r.RoomId == roomId);
+            if (room == null)
+                return new JsonResult(new { error = "Room not found" });
+
+            var slots = GetFixedTimeSlots(date);
+
+            var bookings = _context.Booking
+                .Where(b => b.RoomId == roomId &&
+                            b.StartTime.Date == date.Date)
+                .ToList();
+
+            var availableSlots = new List<object>();
+
+            foreach (var slot in slots)
+            {
+                var bookingsInSlot = bookings.Count(b =>
+                    b.StartTime == slot.start && b.EndTime == slot.end);
+
+                bool isAvailable = room.RoomType switch
+                {
+                    RoomType.Classroom => bookingsInSlot < 2,
+                    RoomType.MeetingRoom => bookingsInSlot < 1,
+                    _ => false
+                };
+
+                if (isAvailable)
+                {
+                    availableSlots.Add(new
+                    {
+                        start = slot.start.ToString("HH:mm"),
+                        end = slot.end.ToString("HH:mm"),
+                        value = slot.start.ToString("o")
+                    });
+
+                }
+            }
+
+            return new JsonResult(availableSlots);
+        }
+
+        private static List<(DateTime start, DateTime end)> GetFixedTimeSlots(DateTime day)
+        {
+            var date = day.Date;
+            return new List<(DateTime, DateTime)>
+    {
+        (date.AddHours(8), date.AddHours(10)),
+        (date.AddHours(10), date.AddHours(12)),
+        (date.AddHours(12), date.AddHours(14)),
+        (date.AddHours(14), date.AddHours(16))
+    };
+        }
+
 
     }
 }

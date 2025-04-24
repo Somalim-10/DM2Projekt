@@ -15,22 +15,18 @@
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
 
             <div class="form-group">
-                <span class="text-danger">*</span>
                 <label asp-for="Booking.GroupId" class="control-label"></label>
                 <select asp-for="Booking.GroupId" class="form-control" asp-items="ViewBag.GroupId"></select>
             </div>
 
             <div class="form-group">
-                <span class="text-danger">*</span>
                 <label asp-for="Booking.RoomId" class="control-label"></label>
-                <select asp-for="Booking.RoomId" class="form-control" asp-items="ViewBag.RoomId"></select>
+                <select asp-for="Booking.RoomId" class="form-control" asp-items="ViewBag.RoomId" id="Booking_RoomId"></select>
             </div>
 
             <div class="form-group">
-                <span class="text-danger">*</span>
                 <label asp-for="Booking.CreatedByUserId" class="control-label"></label>
                 <select asp-for="Booking.CreatedByUserId" class="form-control" asp-items="ViewBag.CreatedByUserId"></select>
-                <span asp-validation-for="Booking.CreatedByUserId" class="text-danger"></span>
             </div>
 
             <div class="form-group" id="SmartboardWrapper">
@@ -43,26 +39,37 @@
             </div>
 
             <div class="form-group">
-                <span class="text-danger">*</span>
-                <label asp-for="Booking.StartTime" class="control-label"></label>
-                <input asp-for="Booking.StartTime" class="form-control" />
-                <span asp-validation-for="Booking.StartTime" class="text-danger"></span>
+                <label for="weekStart">Week (starting Monday)</label>
+                <input type="date" id="weekStart" class="form-control" />
             </div>
 
             <div class="form-group">
-                <span class="text-danger">*</span>
-                <label asp-for="Booking.EndTime" class="control-label"></label>
-                <input asp-for="Booking.EndTime" class="form-control" />
-                <span asp-validation-for="Booking.EndTime" class="text-danger"></span>
+                <label for="dayOfWeek">Day</label>
+                <select id="dayOfWeek" class="form-control">
+                    <option value="">-- Select Day --</option>
+                    <option value="1">Monday</option>
+                    <option value="2">Tuesday</option>
+                    <option value="3">Wednesday</option>
+                    <option value="4">Thursday</option>
+                    <option value="5">Friday</option>
+                </select>
             </div>
 
             <div class="form-group">
-                <span class="text-danger">*</span>
+                <label for="timeSlot">Available Time Slots</label>
+                <select id="timeSlot" class="form-control" name="SelectedTimeSlot">
+                    <option value="">-- Select Room + Day --</option>
+                </select>
+            </div>
+
+            <input type="hidden" asp-for="Booking.StartTime" />
+            <input type="hidden" asp-for="Booking.EndTime" />
+
+            <div class="form-group">
                 <label asp-for="Booking.Status" class="control-label"></label>
                 <select asp-for="Booking.Status" class="form-control"
-                        asp-items="Html.GetEnumSelectList<DM2Projekt.Models.Enums.BookingStatus>()">
+                asp-items="Html.GetEnumSelectList<DM2Projekt.Models.Enums.BookingStatus>()">
                 </select>
-                <span asp-validation-for="Booking.Status" class="text-danger"></span>
             </div>
 
             <div class="form-group">
@@ -88,6 +95,12 @@
             const smartboardWrapper = document.getElementById("SmartboardWrapper");
             const noSmartboardMsg = document.getElementById("NoSmartboardMessage");
 
+            const weekStartInput = document.querySelector("#weekStart");
+            const dayOfWeekSelect = document.querySelector("#dayOfWeek");
+            const timeSlotSelect = document.querySelector("#timeSlot");
+            const startInput = document.querySelector("#Booking_StartTime");
+            const endInput = document.querySelector("#Booking_EndTime");
+
             function loadSmartboards(roomId) {
                 smartboardSelect.innerHTML = '';
                 smartboardSelect.style.display = 'none';
@@ -96,15 +109,10 @@
                 fetch(`?handler=SmartboardsByRoom&roomId=${roomId}`)
                     .then(response => response.json())
                     .then(data => {
-                        smartboardSelect.innerHTML = '';
-
                         if (data.length === 0) {
                             noSmartboardMsg.style.display = 'block';
                         } else {
-                            // Show dropdown and populate
                             smartboardSelect.style.display = 'block';
-
-                            // Add opt-out
                             const optOut = document.createElement("option");
                             optOut.value = "";
                             optOut.textContent = "-- I don't want a smartboard --";
@@ -117,26 +125,59 @@
                                 smartboardSelect.appendChild(option);
                             });
                         }
-                    })
-                    .catch(error => {
-                        console.error("Error loading smartboards:", error);
-                        noSmartboardMsg.textContent = "Error loading smartboards.";
-                        noSmartboardMsg.style.display = 'block';
+                    });
+            }
+
+            function fetchAvailableTimeSlots() {
+                const roomId = roomSelect.value;
+                const weekStart = weekStartInput.value;
+                const dayOfWeek = parseInt(dayOfWeekSelect.value);
+
+                if (!roomId || !weekStart || !dayOfWeek) {
+                    timeSlotSelect.innerHTML = '<option value="">-- Select Room + Day --</option>';
+                    return;
+                }
+
+                const date = new Date(weekStart);
+                date.setDate(date.getDate() + (dayOfWeek - 1));
+                const isoDate = date.toISOString().split('T')[0];
+
+                fetch(`?handler=AvailableTimeSlots&roomId=${roomId}&date=${isoDate}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        timeSlotSelect.innerHTML = '';
+                        if (data.length === 0) {
+                            timeSlotSelect.innerHTML = '<option value="">No available slots</option>';
+                            return;
+                        }
+
+                        data.forEach(slot => {
+                            const option = document.createElement("option");
+                                    option.value = slot.value;
+        option.textContent = `${slot.start} - ${slot.end}`;
+
+                            timeSlotSelect.appendChild(option);
+                        });
                     });
             }
 
             roomSelect.addEventListener("change", function () {
-                const roomId = this.value;
-                if (roomId) {
-                    loadSmartboards(roomId);
-                } else {
-                    smartboardSelect.innerHTML = '<option value="">-- Select Room First --</option>';
-                    smartboardSelect.style.display = 'block';
-                    noSmartboardMsg.style.display = 'none';
+                loadSmartboards(this.value);
+                fetchAvailableTimeSlots();
+            });
+            weekStartInput.addEventListener("change", fetchAvailableTimeSlots);
+            dayOfWeekSelect.addEventListener("change", fetchAvailableTimeSlots);
+
+            timeSlotSelect.addEventListener("change", function () {
+                const start = this.value;
+                if (start) {
+                    const startDate = new Date(start);
+                    const endDate = new Date(startDate.getTime() + 2 * 60 * 60 * 1000);
+                    startInput.value = startDate.toISOString();
+                    endInput.value = endDate.toISOString();
                 }
             });
 
-            // Trigger on load
             if (roomSelect.value) {
                 roomSelect.dispatchEvent(new Event("change"));
             }
