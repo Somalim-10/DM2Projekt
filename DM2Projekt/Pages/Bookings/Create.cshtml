@@ -31,16 +31,15 @@
 
             <div class="form-group" id="SmartboardWrapper">
                 <label asp-for="Booking.SmartboardId" class="control-label"></label>
-                <select name="Booking.SmartboardId" class="form-control" id="SmartboardSelect" style="display: none;">
-                </select>
+                <select name="Booking.SmartboardId" class="form-control" id="SmartboardSelect" style="display: none;"></select>
                 <span id="NoSmartboardMessage" class="form-text text-muted" style="display: none;">
                     No smartboard is available for the selected room.
                 </span>
             </div>
 
             <div class="form-group">
-                <label for="weekStart">Week (starting Monday)</label>
-                <input type="date" id="weekStart" class="form-control" />
+                <label for="weekPicker">Week</label>
+                <input type="week" id="weekPicker" class="form-control" />
             </div>
 
             <div class="form-group">
@@ -68,7 +67,7 @@
             <div class="form-group">
                 <label asp-for="Booking.Status" class="control-label"></label>
                 <select asp-for="Booking.Status" class="form-control"
-                asp-items="Html.GetEnumSelectList<DM2Projekt.Models.Enums.BookingStatus>()">
+                        asp-items="Html.GetEnumSelectList<DM2Projekt.Models.Enums.BookingStatus>()">
                 </select>
             </div>
 
@@ -92,14 +91,23 @@
         document.addEventListener("DOMContentLoaded", function () {
             const roomSelect = document.querySelector("#Booking_RoomId");
             const smartboardSelect = document.querySelector("#SmartboardSelect");
-            const smartboardWrapper = document.getElementById("SmartboardWrapper");
             const noSmartboardMsg = document.getElementById("NoSmartboardMessage");
 
-            const weekStartInput = document.querySelector("#weekStart");
+            const weekPicker = document.querySelector("#weekPicker");
             const dayOfWeekSelect = document.querySelector("#dayOfWeek");
             const timeSlotSelect = document.querySelector("#timeSlot");
             const startInput = document.querySelector("#Booking_StartTime");
             const endInput = document.querySelector("#Booking_EndTime");
+
+            function getMondayOfSelectedWeek(weekValue) {
+                const [year, week] = weekValue.split("-W").map(Number);
+                const firstJan = new Date(year, 0, 1);
+                const daysOffset = ((firstJan.getDay() + 6) % 7); // adjust for Monday
+                const dayOffset = ((week - 1) * 7);
+                const monday = new Date(firstJan);
+                monday.setDate(firstJan.getDate() - daysOffset + dayOffset + 1);
+                return monday;
+            }
 
             function loadSmartboards(roomId) {
                 smartboardSelect.innerHTML = '';
@@ -130,17 +138,17 @@
 
             function fetchAvailableTimeSlots() {
                 const roomId = roomSelect.value;
-                const weekStart = weekStartInput.value;
+                const weekValue = weekPicker.value;
                 const dayOfWeek = parseInt(dayOfWeekSelect.value);
 
-                if (!roomId || !weekStart || !dayOfWeek) {
+                if (!roomId || !weekValue || !dayOfWeek) {
                     timeSlotSelect.innerHTML = '<option value="">-- Select Room + Day --</option>';
                     return;
                 }
 
-                const date = new Date(weekStart);
-                date.setDate(date.getDate() + (dayOfWeek - 1));
-                const isoDate = date.toISOString().split('T')[0];
+                const baseMonday = getMondayOfSelectedWeek(weekValue);
+                baseMonday.setDate(baseMonday.getDate() + (dayOfWeek - 1));
+                const isoDate = baseMonday.toISOString().split('T')[0];
 
                 fetch(`?handler=AvailableTimeSlots&roomId=${roomId}&date=${isoDate}`)
                     .then(response => response.json())
@@ -153,9 +161,8 @@
 
                         data.forEach(slot => {
                             const option = document.createElement("option");
-                                    option.value = slot.value;
-        option.textContent = `${slot.start} - ${slot.end}`;
-
+                            option.value = slot.value;
+                            option.textContent = `${slot.start} - ${slot.end}`;
                             timeSlotSelect.appendChild(option);
                         });
                     });
@@ -165,7 +172,7 @@
                 loadSmartboards(this.value);
                 fetchAvailableTimeSlots();
             });
-            weekStartInput.addEventListener("change", fetchAvailableTimeSlots);
+            weekPicker.addEventListener("change", fetchAvailableTimeSlots);
             dayOfWeekSelect.addEventListener("change", fetchAvailableTimeSlots);
 
             timeSlotSelect.addEventListener("change", function () {
