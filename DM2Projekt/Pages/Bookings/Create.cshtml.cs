@@ -45,15 +45,6 @@ namespace DM2Projekt.Pages.Bookings
 
             if (!ModelState.IsValid)
             {
-                // Debug output (can remove later)
-                foreach (var entry in ModelState)
-                {
-                    foreach (var error in entry.Value.Errors)
-                    {
-                        Console.WriteLine($"Model error in '{entry.Key}': {error.ErrorMessage}");
-                    }
-                }
-
                 PopulateDropdowns();
                 return Page();
             }
@@ -73,8 +64,6 @@ namespace DM2Projekt.Pages.Bookings
 
             return RedirectToPage("./Index");
         }
-
-
 
         public JsonResult OnGetAvailableTimeSlots(int roomId, DateTime date)
         {
@@ -260,7 +249,5 @@ namespace DM2Projekt.Pages.Bookings
 
             return new JsonResult(smartboardUsed);
         }
-
-
     }
 }

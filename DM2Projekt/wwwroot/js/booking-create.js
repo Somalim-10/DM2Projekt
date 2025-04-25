@@ -28,7 +28,6 @@
         const selectedDate = getSelectedDate();
 
         if (!roomId || !selectedDate) {
-            timeSlotSelect.innerHTML = '<option value="">-- Select Room + Day --</option>';
             smartboardCheckboxContainer.style.display = "none";
             smartboardCheckbox.checked = false;
             return;
