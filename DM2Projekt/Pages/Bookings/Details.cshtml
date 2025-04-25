@@ -16,12 +16,7 @@
     <dt class="col-sm-3">Room</dt>
     <dd class="col-sm-9">@Model.Booking.Room.RoomName</dd>
 
-    <dt class="col-sm-3">Smartboard</dt>
-    <dd class="col-sm-9">
-        @(Model.Booking.Smartboard != null
-            ? $"Smartboard #{Model.Booking.Smartboard.SmartboardId}"
-            : "None")
-    </dd>
+    
 
     <dt class="col-sm-3">Start Time</dt>
     <dd class="col-sm-9">@Model.Booking.StartTime.ToString("g")</dd>

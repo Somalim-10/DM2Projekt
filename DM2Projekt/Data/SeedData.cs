@@ -50,24 +50,13 @@ public static class SeedData
         // Rooms
         var rooms = new List<Room>
         {
-            new() { RoomName = "Meeting Room 1",   RoomType = RoomType.MeetingRoom},
+            new() { RoomName = "Meeting Room 1", RoomType = RoomType.MeetingRoom },
             new() { RoomName = "Classroom 101", RoomType = RoomType.Classroom }
         };
         context.Room.AddRange(rooms);
         context.SaveChanges();
 
-        // Smartboards
-        var smartboards = new List<Smartboard>
-        {
-            new() { RoomId = 1, IsAvailable = true },
-            new() { RoomId = 2, IsAvailable = false },
-            new() { RoomId = 3, IsAvailable = true },
-            new() { RoomId = 4, IsAvailable = true }
-        };
-        context.Smartboard.AddRange(smartboards);
-        context.SaveChanges();
-
-        // Bookings
+        // Bookings (now using the UsesSmartboard flag)
         var bookings = new List<Booking>
         {
             new()
@@ -75,36 +64,27 @@ public static class SeedData
                 GroupId = 1,
                 RoomId = 1,
                 CreatedByUserId = 1,
-                SmartboardId = 1,
                 StartTime = DateTime.Now.AddDays(1).AddHours(9),
                 EndTime = DateTime.Now.AddDays(1).AddHours(11),
+                UsesSmartboard = true // Meeting room, always true
             },
             new()
             {
                 GroupId = 2,
                 RoomId = 2,
                 CreatedByUserId = 1,
-                SmartboardId = null,
                 StartTime = DateTime.Now.AddDays(2).AddHours(13),
                 EndTime = DateTime.Now.AddDays(2).AddHours(15),
+                UsesSmartboard = false // Classroom, but didn't book smartboard
             },
             new()
             {
                 GroupId = 3,
-                RoomId = 3,
+                RoomId = 2,
                 CreatedByUserId = 4,
-                SmartboardId = 3,
                 StartTime = DateTime.Now.AddDays(1).AddHours(10),
                 EndTime = DateTime.Now.AddDays(1).AddHours(12),
-            },
-            new()
-            {
-                GroupId = 1,
-                RoomId = 4,
-                CreatedByUserId = 5,
-                SmartboardId = 4,
-                StartTime = DateTime.Now.AddDays(3).AddHours(8),
-                EndTime = DateTime.Now.AddDays(3).AddHours(10),
+                UsesSmartboard = true // Classroom, smartboard booked
             }
         };
         context.Booking.AddRange(bookings);

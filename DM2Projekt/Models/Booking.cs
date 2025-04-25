@@ -17,18 +17,15 @@ public class Booking
     [Required]
     public int CreatedByUserId { get; set; }
 
-    public int? SmartboardId { get; set; }
-
     [Required]
     public DateTime StartTime { get; set; }
 
     [Required]
     public DateTime EndTime { get; set; }
 
+    public bool UsesSmartboard { get; set; }
 
-    // Navigation properties
     public Room Room { get; set; }
     public User CreatedByUser { get; set; }
     public Group Group { get; set; }
-    public Smartboard? Smartboard { get; set; }
 }

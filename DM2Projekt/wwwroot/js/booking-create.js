@@ -1,14 +1,13 @@
 ﻿document.addEventListener("DOMContentLoaded", () => {
     const roomSelect = document.getElementById("Booking_RoomId");
-    const smartboardSelect = document.getElementById("SmartboardSelect");
-    const noSmartboardMsg = document.getElementById("NoSmartboardMessage");
-
     const weekPicker = document.getElementById("weekPicker");
     const dayOfWeekSelect = document.getElementById("dayOfWeek");
     const timeSlotSelect = document.getElementById("timeSlot");
 
     const startInput = document.getElementById("Booking_StartTime");
     const endInput = document.getElementById("Booking_EndTime");
+    const smartboardCheckboxContainer = document.getElementById("smartboardCheckboxContainer");
+    const smartboardCheckbox = document.getElementById("Booking_UsesSmartboard");
 
     function getSelectedDate() {
         const week = weekPicker.value;
@@ -26,34 +25,14 @@
         return monday;
     }
 
-    function updateSmartboardOptions(roomId) {
-        smartboardSelect.style.display = 'none';
-        noSmartboardMsg.style.display = 'none';
-        smartboardSelect.innerHTML = '';
-
-        fetch(`?handler=SmartboardsByRoom&roomId=${roomId}`)
-            .then(res => res.json())
-            .then(data => {
-                if (!data.length) {
-                    noSmartboardMsg.style.display = 'block';
-                    return;
-                }
-
-                smartboardSelect.style.display = 'block';
-                smartboardSelect.appendChild(new Option("-- I don't want a smartboard --", ""));
-
-                data.forEach(sb => {
-                    smartboardSelect.appendChild(new Option(sb.display, sb.smartboardId));
-                });
-            });
-    }
-
     function updateAvailableTimeSlots() {
         const roomId = roomSelect.value;
         const selectedDate = getSelectedDate();
 
         if (!roomId || !selectedDate) {
             timeSlotSelect.innerHTML = '<option value="">-- Select Room + Day --</option>';
+            smartboardCheckboxContainer.style.display = "none";
+            smartboardCheckbox.checked = false;
             return;
         }
 
@@ -72,6 +51,40 @@
                     const option = new Option(`${slot.start} - ${slot.end}`, slot.value);
                     timeSlotSelect.appendChild(option);
                 });
+
+                // Try to determine room type (use a separate request)
+                fetch(`?handler=RoomType&roomId=${roomId}`) // YOU MUST implement this endpoint
+                    .then(res => res.json())
+                    .then(room => {
+                        const isClassroom = room.roomType === "Classroom";
+
+                        if (isClassroom) {
+                            smartboardCheckboxContainer.style.display = "block";
+                            smartboardCheckbox.checked = false;
+
+                            // Check if smartboard already booked in this slot
+                            timeSlotSelect.addEventListener("change", () => {
+                                const selectedSlot = timeSlotSelect.value;
+                                if (!selectedSlot) {
+                                    smartboardCheckboxContainer.style.display = "none";
+                                    return;
+                                }
+
+                                const startTime = new Date(selectedSlot);
+                                const endTime = new Date(startTime.getTime() + 2 * 60 * 60 * 1000);
+
+                                fetch(`?handler=SmartboardCheck&roomId=${roomId}&start=${startTime.toISOString()}&end=${endTime.toISOString()}`)
+                                    .then(res => res.json())
+                                    .then(isAlreadyBooked => {
+                                        smartboardCheckbox.disabled = isAlreadyBooked;
+                                        if (isAlreadyBooked) smartboardCheckbox.checked = false;
+                                    });
+                            });
+                        } else {
+                            smartboardCheckboxContainer.style.display = "none";
+                            smartboardCheckbox.checked = false;
+                        }
+                    });
             });
     }
 
@@ -86,14 +99,9 @@
     }
 
     // Event Listeners
-    roomSelect.addEventListener("change", () => {
-        updateSmartboardOptions(roomSelect.value);
-        updateAvailableTimeSlots();
-    });
-
+    roomSelect.addEventListener("change", updateAvailableTimeSlots);
     weekPicker.addEventListener("change", updateAvailableTimeSlots);
     dayOfWeekSelect.addEventListener("change", updateAvailableTimeSlots);
-
     timeSlotSelect.addEventListener("change", () => {
         updateHiddenTimeInputs(timeSlotSelect.value);
     });

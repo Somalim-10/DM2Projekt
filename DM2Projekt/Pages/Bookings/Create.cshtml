@@ -5,7 +5,7 @@
     ViewData["Title"] = "Create Booking";
 }
 
-<h2 class="mb-4">Create New Booking</h2>
+<h2 class="mb-4">Create Booking</h2>
 
 <form method="post">
     <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
@@ -13,45 +13,40 @@
     <fieldset class="border p-3 mb-4">
         <legend class="w-auto px-2">Booking Info</legend>
 
-        <div class="form-group">
-            <label asp-for="Booking.GroupId"></label>
+        <div class="form-group mb-3">
+            <label asp-for="Booking.GroupId" class="form-label"></label>
             <select asp-for="Booking.GroupId" class="form-control" asp-items="ViewBag.GroupId">
-                <option disabled selected value="">-- Select Group --</option>
+                <option value="">-- Select Group --</option>
             </select>
+            <span asp-validation-for="Booking.GroupId" class="text-danger"></span>
         </div>
 
-        <div class="form-group">
-            <label asp-for="Booking.RoomId"></label>
+        <div class="form-group mb-3">
+            <label asp-for="Booking.RoomId" class="form-label"></label>
             <select asp-for="Booking.RoomId" class="form-control" asp-items="ViewBag.RoomId" id="Booking_RoomId">
-                <option disabled selected value="">-- Select Room --</option>
+                <option value="">-- Select Room --</option>
             </select>
+            <span asp-validation-for="Booking.RoomId" class="text-danger"></span>
         </div>
 
-        <div class="form-group">
-            <label asp-for="Booking.CreatedByUserId"></label>
+        <div class="form-group mb-3">
+            <label asp-for="Booking.CreatedByUserId" class="form-label"></label>
             <select asp-for="Booking.CreatedByUserId" class="form-control" asp-items="ViewBag.CreatedByUserId">
-                <option disabled selected value="">-- Select User --</option>
+                <option value="">-- Select User --</option>
             </select>
-        </div>
-
-        <div class="form-group" id="SmartboardWrapper">
-            <label asp-for="Booking.SmartboardId"></label>
-            <select name="Booking.SmartboardId" class="form-control" id="SmartboardSelect" style="display: none;"></select>
-            <small id="NoSmartboardMessage" class="form-text text-muted" style="display: none;">
-                No smartboard is available for the selected room.
-            </small>
+            <span asp-validation-for="Booking.CreatedByUserId" class="text-danger"></span>
         </div>
     </fieldset>
 
     <fieldset class="border p-3 mb-4">
         <legend class="w-auto px-2">Time Selection</legend>
 
-        <div class="form-group">
+        <div class="form-group mb-3">
             <label for="weekPicker">Week</label>
             <input type="week" id="weekPicker" class="form-control" />
         </div>
 
-        <div class="form-group">
+        <div class="form-group mb-3">
             <label for="dayOfWeek">Day</label>
             <select id="dayOfWeek" class="form-control">
                 <option value="">-- Select Day --</option>
@@ -63,25 +58,35 @@
             </select>
         </div>
 
-        <div class="form-group">
+        <div class="form-group mb-3">
             <label for="timeSlot">Available Time Slots</label>
             <select id="timeSlot" class="form-control" name="SelectedTimeSlot">
                 <option value="">-- Select Room + Day --</option>
             </select>
+            <span asp-validation-for="SelectedTimeSlot" class="text-danger"></span>
+        </div>
+
+        <div class="form-group" id="smartboardCheckboxContainer" style="display: none;">
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" asp-for="Booking.UsesSmartboard" id="Booking_UsesSmartboard" />
+                <label class="form-check-label" for="Booking_UsesSmartboard">
+                    Book Smartboard (only one group per slot)
+                </label>
+            </div>
+            <span asp-validation-for="Booking.UsesSmartboard" class="text-danger"></span>
         </div>
     </fieldset>
 
     <input type="hidden" asp-for="Booking.StartTime" />
     <input type="hidden" asp-for="Booking.EndTime" />
 
-    <div class="form-group text-right">
-        <input type="submit" value="Create Booking" class="btn btn-success" />
+    <div class="text-end">
+        <button type="submit" class="btn btn-success">Create</button>
+        <a asp-page="Index" class="btn btn-secondary ms-2">Cancel</a>
     </div>
 </form>
 
-<a asp-page="Index" class="btn btn-link">← Back to List</a>
-
 @section Scripts {
-    @await Html.PartialAsync("_ValidationScriptsPartial")
     <script src="~/js/booking-create.js"></script>
+    @await Html.PartialAsync("_ValidationScriptsPartial")
 }

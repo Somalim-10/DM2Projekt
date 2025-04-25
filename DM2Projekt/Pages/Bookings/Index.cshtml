@@ -34,27 +34,27 @@
             <tr>
                 <td>@item.Group.GroupName</td>
                 <td>@item.Room.RoomName</td>
+
                 <td>
-                    @if (item.Smartboard != null)
+                    @if (item.UsesSmartboard)
                     {
-                        <span class="badge bg-secondary" title="Smartboard assigned">
-                            Smartboard #@item.Smartboard.SmartboardId
-                        </span>
+                        <span class="text-success fw-bold">✔️ Yes</span>
                     }
                     else
                     {
-                        <span class="text-muted" title="No smartboard selected">
-                            <i class="bi bi-dash-circle"></i> None
-                        </span>
+                        <span class="text-muted">❌ No</span>
                     }
                 </td>
+
                 <td>
                     <strong>@item.StartTime.ToString("ddd, dd MMM")</strong><br />
                     <small class="text-muted">
                         @item.StartTime.ToString("HH:mm") – @item.EndTime.ToString("HH:mm")
                     </small>
                 </td>
+
                 <td>@item.CreatedByUser.Email</td>
+
                 <td>
                     @if (isOngoing)
                     {
@@ -69,6 +69,7 @@
                         <span class="badge bg-secondary">Past</span>
                     }
                 </td>
+
                 <td class="text-center">
                     <a asp-page="./Details" asp-route-id="@item.BookingId" class="btn btn-sm btn-outline-primary" title="View full details">
                         <i class="bi bi-eye"></i> View

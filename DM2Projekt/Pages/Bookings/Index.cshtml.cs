@@ -26,7 +26,6 @@ namespace DM2Projekt.Pages.Bookings
             Booking = await _context.Booking
                 .Include(b => b.Group)
                 .Include(b => b.Room)
-                .Include(b => b.Smartboard)
                 .Include(b => b.CreatedByUser)
                 .OrderBy(b => b.StartTime)
                 .ToListAsync();
