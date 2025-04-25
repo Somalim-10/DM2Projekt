@@ -10,6 +10,14 @@ builder.Services.AddDbContext<DM2ProjektContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DM2ProjektContext")
         ?? throw new InvalidOperationException("Connection string 'DM2ProjektContext' not found.")));
 
+// Add session support
+builder.Services.AddSession(options =>
+{
+    options.IdleTimeout = TimeSpan.FromMinutes(30);
+    options.Cookie.HttpOnly = true;
+    options.Cookie.IsEssential = true;
+});
+
 var app = builder.Build();
 
 // Apply migrations and seed data
@@ -33,6 +41,10 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 
 app.UseRouting();
+
+// Enable session middleware
+app.UseSession();
+
 app.UseAuthorization();
 
 app.MapRazorPages();

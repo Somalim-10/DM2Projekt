@@ -17,12 +17,12 @@ public static class SeedData
         // Users
         var users = new List<User>
         {
-            new() { FirstName = "Alice", LastName = "Johnson", Email = "alice.johnson@example.com", Role = Role.Teacher },
-            new() { FirstName = "Bob", LastName = "Martinez", Email = "bob.martinez@example.com", Role = Role.Student },
-            new() { FirstName = "Charlie", LastName = "Nguyen", Email = "charlie.nguyen@example.com", Role = Role.Student },
-            new() { FirstName = "Diana", LastName = "Reed", Email = "diana.reed@example.com", Role = Role.Teacher },
-            new() { FirstName = "Edward", LastName = "Kim", Email = "edward.kim@example.com", Role = Role.Teacher },
-            new() { FirstName = "Fiona", LastName = "Bennett", Email = "fiona.bennett@example.com", Role = Role.Student }
+            new() { FirstName = "Alice", LastName = "Johnson", Email = "alice.johnson@example.com", Password = "password1", Role = Role.Teacher },
+            new() { FirstName = "Bob", LastName = "Martinez", Email = "bob.martinez@example.com", Password = "password2", Role = Role.Student },
+            new() { FirstName = "Charlie", LastName = "Nguyen", Email = "charlie.nguyen@example.com", Password = "password3", Role = Role.Student },
+            new() { FirstName = "Diana", LastName = "Reed", Email = "diana.reed@example.com", Password = "password4", Role = Role.Teacher },
+            new() { FirstName = "Edward", LastName = "Kim", Email = "edward.kim@example.com", Password = "password5", Role = Role.Teacher },
+            new() { FirstName = "Fiona", LastName = "Bennett", Email = "fiona.bennett@example.com", Password = "password6", Role = Role.Student }
         };
         context.User.AddRange(users);
 
@@ -56,7 +56,7 @@ public static class SeedData
         context.Room.AddRange(rooms);
         context.SaveChanges();
 
-        // Bookings (now using the UsesSmartboard flag)
+        // Bookings
         var bookings = new List<Booking>
         {
             new()
@@ -66,7 +66,7 @@ public static class SeedData
                 CreatedByUserId = 1,
                 StartTime = DateTime.Now.AddDays(1).AddHours(9),
                 EndTime = DateTime.Now.AddDays(1).AddHours(11),
-                UsesSmartboard = true // Meeting room, always true
+                UsesSmartboard = true
             },
             new()
             {
@@ -75,7 +75,7 @@ public static class SeedData
                 CreatedByUserId = 1,
                 StartTime = DateTime.Now.AddDays(2).AddHours(13),
                 EndTime = DateTime.Now.AddDays(2).AddHours(15),
-                UsesSmartboard = false // Classroom, but didn't book smartboard
+                UsesSmartboard = false
             },
             new()
             {
@@ -84,7 +84,7 @@ public static class SeedData
                 CreatedByUserId = 4,
                 StartTime = DateTime.Now.AddDays(1).AddHours(10),
                 EndTime = DateTime.Now.AddDays(1).AddHours(12),
-                UsesSmartboard = true // Classroom, smartboard booked
+                UsesSmartboard = true
             }
         };
         context.Booking.AddRange(bookings);
