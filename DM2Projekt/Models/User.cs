@@ -20,6 +20,9 @@ public class User
     [Required]
     public Role Role { get; set; }
 
+    [Required]
+    public string Password { get; set; }
+
     public ICollection<UserGroup> UserGroups { get; set; } = [];
     public ICollection<Booking> Bookings { get; set; } = [];
 }
