@@ -1,92 +1,66 @@
 ﻿@page
 @model DM2Projekt.Pages.Bookings.CreateModel
-
 @{
     ViewData["Title"] = "Create Booking";
 }
 
-<h2 class="mb-4">Create Booking</h2>
+<h1>Create Booking</h1>
 
 <form method="post">
-    <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+    <div asp-validation-summary="All" class="text-danger"></div>
 
-    <fieldset class="border p-3 mb-4">
-        <legend class="w-auto px-2">Booking Info</legend>
-
-        <div class="form-group mb-3">
-            <label asp-for="Booking.GroupId" class="form-label"></label>
-            <select asp-for="Booking.GroupId" class="form-control" asp-items="ViewBag.GroupId">
-                <option value="">-- Select Group --</option>
-            </select>
-            <span asp-validation-for="Booking.GroupId" class="text-danger"></span>
-        </div>
-
-        <div class="form-group mb-3">
-            <label asp-for="Booking.RoomId" class="form-label"></label>
-            <select asp-for="Booking.RoomId" class="form-control" asp-items="ViewBag.RoomId" id="Booking_RoomId">
-                <option value="">-- Select Room --</option>
-            </select>
-            <span asp-validation-for="Booking.RoomId" class="text-danger"></span>
-        </div>
-
-        <div class="form-group mb-3">
-            <label asp-for="Booking.CreatedByUserId" class="form-label"></label>
-            <select asp-for="Booking.CreatedByUserId" class="form-control" asp-items="ViewBag.CreatedByUserId">
-                <option value="">-- Select User --</option>
-            </select>
-            <span asp-validation-for="Booking.CreatedByUserId" class="text-danger"></span>
-        </div>
-    </fieldset>
-
-    <fieldset class="border p-3 mb-4">
-        <legend class="w-auto px-2">Time Selection</legend>
-
-        <div class="form-group mb-3">
-            <label for="weekPicker">Week</label>
-            <input type="week" id="weekPicker" class="form-control" />
-        </div>
-
-        <div class="form-group mb-3">
-            <label for="dayOfWeek">Day</label>
-            <select id="dayOfWeek" class="form-control">
-                <option value="">-- Select Day --</option>
-                <option value="1">Monday</option>
-                <option value="2">Tuesday</option>
-                <option value="3">Wednesday</option>
-                <option value="4">Thursday</option>
-                <option value="5">Friday</option>
-            </select>
-        </div>
-
-        <div class="form-group mb-3">
-            <label for="timeSlot">Available Time Slots</label>
-            <select id="timeSlot" class="form-control" name="SelectedTimeSlot">
-                <option value="">-- Select Room + Day --</option>
-            </select>
-            <span asp-validation-for="SelectedTimeSlot" class="text-danger"></span>
-        </div>
-
-        <div class="form-group" id="smartboardCheckboxContainer" style="display: none;">
-            <div class="form-check">
-                <input class="form-check-input" type="checkbox" asp-for="Booking.UsesSmartboard" id="Booking_UsesSmartboard" />
-                <label class="form-check-label" for="Booking_UsesSmartboard">
-                    Book Smartboard (only one group per slot)
-                </label>
-            </div>
-            <span asp-validation-for="Booking.UsesSmartboard" class="text-danger"></span>
-        </div>
-    </fieldset>
-
-    <input type="hidden" asp-for="Booking.StartTime" />
-    <input type="hidden" asp-for="Booking.EndTime" />
-
-    <div class="text-end">
-        <button type="submit" class="btn btn-success">Create</button>
-        <a asp-page="Index" class="btn btn-secondary ms-2">Cancel</a>
+    <div class="form-group">
+        <label asp-for="Booking.GroupId"></label>
+        <select asp-for="Booking.GroupId" class="form-control" asp-items="ViewBag.GroupId"></select>
     </div>
+
+    <div class="form-group">
+        <label asp-for="Booking.CreatedByUserId"></label>
+        <select asp-for="Booking.CreatedByUserId" class="form-control" asp-items="ViewBag.CreatedByUserId"></select>
+    </div>
+
+    <div class="form-group">
+        <label asp-for="Booking.RoomId"></label>
+        <select asp-for="Booking.RoomId" class="form-control" asp-items="ViewBag.RoomId" id="Booking_RoomId"></select>
+    </div>
+
+    <div class="form-group">
+        <label>Week</label>
+        <input type="week" id="weekPicker" class="form-control" />
+    </div>
+
+    <div class="form-group">
+        <label>Day</label>
+        <select id="dayOfWeek" class="form-control">
+            <option value="">-- Select Day --</option>
+            <option value="1">Monday</option>
+            <option value="2">Tuesday</option>
+            <option value="3">Wednesday</option>
+            <option value="4">Thursday</option>
+            <option value="5">Friday</option>
+        </select>
+    </div>
+
+    <div class="form-group">
+        <label>Time Slot</label>
+        <select id="timeSlot" class="form-control">
+            <option value="">-- Select Time Slot --</option>
+        </select>
+    </div>
+
+    <div class="form-group" id="smartboardCheckboxContainer" style="display: none;">
+        <input asp-for="Booking.UsesSmartboard" type="checkbox" id="Booking_UsesSmartboard" />
+        <label for="Booking_UsesSmartboard">Book Smartboard</label>
+    </div>
+
+    <input asp-for="SelectedTimeSlot" type="hidden" />
+    <input asp-for="Booking.StartTime" type="hidden" id="Booking_StartTime" />
+    <input asp-for="Booking.EndTime" type="hidden" id="Booking_EndTime" />
+
+    <button type="submit" class="btn btn-primary">Create Booking</button>
 </form>
 
 @section Scripts {
+    <partial name="_ValidationScriptsPartial" />
     <script src="~/js/booking-create.js"></script>
-    @await Html.PartialAsync("_ValidationScriptsPartial")
 }
