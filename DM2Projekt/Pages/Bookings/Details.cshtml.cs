@@ -24,7 +24,6 @@ namespace DM2Projekt.Pages.Bookings
             var booking = await _context.Booking
                 .Include(b => b.Room)
                 .Include(b => b.Group)
-                .Include(b => b.Smartboard)
                 .Include(b => b.CreatedByUser)
                 .FirstOrDefaultAsync(m => m.BookingId == id);
 

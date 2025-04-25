@@ -25,24 +25,10 @@ namespace DM2Projekt.Pages.Rooms
             if (!ModelState.IsValid)
                 return Page();
 
-            await AddRoomWithSmartboardAsync(Room);
+            _context.Room.Add(Room);
+            await _context.SaveChangesAsync();
 
             return RedirectToPage("./Index");
-        }
-
-        private async Task AddRoomWithSmartboardAsync(Room room)
-        {
-            _context.Room.Add(room);
-            await _context.SaveChangesAsync();
-
-            var smartboard = new Smartboard
-            {
-                RoomId = room.RoomId,
-                IsAvailable = true
-            };
-
-            _context.Smartboard.Add(smartboard);
-            await _context.SaveChangesAsync();
         }
     }
 }

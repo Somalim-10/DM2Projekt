@@ -36,7 +36,14 @@ namespace DM2Projekt.Pages.Bookings
             Booking.StartTime = startTime;
             Booking.EndTime = startTime.AddHours(2);
 
-            if (UserHasBookingAtSameTime() || BookingExceedsMaxLength() || GroupHasActiveBooking())
+            // Enforce smartboard usage for meeting rooms
+            var room = _context.Room.FirstOrDefault(r => r.RoomId == Booking.RoomId);
+            if (room?.RoomType == RoomType.MeetingRoom)
+            {
+                Booking.UsesSmartboard = true;
+            }
+
+            if (UserHasBookingAtSameTime() || BookingExceedsMaxLength() || GroupHasActiveBooking() || SmartboardAlreadyBooked())
             {
                 PopulateDropdowns();
                 return Page();
@@ -46,20 +53,6 @@ namespace DM2Projekt.Pages.Bookings
             await _context.SaveChangesAsync();
 
             return RedirectToPage("./Index");
-        }
-
-        public JsonResult OnGetSmartboardsByRoom(int roomId)
-        {
-            var smartboards = _context.Smartboard
-                .Where(sb => sb.RoomId == roomId && sb.IsAvailable)
-                .Select(sb => new
-                {
-                    sb.SmartboardId,
-                    Display = $"Smartboard {sb.SmartboardId}"
-                })
-                .ToList();
-
-            return new JsonResult(smartboards);
         }
 
         public JsonResult OnGetAvailableTimeSlots(int roomId, DateTime date)
@@ -86,11 +79,35 @@ namespace DM2Projekt.Pages.Bookings
             return new JsonResult(availableSlots);
         }
 
+        private static List<(DateTime start, DateTime end)> GetFixedTimeSlots(DateTime day)
+        {
+            var date = day.Date;
+            return new List<(DateTime, DateTime)>
+            {
+                (date.AddHours(8), date.AddHours(10)),
+                (date.AddHours(10), date.AddHours(12)),
+                (date.AddHours(12), date.AddHours(14)),
+                (date.AddHours(14), date.AddHours(16))
+            };
+        }
+
+        private static bool IsSlotAvailable(Room room, List<Booking> bookings, (DateTime start, DateTime end) slot)
+        {
+            var bookingsInSlot = bookings.Count(b =>
+                b.StartTime == slot.start && b.EndTime == slot.end);
+
+            return room.RoomType switch
+            {
+                RoomType.Classroom => bookingsInSlot < 2,
+                RoomType.MeetingRoom => bookingsInSlot < 1,
+                _ => false
+            };
+        }
+
         private void PopulateDropdowns()
         {
             ViewData["GroupId"] = new SelectList(_context.Group, "GroupId", "GroupName");
             ViewData["RoomId"] = new SelectList(_context.Room, "RoomId", "RoomName");
-            ViewData["SmartboardId"] = new SelectList(_context.Smartboard, "SmartboardId", "SmartboardId");
             ViewData["CreatedByUserId"] = new SelectList(_context.User, "UserId", "Email");
         }
 
@@ -139,29 +156,29 @@ namespace DM2Projekt.Pages.Bookings
             return activeBooking;
         }
 
-        private static bool IsSlotAvailable(Room room, List<Booking> bookings, (DateTime start, DateTime end) slot)
+        private bool SmartboardAlreadyBooked()
         {
-            var bookingsInSlot = bookings.Count(b =>
-                b.StartTime == slot.start && b.EndTime == slot.end);
+            var room = _context.Room.FirstOrDefault(r => r.RoomId == Booking.RoomId);
+            if (room?.RoomType != RoomType.Classroom || !Booking.UsesSmartboard)
+                return false;
 
-            return room.RoomType switch
-            {
-                RoomType.Classroom => bookingsInSlot < 2,
-                RoomType.MeetingRoom => bookingsInSlot < 1,
-                _ => false
-            };
+            return _context.Booking.Any(b =>
+                b.RoomId == Booking.RoomId &&
+                b.StartTime == Booking.StartTime &&
+                b.EndTime == Booking.EndTime &&
+                b.UsesSmartboard);
         }
 
-        private static List<(DateTime start, DateTime end)> GetFixedTimeSlots(DateTime day)
+        public JsonResult OnGetRoomType(int roomId)
         {
-            var date = day.Date;
-            return new List<(DateTime, DateTime)>
-            {
-                (date.AddHours(8), date.AddHours(10)),
-                (date.AddHours(10), date.AddHours(12)),
-                (date.AddHours(12), date.AddHours(14)),
-                (date.AddHours(14), date.AddHours(16))
-            };
+            var room = _context.Room.FirstOrDefault(r => r.RoomId == roomId);
+            if (room == null)
+                return new JsonResult(new { error = "Room not found" });
+
+            return new JsonResult(new { roomType = room.RoomType.ToString() });
         }
+
+
+
     }
 }

@@ -13,7 +13,5 @@ public class Room
 
     public RoomType RoomType { get; set; }
 
-    public Smartboard? Smartboard { get; set; } // single smartboard
     public ICollection<Booking> Bookings { get; set; } = [];
-
 }

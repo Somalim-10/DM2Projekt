@@ -13,7 +13,6 @@ public class DM2ProjektContext : DbContext
     public DbSet<Room> Room { get; set; } = default!;
     public DbSet<User> User { get; set; } = default!;
     public DbSet<Group> Group { get; set; } = default!;
-    public DbSet<Smartboard> Smartboard { get; set; } = default!;
     public DbSet<UserGroup> UserGroup { get; set; } = default!;
     public DbSet<Booking> Booking { get; set; } = default!;
 
@@ -21,7 +20,6 @@ public class DM2ProjektContext : DbContext
     {
         base.OnModelCreating(modelBuilder);
 
-        // Enum conversions
         modelBuilder.Entity<Room>()
             .Property(r => r.RoomType)
             .HasConversion<string>();
@@ -30,7 +28,6 @@ public class DM2ProjektContext : DbContext
             .Property(u => u.Role)
             .HasConversion<string>();
 
-        // Many-to-many: User ↔ Group via UserGroup
         modelBuilder.Entity<UserGroup>()
             .HasKey(ug => new { ug.UserId, ug.GroupId });
 
@@ -44,38 +41,22 @@ public class DM2ProjektContext : DbContext
             .WithMany(g => g.UserGroups)
             .HasForeignKey(ug => ug.GroupId);
 
-        // One-to-one: Room ↔ Smartboard
-        modelBuilder.Entity<Room>()
-            .HasOne(r => r.Smartboard)
-            .WithOne(sb => sb.Room)
-            .HasForeignKey<Smartboard>(sb => sb.RoomId);
-
-        // One-to-many: User → Bookings (CreatedBy)
         modelBuilder.Entity<Booking>()
             .HasOne(b => b.CreatedByUser)
             .WithMany(u => u.Bookings)
             .HasForeignKey(b => b.CreatedByUserId)
             .OnDelete(DeleteBehavior.Restrict);
 
-        // One-to-many: Group → Bookings
         modelBuilder.Entity<Booking>()
             .HasOne(b => b.Group)
             .WithMany(g => g.Bookings)
             .HasForeignKey(b => b.GroupId)
             .OnDelete(DeleteBehavior.Restrict);
 
-        // One-to-many: Room → Bookings
         modelBuilder.Entity<Booking>()
             .HasOne(b => b.Room)
             .WithMany(r => r.Bookings)
             .HasForeignKey(b => b.RoomId)
             .OnDelete(DeleteBehavior.Restrict);
-
-        // Optional one-to-many: Smartboard → Bookings
-        modelBuilder.Entity<Booking>()
-            .HasOne(b => b.Smartboard)
-            .WithMany(sb => sb.Bookings)
-            .HasForeignKey(b => b.SmartboardId)
-            .OnDelete(DeleteBehavior.SetNull);
     }
 }
