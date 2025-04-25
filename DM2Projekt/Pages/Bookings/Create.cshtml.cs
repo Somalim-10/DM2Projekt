@@ -31,10 +31,23 @@ namespace DM2Projekt.Pages.Bookings
         public async Task<IActionResult> OnPostAsync()
         {
             if (!TryParseAndValidateTimeSlot(out var startTime))
+            {
+                PopulateDropdowns();
                 return Page();
+            }
 
             Booking.StartTime = startTime;
             Booking.EndTime = startTime.AddHours(2);
+
+            // Remove model state errors for manually set fields
+            ModelState.Remove("Booking.StartTime");
+            ModelState.Remove("Booking.EndTime");
+
+            if (!ModelState.IsValid)
+            {
+                PopulateDropdowns();
+                return Page();
+            }
 
             var room = GetRoom(Booking.RoomId);
             if (room?.RoomType == RoomType.MeetingRoom)
@@ -205,6 +218,36 @@ namespace DM2Projekt.Pages.Bookings
                 ModelState.AddModelError(string.Empty, "Smartboarden er allerede booket i dette tidsrum.");
 
             return smartboardUsed;
+        }
+
+        public JsonResult OnGetSmartboardAvailability(int roomId, DateTime startTime, DateTime endTime)
+        {
+            var room = GetRoom(roomId);
+            if (room?.RoomType != RoomType.Classroom)
+                return new JsonResult(new { available = false });
+
+            bool isTaken = _context.Booking.Any(b =>
+                b.RoomId == roomId &&
+                b.StartTime == startTime &&
+                b.EndTime == endTime &&
+                b.UsesSmartboard);
+
+            return new JsonResult(new { available = !isTaken });
+        }
+
+        public JsonResult OnGetSmartboardCheck(int roomId, DateTime start, DateTime end)
+        {
+            var room = GetRoom(roomId);
+            if (room?.RoomType != RoomType.Classroom)
+                return new JsonResult(false);
+
+            bool smartboardUsed = _context.Booking.Any(b =>
+                b.RoomId == roomId &&
+                b.StartTime == start &&
+                b.EndTime == end &&
+                b.UsesSmartboard);
+
+            return new JsonResult(smartboardUsed);
         }
     }
 }

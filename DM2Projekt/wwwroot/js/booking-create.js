@@ -12,7 +12,6 @@
     function getSelectedDate() {
         const week = weekPicker.value;
         const day = parseInt(dayOfWeekSelect.value);
-
         if (!week || isNaN(day)) return null;
 
         const [year, weekNum] = week.split("-W").map(Number);
@@ -21,7 +20,6 @@
         const monday = new Date(janFirst);
         monday.setDate(janFirst.getDate() - daysOffset + ((weekNum - 1) * 7) + 1);
         monday.setDate(monday.getDate() + (day - 1));
-
         return monday;
     }
 
@@ -30,7 +28,6 @@
         const selectedDate = getSelectedDate();
 
         if (!roomId || !selectedDate) {
-            timeSlotSelect.innerHTML = '<option value="">-- Select Room + Day --</option>';
             smartboardCheckboxContainer.style.display = "none";
             smartboardCheckbox.checked = false;
             return;
@@ -52,8 +49,7 @@
                     timeSlotSelect.appendChild(option);
                 });
 
-                // Try to determine room type (use a separate request)
-                fetch(`?handler=RoomType&roomId=${roomId}`) // YOU MUST implement this endpoint
+                fetch(`?handler=RoomType&roomId=${roomId}`)
                     .then(res => res.json())
                     .then(room => {
                         const isClassroom = room.roomType === "Classroom";
@@ -61,30 +57,28 @@
                         if (isClassroom) {
                             smartboardCheckboxContainer.style.display = "block";
                             smartboardCheckbox.checked = false;
-
-                            // Check if smartboard already booked in this slot
-                            timeSlotSelect.addEventListener("change", () => {
-                                const selectedSlot = timeSlotSelect.value;
-                                if (!selectedSlot) {
-                                    smartboardCheckboxContainer.style.display = "none";
-                                    return;
-                                }
-
-                                const startTime = new Date(selectedSlot);
-                                const endTime = new Date(startTime.getTime() + 2 * 60 * 60 * 1000);
-
-                                fetch(`?handler=SmartboardCheck&roomId=${roomId}&start=${startTime.toISOString()}&end=${endTime.toISOString()}`)
-                                    .then(res => res.json())
-                                    .then(isAlreadyBooked => {
-                                        smartboardCheckbox.disabled = isAlreadyBooked;
-                                        if (isAlreadyBooked) smartboardCheckbox.checked = false;
-                                    });
-                            });
+                            checkSmartboardAvailability(); // trigger if time slot already selected
                         } else {
                             smartboardCheckboxContainer.style.display = "none";
                             smartboardCheckbox.checked = false;
                         }
                     });
+            });
+    }
+
+    function checkSmartboardAvailability() {
+        const roomId = roomSelect.value;
+        const selectedSlot = timeSlotSelect.value;
+        if (!selectedSlot) return;
+
+        const startTime = new Date(selectedSlot);
+        const endTime = new Date(startTime.getTime() + 2 * 60 * 60 * 1000);
+
+        fetch(`?handler=SmartboardCheck&roomId=${roomId}&start=${startTime.toISOString()}&end=${endTime.toISOString()}`)
+            .then(res => res.json())
+            .then(isAlreadyBooked => {
+                smartboardCheckbox.disabled = isAlreadyBooked;
+                if (isAlreadyBooked) smartboardCheckbox.checked = false;
             });
     }
 
@@ -96,7 +90,13 @@
 
         startInput.value = startDate.toISOString();
         endInput.value = endDate.toISOString();
+
+        const selectedTimeSlotInput = document.querySelector('input[name="SelectedTimeSlot"]');
+        if (selectedTimeSlotInput) {
+            selectedTimeSlotInput.value = startDate.toISOString();
+        }
     }
+
 
     // Event Listeners
     roomSelect.addEventListener("change", updateAvailableTimeSlots);
@@ -104,6 +104,7 @@
     dayOfWeekSelect.addEventListener("change", updateAvailableTimeSlots);
     timeSlotSelect.addEventListener("change", () => {
         updateHiddenTimeInputs(timeSlotSelect.value);
+        checkSmartboardAvailability();
     });
 
     // Pre-fill if already selected

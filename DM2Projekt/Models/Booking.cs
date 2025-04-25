@@ -1,4 +1,5 @@
 ﻿using DM2Projekt.Models.Enums;
+using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 using System.ComponentModel.DataAnnotations;
 
 namespace DM2Projekt.Models;
@@ -25,7 +26,13 @@ public class Booking
 
     public bool UsesSmartboard { get; set; }
 
+    // Prevent Razor from validating these during form posts
+    [ValidateNever]
     public Room Room { get; set; }
+
+    [ValidateNever]
     public User CreatedByUser { get; set; }
+
+    [ValidateNever]
     public Group Group { get; set; }
 }
