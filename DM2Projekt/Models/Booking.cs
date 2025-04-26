@@ -19,10 +19,10 @@ public class Booking
     public int CreatedByUserId { get; set; }
 
     [Required]
-    public DateTime StartTime { get; set; }
+    public DateTime? StartTime { get; set; } // make nullable to prevent weird data validation error
 
     [Required]
-    public DateTime EndTime { get; set; }
+    public DateTime? EndTime { get; set; } // make nullable to prevent weird data validation error
 
     public bool UsesSmartboard { get; set; }
 

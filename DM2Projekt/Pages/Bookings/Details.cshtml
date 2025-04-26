@@ -19,10 +19,10 @@
     
 
     <dt class="col-sm-3">Start Time</dt>
-    <dd class="col-sm-9">@Model.Booking.StartTime.ToString("g")</dd>
+    <dd class="col-sm-9">@Model.Booking.StartTime.?ToString("g")</dd>
 
     <dt class="col-sm-3">End Time</dt>
-    <dd class="col-sm-9">@Model.Booking.EndTime.ToString("g")</dd>
+    <dd class="col-sm-9">@Model.Booking.EndTime.?ToString("g")</dd>
 </dl>
 
 <a asp-page="./Index" class="btn btn-secondary">Back to List</a>

@@ -143,7 +143,8 @@ public class CreateModel : PageModel
 
     // get bookings for a room on specific day
     private List<Booking> GetBookingsForRoomOnDate(int roomId, DateTime date) =>
-        [.. _context.Booking.Where(b => b.RoomId == roomId && b.StartTime.Date == date.Date)];
+        [.. _context.Booking
+            .Where(b => b.RoomId == roomId && b.StartTime != null && b.StartTime.Value.Date == date.Date)];
 
     // fixed time slots
     private static List<(DateTime start, DateTime end)> GetFixedTimeSlots(DateTime day)
@@ -221,9 +222,10 @@ public class CreateModel : PageModel
     // check booking length
     private bool BookingExceedsMaxLength()
     {
-        if ((Booking.EndTime - Booking.StartTime).TotalHours > 2)
+        if (Booking.StartTime != null && Booking.EndTime != null &&
+            (Booking.EndTime.Value - Booking.StartTime.Value).TotalHours > 2)
         {
-            ModelState.AddModelError(nameof(SelectedTimeSlot), "En booking må maksimalt vare 2 timer.");
+            ModelState.AddModelError(nameof(SelectedTimeSlot), "Booking can maximum last 2 hours.");
             return true;
         }
         return false;
