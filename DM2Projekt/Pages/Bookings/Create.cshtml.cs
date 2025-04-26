@@ -39,6 +39,10 @@ public class CreateModel : PageModel
     // when page loads
     public IActionResult OnGet()
     {
+        var userId = HttpContext.Session.GetInt32("UserId");
+        if (userId == null) // if not logged in
+            return RedirectToPage("/Login");
+
         PopulateDropdowns();
         return Page();
     }
@@ -46,6 +50,10 @@ public class CreateModel : PageModel
     // when form is submitted
     public async Task<IActionResult> OnPostAsync()
     {
+        var userId = HttpContext.Session.GetInt32("UserId");
+        if (userId == null)
+            return RedirectToPage("/Login");
+
         // skip validation on StartTime and EndTime (we set manually)
         ModelState.Remove("Booking.StartTime");
         ModelState.Remove("Booking.EndTime");
@@ -84,6 +92,13 @@ public class CreateModel : PageModel
         {
             PopulateDropdowns();
             return Page();
+        }
+
+        // force CreatedByUserId for students
+        var userRole = HttpContext.Session.GetString("UserRole");
+        if (userRole == "Student")
+        {
+            Booking.CreatedByUserId = userId.Value;
         }
 
         // save to database
@@ -162,7 +177,12 @@ public class CreateModel : PageModel
     {
         ViewData["GroupId"] = new SelectList(_context.Group, "GroupId", "GroupName");
         ViewData["RoomId"] = new SelectList(_context.Room, "RoomId", "RoomName");
-        ViewData["CreatedByUserId"] = new SelectList(_context.User, "UserId", "Email");
+
+        var userRole = HttpContext.Session.GetString("UserRole");
+        if (userRole == "Admin" || userRole == "Teacher")
+        {
+            ViewData["CreatedByUserId"] = new SelectList(_context.User, "UserId", "Email");
+        }
     }
 
     // get room by ID

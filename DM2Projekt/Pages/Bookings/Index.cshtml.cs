@@ -24,14 +24,15 @@ public class IndexModel : PageModel
             return RedirectToPage("/Login");
         }
 
+        // load bookings with related data
         Booking = await _context.Booking
             .Include(b => b.Group)
             .Include(b => b.Room)
             .Include(b => b.CreatedByUser)
             .OrderBy(b => b.StartTime)
+            .AsNoTracking()
             .ToListAsync();
 
         return Page();
     }
-
 }

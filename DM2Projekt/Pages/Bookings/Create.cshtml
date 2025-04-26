@@ -2,6 +2,7 @@
 @model DM2Projekt.Pages.Bookings.CreateModel
 @{
     ViewData["Title"] = "Create Booking";
+    var userRole = HttpContext.Session.GetString("UserRole");
 }
 
 <h1>Create Booking</h1>
@@ -17,12 +18,15 @@
         <span asp-validation-for="Booking.GroupId" class="text-danger"></span>
     </div>
 
-    <!-- user dropdown -->
-    <div class="form-group">
-        <label asp-for="Booking.CreatedByUserId"></label>
-        <select asp-for="Booking.CreatedByUserId" class="form-control" asp-items="ViewBag.CreatedByUserId"></select>
-        <span asp-validation-for="Booking.CreatedByUserId" class="text-danger"></span>
-    </div>
+    <!-- user dropdown (only for admin/teacher) -->
+    @if (userRole == "Admin" || userRole == "Teacher")
+    {
+        <div class="form-group">
+            <label asp-for="Booking.CreatedByUserId"></label>
+            <select asp-for="Booking.CreatedByUserId" class="form-control" asp-items="ViewBag.CreatedByUserId"></select>
+            <span asp-validation-for="Booking.CreatedByUserId" class="text-danger"></span>
+        </div>
+    }
 
     <!-- room dropdown -->
     <div class="form-group">
