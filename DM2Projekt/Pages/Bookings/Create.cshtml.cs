@@ -39,8 +39,14 @@ public class CreateModel : PageModel
     public IActionResult OnGet()
     {
         var userId = HttpContext.Session.GetInt32("UserId");
-        if (userId == null)
+        if (userId == null) // if not logged in
             return RedirectToPage("/Login");
+
+        var userRole = HttpContext.Session.GetString("UserRole");
+        if (userRole == "Teacher") // teachers shouldn't book
+        {
+            return RedirectToPage("/Bookings/Index");
+        }
 
         PopulateDropdowns();
         return Page();
@@ -52,10 +58,14 @@ public class CreateModel : PageModel
         var userId = HttpContext.Session.GetInt32("UserId");
         var userRole = HttpContext.Session.GetString("UserRole");
 
-        if (userId == null)
+        if (userId == null) // if not logged in
             return RedirectToPage("/Login");
 
-        // skip StartTime and EndTime validation (we set them manually)
+        if (userRole == "Teacher") // teachers shouldn't book
+        {
+            return RedirectToPage("/Bookings/Index");
+        }
+
         ModelState.Remove("Booking.StartTime");
         ModelState.Remove("Booking.EndTime");
 

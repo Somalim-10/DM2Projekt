@@ -10,7 +10,7 @@
 <h2 class="mb-4">📅 Active Bookings</h2>
 
 <!-- show create button if logged in -->
-@if (!string.IsNullOrEmpty(userName))
+@if (!string.IsNullOrEmpty(userName) && userRole == "Student" || userRole == "Admin")
 {
     <p>
         <a asp-page="Create" class="btn btn-success">
