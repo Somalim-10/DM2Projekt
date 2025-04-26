@@ -25,7 +25,8 @@ public static class SeedData
             new() { FirstName = "Charlie", LastName = "Nguyen", Email = "charlie.nguyen@example.com", Password = "password3", Role = Role.Student },
             new() { FirstName = "Diana", LastName = "Reed", Email = "diana.reed@example.com", Password = "password4", Role = Role.Teacher },
             new() { FirstName = "Edward", LastName = "Kim", Email = "edward.kim@example.com", Password = "password5", Role = Role.Teacher },
-            new() { FirstName = "Fiona", LastName = "Bennett", Email = "fiona.bennett@example.com", Password = "password6", Role = Role.Student }
+            new() { FirstName = "Fiona", LastName = "Bennett", Email = "fiona.bennett@example.com", Password = "password6", Role = Role.Student },
+            new() { FirstName = "Samuel", LastName = "Andersen", Email = "samuel.andersen@zealand.dk", Password = "admin123", Role = Role.Admin }
         };
         context.User.AddRange(users);
 
