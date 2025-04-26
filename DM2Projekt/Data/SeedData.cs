@@ -47,10 +47,10 @@ public static class SeedData
         };
         context.Room.AddRange(rooms);
 
-        // now save users, groups and rooms in one go
+        // now save users, groups and rooms
         context.SaveChanges();
 
-        // link users to groups (many-to-many)
+        // link users to groups
         var userGroups = new List<UserGroup>
         {
             new() { UserId = 2, GroupId = 1 },
@@ -67,41 +67,38 @@ public static class SeedData
 
         // find next Monday
         var nextMonday = DateTime.Today.AddDays(((int)DayOfWeek.Monday - (int)DateTime.Today.DayOfWeek + 7) % 7);
-        var timeSlots = new[] { 8, 10, 12, 14 }; // hours for booking slots
+        var timeSlots = new[] { 8, 10, 12, 14 };
 
-        // load created data
         var createdGroups = context.Group.ToList();
-        var allUsers = context.User.ToList();
+        var allUsers = context.User
+            .Where(u => u.Role == Role.Student || u.Role == Role.Admin) // only students/admins can create
+            .ToList();
         var allRooms = context.Room.ToList();
 
-        // track how many bookings per room and time
         var slotTracker = new Dictionary<(int roomId, DateTime start), List<Booking>>();
 
-        foreach (var dayOffset in Enumerable.Range(0, 5)) // Monday to Friday
+        foreach (var dayOffset in Enumerable.Range(0, 5))
         {
             var date = nextMonday.AddDays(dayOffset);
 
             foreach (var hour in timeSlots)
             {
                 var start = new DateTime(date.Year, date.Month, date.Day, hour, 0, 0);
-                var end = start.AddHours(2); // each booking 2 hours
+                var end = start.AddHours(2);
 
                 foreach (var room in allRooms)
                 {
                     var key = (room.RoomId, start);
                     slotTracker.TryAdd(key, []);
 
-                    // limit how many bookings depending on room type
                     var allowedBookings = room.RoomType == RoomType.Classroom ? 2 : 1;
                     if (slotTracker[key].Count >= allowedBookings)
                         continue;
 
-                    // pick a group that doesn't have future booking
                     var group = createdGroups.FirstOrDefault(g =>
                         !bookings.Any(b => b.GroupId == g.GroupId && b.EndTime > DateTime.Now));
                     if (group == null) continue;
 
-                    // pick a user that doesn't have booking conflict
                     var user = allUsers.FirstOrDefault(u =>
                         !bookings.Any(b =>
                             b.CreatedByUserId == u.UserId &&
@@ -109,7 +106,6 @@ public static class SeedData
                             b.EndTime > start));
                     if (user == null) continue;
 
-                    // check if smartboard should be used
                     bool usesSmartboard = false;
                     if (room.RoomType == RoomType.MeetingRoom)
                     {
@@ -125,7 +121,6 @@ public static class SeedData
                         usesSmartboard = !smartboardTaken && random.Next(0, 2) == 1;
                     }
 
-                    // create booking
                     var booking = new Booking
                     {
                         GroupId = group.GroupId,
@@ -142,7 +137,6 @@ public static class SeedData
             }
         }
 
-        // save user-groups and bookings
         context.Booking.AddRange(bookings);
         context.SaveChanges();
     }
