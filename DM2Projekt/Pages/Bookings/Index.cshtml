@@ -47,11 +47,12 @@
                 </td>
 
                 <td>
-                    <strong>@item.StartTime.ToString("ddd, dd MMM")</strong><br />
+                    <strong>@item.StartTime?.ToString("ddd, dd MMM")</strong><br />
                     <small class="text-muted">
-                        @item.StartTime.ToString("HH:mm") – @item.EndTime.ToString("HH:mm")
+                        @item.StartTime?.ToString("HH:mm") – @item.EndTime?.ToString("HH:mm")
                     </small>
                 </td>
+
 
                 <td>@item.CreatedByUser.Email</td>
 

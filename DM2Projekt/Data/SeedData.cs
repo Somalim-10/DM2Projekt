@@ -4,17 +4,20 @@ using Microsoft.EntityFrameworkCore;
 
 namespace DM2Projekt.Data;
 
+// this class adds fake/test data to database
 public static class SeedData
 {
     public static void Initialize(IServiceProvider serviceProvider)
     {
+        // make database context
         using var context = new DM2ProjektContext(
             serviceProvider.GetRequiredService<DbContextOptions<DM2ProjektContext>>());
 
+        // if any data already there, stop
         if (context.User.Any() || context.Room.Any() || context.Group.Any())
             return;
 
-        // Users
+        // make users
         var users = new List<User>
         {
             new() { FirstName = "Alice", LastName = "Johnson", Email = "alice.johnson@example.com", Password = "password1", Role = Role.Teacher },
@@ -26,7 +29,7 @@ public static class SeedData
         };
         context.User.AddRange(users);
 
-        // Groups
+        // make groups
         var groups = new List<Group>
         {
             new() { GroupName = "Group Alpha" },
@@ -34,9 +37,19 @@ public static class SeedData
             new() { GroupName = "Group Gamma" }
         };
         context.Group.AddRange(groups);
+
+        // make rooms
+        var rooms = new List<Room>
+        {
+            new() { RoomName = "Meeting Room 1", RoomType = RoomType.MeetingRoom },
+            new() { RoomName = "Classroom 101", RoomType = RoomType.Classroom }
+        };
+        context.Room.AddRange(rooms);
+
+        // now save users, groups and rooms in one go
         context.SaveChanges();
 
-        // UserGroups
+        // link users to groups (many-to-many)
         var userGroups = new List<UserGroup>
         {
             new() { UserId = 2, GroupId = 1 },
@@ -47,53 +60,47 @@ public static class SeedData
         };
         context.UserGroup.AddRange(userGroups);
 
-        // Rooms
-        var rooms = new List<Room>
-        {
-            new() { RoomName = "Meeting Room 1", RoomType = RoomType.MeetingRoom },
-            new() { RoomName = "Classroom 101", RoomType = RoomType.Classroom }
-        };
-        context.Room.AddRange(rooms);
-        context.SaveChanges();
-
-        // Bookings (valid bookings based on business logic)
+        // make bookings
         var bookings = new List<Booking>();
         var random = new Random();
 
+        // find next Monday
         var nextMonday = DateTime.Today.AddDays(((int)DayOfWeek.Monday - (int)DateTime.Today.DayOfWeek + 7) % 7);
-        var timeSlots = new[] { 8, 10, 12, 14 };
+        var timeSlots = new[] { 8, 10, 12, 14 }; // hours for booking slots
 
+        // load created data
         var createdGroups = context.Group.ToList();
         var allUsers = context.User.ToList();
         var allRooms = context.Room.ToList();
 
-        // Track bookings per slot per room
+        // track how many bookings per room and time
         var slotTracker = new Dictionary<(int roomId, DateTime start), List<Booking>>();
 
-        foreach (var dayOffset in Enumerable.Range(0, 5)) // Mon–Fri
+        foreach (var dayOffset in Enumerable.Range(0, 5)) // Monday to Friday
         {
             var date = nextMonday.AddDays(dayOffset);
 
             foreach (var hour in timeSlots)
             {
                 var start = new DateTime(date.Year, date.Month, date.Day, hour, 0, 0);
-                var end = start.AddHours(2);
+                var end = start.AddHours(2); // each booking 2 hours
 
                 foreach (var room in allRooms)
                 {
                     var key = (room.RoomId, start);
-                    slotTracker.TryAdd(key, new List<Booking>());
+                    slotTracker.TryAdd(key, []);
 
+                    // limit how many bookings depending on room type
                     var allowedBookings = room.RoomType == RoomType.Classroom ? 2 : 1;
                     if (slotTracker[key].Count >= allowedBookings)
                         continue;
 
-                    // Pick a group that doesn't already have a future booking
+                    // pick a group that doesn't have future booking
                     var group = createdGroups.FirstOrDefault(g =>
                         !bookings.Any(b => b.GroupId == g.GroupId && b.EndTime > DateTime.Now));
                     if (group == null) continue;
 
-                    // Pick a user that doesn't already have a conflicting booking
+                    // pick a user that doesn't have booking conflict
                     var user = allUsers.FirstOrDefault(u =>
                         !bookings.Any(b =>
                             b.CreatedByUserId == u.UserId &&
@@ -101,7 +108,7 @@ public static class SeedData
                             b.EndTime > start));
                     if (user == null) continue;
 
-                    // Determine smartboard usage
+                    // check if smartboard should be used
                     bool usesSmartboard = false;
                     if (room.RoomType == RoomType.MeetingRoom)
                     {
@@ -117,6 +124,7 @@ public static class SeedData
                         usesSmartboard = !smartboardTaken && random.Next(0, 2) == 1;
                     }
 
+                    // create booking
                     var booking = new Booking
                     {
                         GroupId = group.GroupId,
@@ -133,6 +141,7 @@ public static class SeedData
             }
         }
 
+        // save user-groups and bookings
         context.Booking.AddRange(bookings);
         context.SaveChanges();
     }

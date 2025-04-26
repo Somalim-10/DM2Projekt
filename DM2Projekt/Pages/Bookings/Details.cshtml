@@ -16,13 +16,15 @@
     <dt class="col-sm-3">Room</dt>
     <dd class="col-sm-9">@Model.Booking.Room.RoomName</dd>
 
-    
+    <dt class="col-sm-3">Date</dt>
+    <dd class="col-sm-9">
+        <strong>@Model.Booking.StartTime?.ToString("ddd, dd MMMM yyyy")</strong>
+    </dd>
 
-    <dt class="col-sm-3">Start Time</dt>
-    <dd class="col-sm-9">@Model.Booking.StartTime.ToString("g")</dd>
-
-    <dt class="col-sm-3">End Time</dt>
-    <dd class="col-sm-9">@Model.Booking.EndTime.ToString("g")</dd>
+    <dt class="col-sm-3">Time</dt>
+    <dd class="col-sm-9">
+        @Model.Booking.StartTime?.ToString("HH:mm") – @Model.Booking.EndTime?.ToString("HH:mm")
+    </dd>
 </dl>
 
 <a asp-page="./Index" class="btn btn-secondary">Back to List</a>

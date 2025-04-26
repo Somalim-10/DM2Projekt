@@ -7,30 +7,39 @@
 <h1>Create Booking</h1>
 
 <form method="post">
+    <!-- show all validation errors at the top -->
     <div asp-validation-summary="All" class="text-danger"></div>
 
+    <!-- group dropdown -->
     <div class="form-group">
         <label asp-for="Booking.GroupId"></label>
         <select asp-for="Booking.GroupId" class="form-control" asp-items="ViewBag.GroupId"></select>
+        <span asp-validation-for="Booking.GroupId" class="text-danger"></span>
     </div>
 
+    <!-- user dropdown -->
     <div class="form-group">
         <label asp-for="Booking.CreatedByUserId"></label>
         <select asp-for="Booking.CreatedByUserId" class="form-control" asp-items="ViewBag.CreatedByUserId"></select>
+        <span asp-validation-for="Booking.CreatedByUserId" class="text-danger"></span>
     </div>
 
+    <!-- room dropdown -->
     <div class="form-group">
         <label asp-for="Booking.RoomId"></label>
         <select asp-for="Booking.RoomId" class="form-control" asp-items="ViewBag.RoomId" id="Booking_RoomId"></select>
+        <span asp-validation-for="Booking.RoomId" class="text-danger"></span>
     </div>
 
+    <!-- week picker (manual field, not bound to model) -->
     <div class="form-group">
-        <label>Week</label>
+        <label for="weekPicker">Week</label>
         <input type="week" id="weekPicker" class="form-control" />
     </div>
 
+    <!-- day picker (manual field, not bound to model) -->
     <div class="form-group">
-        <label>Day</label>
+        <label for="dayOfWeek">Day</label>
         <select id="dayOfWeek" class="form-control">
             <option value="">-- Select Day --</option>
             <option value="1">Monday</option>
@@ -41,19 +50,25 @@
         </select>
     </div>
 
+    <!-- time slot picker -->
     <div class="form-group">
-        <label>Time Slot</label>
+        <label for="timeSlot">Time Slot</label>
         <select id="timeSlot" class="form-control">
             <option value="">-- Select Time Slot --</option>
         </select>
     </div>
 
+    <!-- smartboard checkbox (only shown if classroom) -->
     <div class="form-group" id="smartboardCheckboxContainer" style="display: none;">
         <input asp-for="Booking.UsesSmartboard" type="checkbox" id="Booking_UsesSmartboard" />
         <label for="Booking_UsesSmartboard">Book Smartboard</label>
+        <span asp-validation-for="Booking.UsesSmartboard" class="text-danger"></span>
     </div>
 
-    <input asp-for="SelectedTimeSlot" type="hidden" />
+    <!-- hidden fields for week, day, time slot, start and end time -->
+    <input asp-for="SelectedTimeSlot" type="hidden" data-val="false" />
+    <input asp-for="SelectedWeek" type="hidden" id="SelectedWeek" />
+    <input asp-for="SelectedDay" type="hidden" id="SelectedDay" />
     <input asp-for="Booking.StartTime" type="hidden" id="Booking_StartTime" />
     <input asp-for="Booking.EndTime" type="hidden" id="Booking_EndTime" />
 

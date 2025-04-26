@@ -24,6 +24,7 @@
                 </button>
                 <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
                     <ul class="navbar-nav flex-grow-1">
+                        <!-- menu links -->
                         <li class="nav-item">
                             <a class="nav-link text-dark" asp-area="" asp-page="/Index">Home</a>
                         </li>
@@ -47,7 +48,7 @@
                         </li>
                     </ul>
 
-                    <!-- Right side: Login / Logout -->
+                    <!-- login logout part -->
                     <ul class="navbar-nav">
                         @{
                             var userName = HttpContextAccessor.HttpContext?.Session.GetString("UserName");

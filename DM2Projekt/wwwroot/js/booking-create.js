@@ -1,4 +1,5 @@
 ﻿document.addEventListener("DOMContentLoaded", () => {
+    // get all needed HTML elements
     const roomSelect = document.getElementById("Booking_RoomId");
     const weekPicker = document.getElementById("weekPicker");
     const dayOfWeekSelect = document.getElementById("dayOfWeek");
@@ -9,6 +10,13 @@
     const smartboardCheckboxContainer = document.getElementById("smartboardCheckboxContainer");
     const smartboardCheckbox = document.getElementById("Booking_UsesSmartboard");
 
+    const selectedTimeSlotInput = document.querySelector('input[name="SelectedTimeSlot"]');
+    const selectedWeekInput = document.getElementById("SelectedWeek");
+    const selectedDayInput = document.getElementById("SelectedDay");
+
+    let isClassroom = false; // true if room is a classroom
+
+    // calculate selected full date (based on week + day)
     function getSelectedDate() {
         const week = weekPicker.value;
         const day = parseInt(dayOfWeekSelect.value);
@@ -16,13 +24,14 @@
 
         const [year, weekNum] = week.split("-W").map(Number);
         const janFirst = new Date(year, 0, 1);
-        const daysOffset = ((janFirst.getDay() + 6) % 7);
+        const daysOffset = (janFirst.getDay() + 6) % 7;
         const monday = new Date(janFirst);
         monday.setDate(janFirst.getDate() - daysOffset + ((weekNum - 1) * 7) + 1);
         monday.setDate(monday.getDate() + (day - 1));
         return monday;
     }
 
+    // update time slot dropdown
     function updateAvailableTimeSlots() {
         const roomId = roomSelect.value;
         const selectedDate = getSelectedDate();
@@ -39,6 +48,7 @@
             .then(res => res.json())
             .then(data => {
                 timeSlotSelect.innerHTML = '';
+
                 if (!data.length) {
                     timeSlotSelect.innerHTML = '<option value="">No available slots</option>';
                     return;
@@ -49,30 +59,25 @@
                     timeSlotSelect.appendChild(option);
                 });
 
-                fetch(`?handler=RoomType&roomId=${roomId}`)
-                    .then(res => res.json())
-                    .then(room => {
-                        const isClassroom = room.roomType === "Classroom";
-
-                        if (isClassroom) {
-                            smartboardCheckboxContainer.style.display = "block";
-                            smartboardCheckbox.checked = false;
-                            checkSmartboardAvailability(); // trigger if time slot already selected
-                        } else {
-                            smartboardCheckboxContainer.style.display = "none";
-                            smartboardCheckbox.checked = false;
-                        }
-                    });
+                // show smartboard checkbox only if classroom
+                if (isClassroom) {
+                    smartboardCheckboxContainer.style.display = "block";
+                    smartboardCheckbox.checked = false;
+                } else {
+                    smartboardCheckboxContainer.style.display = "none";
+                    smartboardCheckbox.checked = false;
+                }
             });
     }
 
+    // check if smartboard is already booked for selected slot
     function checkSmartboardAvailability() {
         const roomId = roomSelect.value;
         const selectedSlot = timeSlotSelect.value;
         if (!selectedSlot) return;
 
         const startTime = new Date(selectedSlot);
-        const endTime = new Date(startTime.getTime() + 2 * 60 * 60 * 1000);
+        const endTime = new Date(startTime.getTime() + 2 * 60 * 60 * 1000); // 2 hours later
 
         fetch(`?handler=SmartboardCheck&roomId=${roomId}&start=${startTime.toISOString()}&end=${endTime.toISOString()}`)
             .then(res => res.json())
@@ -82,6 +87,7 @@
             });
     }
 
+    // fill hidden time slot fields
     function updateHiddenTimeInputs(selectedStart) {
         if (!selectedStart) return;
 
@@ -91,23 +97,58 @@
         startInput.value = startDate.toISOString();
         endInput.value = endDate.toISOString();
 
-        const selectedTimeSlotInput = document.querySelector('input[name="SelectedTimeSlot"]');
         if (selectedTimeSlotInput) {
             selectedTimeSlotInput.value = startDate.toISOString();
         }
     }
 
+    // fill hidden week/day fields
+    function updateHiddenWeekDayInputs() {
+        if (selectedWeekInput) selectedWeekInput.value = weekPicker.value;
+        if (selectedDayInput) selectedDayInput.value = dayOfWeekSelect.value;
+    }
 
-    // Event Listeners
-    roomSelect.addEventListener("change", updateAvailableTimeSlots);
-    weekPicker.addEventListener("change", updateAvailableTimeSlots);
-    dayOfWeekSelect.addEventListener("change", updateAvailableTimeSlots);
-    timeSlotSelect.addEventListener("change", () => {
-        updateHiddenTimeInputs(timeSlotSelect.value);
-        checkSmartboardAvailability();
+    // when room is changed
+    roomSelect.addEventListener("change", () => {
+        const roomId = roomSelect.value;
+        if (!roomId) {
+            smartboardCheckboxContainer.style.display = "none";
+            smartboardCheckbox.checked = false;
+            return;
+        }
+
+        fetch(`?handler=RoomType&roomId=${roomId}`)
+            .then(res => res.json())
+            .then(room => {
+                isClassroom = room.roomType === "Classroom";
+                updateAvailableTimeSlots();
+            });
     });
 
-    // Pre-fill if already selected
+    // when week changes
+    weekPicker.addEventListener("change", () => {
+        updateAvailableTimeSlots();
+        updateHiddenWeekDayInputs();
+    });
+
+    // when day changes
+    dayOfWeekSelect.addEventListener("change", () => {
+        updateAvailableTimeSlots();
+        updateHiddenWeekDayInputs();
+    });
+
+    // when time slot changes
+    timeSlotSelect.addEventListener("change", () => {
+        updateHiddenTimeInputs(timeSlotSelect.value);
+    });
+
+    // before form submit, update hidden fields
+    form.addEventListener("submit", () => {
+        updateHiddenTimeInputs(timeSlotSelect.value);
+        updateHiddenWeekDayInputs();
+    });
+
+    // if room is pre-selected, trigger load
     if (roomSelect.value) {
         roomSelect.dispatchEvent(new Event("change"));
     }
