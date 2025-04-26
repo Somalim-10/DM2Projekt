@@ -1,35 +1,37 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.RazorPages;
+﻿using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
-using DM2Projekt.Data;
 using DM2Projekt.Models;
+using Microsoft.AspNetCore.Mvc;
 
-namespace DM2Projekt.Pages.Bookings
+namespace DM2Projekt.Pages.Bookings;
+
+public class IndexModel : PageModel
 {
-    public class IndexModel : PageModel
+    private readonly Data.DM2ProjektContext _context;
+
+    public IndexModel(Data.DM2ProjektContext context)
     {
-        private readonly DM2Projekt.Data.DM2ProjektContext _context;
-
-        public IndexModel(DM2Projekt.Data.DM2ProjektContext context)
-        {
-            _context = context;
-        }
-
-        public IList<Booking> Booking { get; set; } = default!;
-
-        public async Task OnGetAsync()
-        {
-            Booking = await _context.Booking
-                .Include(b => b.Group)
-                .Include(b => b.Room)
-                .Include(b => b.CreatedByUser)
-                .OrderBy(b => b.StartTime)
-                .ToListAsync();
-        }
-
+        _context = context;
     }
+
+    public IList<Booking> Booking { get; set; } = default!;
+
+    public async Task<IActionResult> OnGetAsync()
+    {
+        var userId = HttpContext.Session.GetInt32("UserId");
+        if (userId == null) // if not logged in
+        {
+            return RedirectToPage("/Login");
+        }
+
+        Booking = await _context.Booking
+            .Include(b => b.Group)
+            .Include(b => b.Room)
+            .Include(b => b.CreatedByUser)
+            .OrderBy(b => b.StartTime)
+            .ToListAsync();
+
+        return Page();
+    }
+
 }
