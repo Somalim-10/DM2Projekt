@@ -1,9 +1,9 @@
-﻿using DM2Projekt.Models.Enums;
-using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
+﻿using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 using System.ComponentModel.DataAnnotations;
 
 namespace DM2Projekt.Models;
 
+// booking model
 public class Booking
 {
     [Key]
@@ -26,7 +26,7 @@ public class Booking
 
     public bool UsesSmartboard { get; set; }
 
-    // Prevent Razor from validating these during form posts
+    // don't validate when posting forms
     [ValidateNever]
     public Room Room { get; set; }
 

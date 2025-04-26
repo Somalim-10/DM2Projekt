@@ -3,6 +3,7 @@ using DM2Projekt.Models.Enums;
 
 namespace DM2Projekt.Models;
 
+// user model
 public class User
 {
     [Key]
@@ -18,11 +19,14 @@ public class User
     public string Email { get; set; }
 
     [Required]
-    public Role Role { get; set; }
+    public Role Role { get; set; } // student or teacher
 
     [Required]
     public string Password { get; set; }
 
+    // groups this user is in
     public ICollection<UserGroup> UserGroups { get; set; } = [];
+
+    // bookings this user made
     public ICollection<Booking> Bookings { get; set; } = [];
 }
