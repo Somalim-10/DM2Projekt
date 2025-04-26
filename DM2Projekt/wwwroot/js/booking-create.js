@@ -33,7 +33,6 @@
         const selectedDate = getSelectedDate();
 
         if (!roomId || !selectedDate) {
-            // hide smartboard if nothing selected
             smartboardCheckboxContainer.style.display = "none";
             smartboardCheckbox.checked = false;
             return;
@@ -41,11 +40,11 @@
 
         const isoDate = selectedDate.toISOString().split("T")[0];
 
-        // ask server for available slots
         fetch(`?handler=AvailableTimeSlots&roomId=${roomId}&date=${isoDate}`)
             .then(res => res.json())
             .then(data => {
                 timeSlotSelect.innerHTML = '';
+
                 if (!data.length) {
                     timeSlotSelect.innerHTML = '<option value="">No available slots</option>';
                     return;
@@ -59,7 +58,6 @@
                 if (isClassroom) {
                     smartboardCheckboxContainer.style.display = "block";
                     smartboardCheckbox.checked = false;
-                    checkSmartboardAvailability(); // check if smartboard free
                 } else {
                     smartboardCheckboxContainer.style.display = "none";
                     smartboardCheckbox.checked = false;
@@ -74,7 +72,7 @@
         if (!selectedSlot) return;
 
         const startTime = new Date(selectedSlot);
-        const endTime = new Date(startTime.getTime() + 2 * 60 * 60 * 1000); // +2 hours
+        const endTime = new Date(startTime.getTime() + 2 * 60 * 60 * 1000);
 
         fetch(`?handler=SmartboardCheck&roomId=${roomId}&start=${startTime.toISOString()}&end=${endTime.toISOString()}`)
             .then(res => res.json())
@@ -89,7 +87,7 @@
         if (!selectedStart) return;
 
         const startDate = new Date(selectedStart);
-        const endDate = new Date(startDate.getTime() + 2 * 60 * 60 * 1000); // +2 hours
+        const endDate = new Date(startDate.getTime() + 2 * 60 * 60 * 1000);
 
         startInput.value = startDate.toISOString();
         endInput.value = endDate.toISOString();
@@ -109,7 +107,6 @@
             return;
         }
 
-        // fetch room type once
         fetch(`?handler=RoomType&roomId=${roomId}`)
             .then(res => res.json())
             .then(room => {
@@ -120,6 +117,7 @@
 
     weekPicker.addEventListener("change", updateAvailableTimeSlots);
     dayOfWeekSelect.addEventListener("change", updateAvailableTimeSlots);
+
     timeSlotSelect.addEventListener("change", () => {
         updateHiddenTimeInputs(timeSlotSelect.value);
         checkSmartboardAvailability();
