@@ -7,28 +7,34 @@
 <h1>Create Booking</h1>
 
 <form method="post">
+    <!-- show all validation errors -->
     <div asp-validation-summary="All" class="text-danger"></div>
 
+    <!-- group dropdown -->
     <div class="form-group">
         <label asp-for="Booking.GroupId"></label>
         <select asp-for="Booking.GroupId" class="form-control" asp-items="ViewBag.GroupId"></select>
     </div>
 
+    <!-- user dropdown -->
     <div class="form-group">
         <label asp-for="Booking.CreatedByUserId"></label>
         <select asp-for="Booking.CreatedByUserId" class="form-control" asp-items="ViewBag.CreatedByUserId"></select>
     </div>
 
+    <!-- room dropdown -->
     <div class="form-group">
         <label asp-for="Booking.RoomId"></label>
         <select asp-for="Booking.RoomId" class="form-control" asp-items="ViewBag.RoomId" id="Booking_RoomId"></select>
     </div>
 
+    <!-- week picker -->
     <div class="form-group">
         <label>Week</label>
         <input type="week" id="weekPicker" class="form-control" />
     </div>
 
+    <!-- day picker -->
     <div class="form-group">
         <label>Day</label>
         <select id="dayOfWeek" class="form-control">
@@ -41,6 +47,7 @@
         </select>
     </div>
 
+    <!-- time slot picker -->
     <div class="form-group">
         <label>Time Slot</label>
         <select id="timeSlot" class="form-control">
@@ -48,11 +55,13 @@
         </select>
     </div>
 
+    <!-- smartboard checkbox (only shown sometimes) -->
     <div class="form-group" id="smartboardCheckboxContainer" style="display: none;">
         <input asp-for="Booking.UsesSmartboard" type="checkbox" id="Booking_UsesSmartboard" />
         <label for="Booking_UsesSmartboard">Book Smartboard</label>
     </div>
 
+    <!-- hidden inputs for saving selected time -->
     <input asp-for="SelectedTimeSlot" type="hidden" />
     <input asp-for="Booking.StartTime" type="hidden" id="Booking_StartTime" />
     <input asp-for="Booking.EndTime" type="hidden" id="Booking_EndTime" />
