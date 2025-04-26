@@ -2,43 +2,46 @@
 @model DM2Projekt.Pages.Rooms.IndexModel
 
 @{
-    ViewData["Title"] = "Index";
+    ViewData["Title"] = "Rooms";
+    var userRole = HttpContext.Session.GetString("UserRole");
 }
 
-<h1>Index</h1>
+<h1>Rooms</h1>
 
-<p>
-    <a asp-page="Create">Create New</a>
-</p>
-<table class="table">
-    <thead>
+<!-- Only Admins can see Create button -->
+@if (userRole == "Admin")
+{
+    <p>
+        <a asp-page="Create" class="btn btn-success">Create New Room</a>
+    </p>
+}
+
+<table class="table table-striped">
+    <thead class="table-dark">
         <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.Room[0].RoomName)
-            </th>
-            
-            <th>
-                @Html.DisplayNameFor(model => model.Room[0].RoomType)
-            </th>
-            
+            <th>@Html.DisplayNameFor(model => model.Room[0].RoomName)</th>
+            <th>@Html.DisplayNameFor(model => model.Room[0].RoomType)</th>
             <th></th>
         </tr>
     </thead>
     <tbody>
-@foreach (var item in Model.Room) {
-        <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.RoomName)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.RoomType)
-            </td>
-            <td>
-                <a asp-page="./Edit" asp-route-id="@item.RoomId">Edit</a> |
-                <a asp-page="./Details" asp-route-id="@item.RoomId">Details</a> |
-                <a asp-page="./Delete" asp-route-id="@item.RoomId">Delete</a>
-            </td>
-        </tr>
-}
+        @foreach (var item in Model.Room)
+        {
+            <tr>
+                <td>@Html.DisplayFor(modelItem => item.RoomName)</td>
+                <td>@Html.DisplayFor(modelItem => item.RoomType)</td>
+                <td>
+                    <!-- Everyone can view Details -->
+                    <a asp-page="./Details" asp-route-id="@item.RoomId" class="btn btn-sm btn-outline-primary">Details</a>
+
+                    <!-- Only Admins can Edit/Delete -->
+                    @if (userRole == "Admin")
+                    {
+                        <a asp-page="./Edit" asp-route-id="@item.RoomId" class="btn btn-sm btn-outline-warning ms-1">Edit</a>
+                        <a asp-page="./Delete" asp-route-id="@item.RoomId" class="btn btn-sm btn-outline-danger ms-1">Delete</a>
+                    }
+                </td>
+            </tr>
+        }
     </tbody>
 </table>
