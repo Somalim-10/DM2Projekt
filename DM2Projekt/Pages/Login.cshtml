@@ -6,6 +6,7 @@
 
 <h2>Login</h2>
 
+<!-- form for login -->
 <form method="post">
     <div>
         <label>Email:</label>
@@ -16,7 +17,7 @@
         <input asp-for="Input.Password" type="password" />
     </div>
     <div style="color: red">
-        @Model.ErrorMessage
+        @Model.ErrorMessage <!-- show errors here -->
     </div>
     <button type="submit">Login</button>
 </form>

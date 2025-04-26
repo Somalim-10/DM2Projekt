@@ -1,14 +1,13 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
-namespace DM2Projekt.Pages
+namespace DM2Projekt.Pages;
+
+public class LogoutModel : PageModel
 {
-    public class LogoutModel : PageModel
+    public IActionResult OnPost()
     {
-        public IActionResult OnPost()
-        {
-            HttpContext.Session.Clear();
-            return RedirectToPage("/Index");
-        }
+        HttpContext.Session.Clear(); // kill session
+        return RedirectToPage("/Index"); // go back home
     }
 }
