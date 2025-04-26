@@ -38,6 +38,7 @@ public class DeleteModel : PageModel
         // only Admins, Teachers, or the person who created it can delete
         if (userRole != "Admin" && userRole != "Teacher" && booking.CreatedByUserId != userId)
         {
+            TempData["ErrorMessage"] = "You are not allowed to cancel this booking.";
             return RedirectToPage("/Bookings/Index");
         }
 
@@ -63,6 +64,7 @@ public class DeleteModel : PageModel
         // only Admins, Teachers, or the person who created it can delete
         if (userRole != "Admin" && userRole != "Teacher" && booking.CreatedByUserId != userId)
         {
+            TempData["ErrorMessage"] = "You are not allowed to cancel this booking.";
             return RedirectToPage("/Bookings/Index");
         }
 
@@ -76,7 +78,8 @@ public class DeleteModel : PageModel
 
                 if (diff.TotalDays < 3)
                 {
-                    // not enough notice, go back to bookings list
+                    // not enough notice, show message
+                    TempData["ErrorMessage"] = "You can only cancel bookings more than 3 days before they start.";
                     return RedirectToPage("/Bookings/Index");
                 }
             }
