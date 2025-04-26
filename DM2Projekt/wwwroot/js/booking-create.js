@@ -1,4 +1,5 @@
 ﻿document.addEventListener("DOMContentLoaded", () => {
+    // get all needed HTML elements
     const roomSelect = document.getElementById("Booking_RoomId");
     const weekPicker = document.getElementById("weekPicker");
     const dayOfWeekSelect = document.getElementById("dayOfWeek");
@@ -9,6 +10,9 @@
     const smartboardCheckboxContainer = document.getElementById("smartboardCheckboxContainer");
     const smartboardCheckbox = document.getElementById("Booking_UsesSmartboard");
 
+    let isClassroom = false; // save room type here after first fetch
+
+    // figure out selected date (from week picker + day picker)
     function getSelectedDate() {
         const week = weekPicker.value;
         const day = parseInt(dayOfWeekSelect.value);
@@ -23,11 +27,13 @@
         return monday;
     }
 
+    // update time slots when room, week, or day changes
     function updateAvailableTimeSlots() {
         const roomId = roomSelect.value;
         const selectedDate = getSelectedDate();
 
         if (!roomId || !selectedDate) {
+            // hide smartboard if nothing selected
             smartboardCheckboxContainer.style.display = "none";
             smartboardCheckbox.checked = false;
             return;
@@ -35,6 +41,7 @@
 
         const isoDate = selectedDate.toISOString().split("T")[0];
 
+        // ask server for available slots
         fetch(`?handler=AvailableTimeSlots&roomId=${roomId}&date=${isoDate}`)
             .then(res => res.json())
             .then(data => {
@@ -49,30 +56,25 @@
                     timeSlotSelect.appendChild(option);
                 });
 
-                fetch(`?handler=RoomType&roomId=${roomId}`)
-                    .then(res => res.json())
-                    .then(room => {
-                        const isClassroom = room.roomType === "Classroom";
-
-                        if (isClassroom) {
-                            smartboardCheckboxContainer.style.display = "block";
-                            smartboardCheckbox.checked = false;
-                            checkSmartboardAvailability(); // trigger if time slot already selected
-                        } else {
-                            smartboardCheckboxContainer.style.display = "none";
-                            smartboardCheckbox.checked = false;
-                        }
-                    });
+                if (isClassroom) {
+                    smartboardCheckboxContainer.style.display = "block";
+                    smartboardCheckbox.checked = false;
+                    checkSmartboardAvailability(); // check if smartboard free
+                } else {
+                    smartboardCheckboxContainer.style.display = "none";
+                    smartboardCheckbox.checked = false;
+                }
             });
     }
 
+    // check if smartboard is already booked
     function checkSmartboardAvailability() {
         const roomId = roomSelect.value;
         const selectedSlot = timeSlotSelect.value;
         if (!selectedSlot) return;
 
         const startTime = new Date(selectedSlot);
-        const endTime = new Date(startTime.getTime() + 2 * 60 * 60 * 1000);
+        const endTime = new Date(startTime.getTime() + 2 * 60 * 60 * 1000); // +2 hours
 
         fetch(`?handler=SmartboardCheck&roomId=${roomId}&start=${startTime.toISOString()}&end=${endTime.toISOString()}`)
             .then(res => res.json())
@@ -82,11 +84,12 @@
             });
     }
 
+    // put selected time slot into hidden fields (start + end time)
     function updateHiddenTimeInputs(selectedStart) {
         if (!selectedStart) return;
 
         const startDate = new Date(selectedStart);
-        const endDate = new Date(startDate.getTime() + 2 * 60 * 60 * 1000);
+        const endDate = new Date(startDate.getTime() + 2 * 60 * 60 * 1000); // +2 hours
 
         startInput.value = startDate.toISOString();
         endInput.value = endDate.toISOString();
@@ -97,9 +100,24 @@
         }
     }
 
+    // event listeners to trigger when user changes stuff
+    roomSelect.addEventListener("change", () => {
+        const roomId = roomSelect.value;
+        if (!roomId) {
+            smartboardCheckboxContainer.style.display = "none";
+            smartboardCheckbox.checked = false;
+            return;
+        }
 
-    // Event Listeners
-    roomSelect.addEventListener("change", updateAvailableTimeSlots);
+        // fetch room type once
+        fetch(`?handler=RoomType&roomId=${roomId}`)
+            .then(res => res.json())
+            .then(room => {
+                isClassroom = room.roomType === "Classroom";
+                updateAvailableTimeSlots();
+            });
+    });
+
     weekPicker.addEventListener("change", updateAvailableTimeSlots);
     dayOfWeekSelect.addEventListener("change", updateAvailableTimeSlots);
     timeSlotSelect.addEventListener("change", () => {
@@ -107,7 +125,7 @@
         checkSmartboardAvailability();
     });
 
-    // Pre-fill if already selected
+    // if room already picked, auto load time slots
     if (roomSelect.value) {
         roomSelect.dispatchEvent(new Event("change"));
     }
