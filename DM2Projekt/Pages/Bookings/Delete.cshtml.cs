@@ -4,48 +4,88 @@ using Microsoft.EntityFrameworkCore;
 using DM2Projekt.Data;
 using DM2Projekt.Models;
 
-namespace DM2Projekt.Pages.Bookings
+namespace DM2Projekt.Pages.Bookings;
+
+public class DeleteModel : PageModel
 {
-    public class DeleteModel : PageModel
+    private readonly DM2ProjektContext _context;
+
+    public DeleteModel(DM2ProjektContext context)
     {
-        private readonly DM2ProjektContext _context;
+        _context = context;
+    }
 
-        public DeleteModel(DM2ProjektContext context)
+    [BindProperty]
+    public Booking Booking { get; set; } = default!;
+
+    public async Task<IActionResult> OnGetAsync(int? id)
+    {
+        if (id == null) return NotFound();
+
+        var booking = await _context.Booking
+            .Include(b => b.Room)
+            .Include(b => b.Group)
+            .Include(b => b.CreatedByUser)
+            .FirstOrDefaultAsync(m => m.BookingId == id);
+
+        if (booking == null) return NotFound();
+
+        var userId = HttpContext.Session.GetInt32("UserId");
+        var userRole = HttpContext.Session.GetString("UserRole");
+
+        if (userId == null) return RedirectToPage("/Login");
+
+        // only Admins, Teachers, or the person who created it can delete
+        if (userRole != "Admin" && userRole != "Teacher" && booking.CreatedByUserId != userId)
         {
-            _context = context;
+            return RedirectToPage("/Bookings/Index");
         }
 
-        [BindProperty]
-        public Booking Booking { get; set; } = default!;
+        Booking = booking;
+        return Page();
+    }
 
-        public async Task<IActionResult> OnGetAsync(int? id)
+    public async Task<IActionResult> OnPostAsync(int? id)
+    {
+        if (id == null) return NotFound();
+
+        var booking = await _context.Booking
+            .Include(b => b.CreatedByUser)
+            .FirstOrDefaultAsync(b => b.BookingId == id);
+
+        if (booking == null) return NotFound();
+
+        var userId = HttpContext.Session.GetInt32("UserId");
+        var userRole = HttpContext.Session.GetString("UserRole");
+
+        if (userId == null) return RedirectToPage("/Login");
+
+        // only Admins, Teachers, or the person who created it can delete
+        if (userRole != "Admin" && userRole != "Teacher" && booking.CreatedByUserId != userId)
         {
-            if (id == null) return NotFound();
-
-            var booking = await _context.Booking
-                .Include(b => b.Room)
-                .Include(b => b.Group)
-                .Include(b => b.CreatedByUser)
-                .FirstOrDefaultAsync(m => m.BookingId == id);
-
-            if (booking == null) return NotFound();
-
-            Booking = booking;
-            return Page();
+            return RedirectToPage("/Bookings/Index");
         }
 
-        public async Task<IActionResult> OnPostAsync(int? id)
+        // teachers can only cancel if more than 3 days before start
+        if (userRole == "Teacher")
         {
-            if (id == null) return NotFound();
-
-            var booking = await _context.Booking.FindAsync(id);
-            if (booking != null)
+            if (booking.StartTime.HasValue)
             {
-                _context.Booking.Remove(booking);
-                await _context.SaveChangesAsync();
-            }
+                var now = DateTime.Now;
+                var diff = booking.StartTime.Value - now;
 
-            return RedirectToPage("./Index");
+                if (diff.TotalDays < 3)
+                {
+                    // not enough notice, go back to bookings list
+                    return RedirectToPage("/Bookings/Index");
+                }
+            }
         }
+
+        // delete the booking
+        _context.Booking.Remove(booking);
+        await _context.SaveChangesAsync();
+
+        return RedirectToPage("./Index");
     }
 }
