@@ -10,6 +10,10 @@
     const smartboardCheckboxContainer = document.getElementById("smartboardCheckboxContainer");
     const smartboardCheckbox = document.getElementById("Booking_UsesSmartboard");
 
+    const selectedTimeSlotInput = document.querySelector('input[name="SelectedTimeSlot"]');
+    const selectedWeekInput = document.getElementById("SelectedWeek");
+    const selectedDayInput = document.getElementById("SelectedDay");
+
     let isClassroom = false; // save room type here after first fetch
 
     // figure out selected date (from week picker + day picker)
@@ -27,7 +31,7 @@
         return monday;
     }
 
-    // update time slots when room, week, or day changes
+    // update available time slots when room, week, or day changes
     function updateAvailableTimeSlots() {
         const roomId = roomSelect.value;
         const selectedDate = getSelectedDate();
@@ -40,6 +44,7 @@
 
         const isoDate = selectedDate.toISOString().split("T")[0];
 
+        // fetch available slots from server
         fetch(`?handler=AvailableTimeSlots&roomId=${roomId}&date=${isoDate}`)
             .then(res => res.json())
             .then(data => {
@@ -72,7 +77,7 @@
         if (!selectedSlot) return;
 
         const startTime = new Date(selectedSlot);
-        const endTime = new Date(startTime.getTime() + 2 * 60 * 60 * 1000);
+        const endTime = new Date(startTime.getTime() + 2 * 60 * 60 * 1000); // +2 hours
 
         fetch(`?handler=SmartboardCheck&roomId=${roomId}&start=${startTime.toISOString()}&end=${endTime.toISOString()}`)
             .then(res => res.json())
@@ -82,23 +87,28 @@
             });
     }
 
-    // put selected time slot into hidden fields (start + end time)
+    // update hidden time fields
     function updateHiddenTimeInputs(selectedStart) {
         if (!selectedStart) return;
 
         const startDate = new Date(selectedStart);
-        const endDate = new Date(startDate.getTime() + 2 * 60 * 60 * 1000);
+        const endDate = new Date(startDate.getTime() + 2 * 60 * 60 * 1000); // +2 hours
 
         startInput.value = startDate.toISOString();
         endInput.value = endDate.toISOString();
 
-        const selectedTimeSlotInput = document.querySelector('input[name="SelectedTimeSlot"]');
         if (selectedTimeSlotInput) {
             selectedTimeSlotInput.value = startDate.toISOString();
         }
     }
 
-    // event listeners to trigger when user changes stuff
+    // update hidden week/day fields
+    function updateHiddenWeekDayInputs() {
+        if (selectedWeekInput) selectedWeekInput.value = weekPicker.value;
+        if (selectedDayInput) selectedDayInput.value = dayOfWeekSelect.value;
+    }
+
+    // event listeners for when user changes stuff
     roomSelect.addEventListener("change", () => {
         const roomId = roomSelect.value;
         if (!roomId) {
@@ -115,15 +125,27 @@
             });
     });
 
-    weekPicker.addEventListener("change", updateAvailableTimeSlots);
-    dayOfWeekSelect.addEventListener("change", updateAvailableTimeSlots);
+    weekPicker.addEventListener("change", () => {
+        updateAvailableTimeSlots();
+        updateHiddenWeekDayInputs();
+    });
+
+    dayOfWeekSelect.addEventListener("change", () => {
+        updateAvailableTimeSlots();
+        updateHiddenWeekDayInputs();
+    });
 
     timeSlotSelect.addEventListener("change", () => {
         updateHiddenTimeInputs(timeSlotSelect.value);
-        checkSmartboardAvailability();
     });
 
-    // if room already picked, auto load time slots
+    // update all hidden fields before submitting
+    form.addEventListener("submit", () => {
+        updateHiddenTimeInputs(timeSlotSelect.value);
+        updateHiddenWeekDayInputs();
+    });
+
+    // if room already picked, load slots
     if (roomSelect.value) {
         roomSelect.dispatchEvent(new Event("change"));
     }

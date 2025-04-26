@@ -31,7 +31,7 @@
         <span asp-validation-for="Booking.RoomId" class="text-danger"></span>
     </div>
 
-    <!-- week picker (NOT asp-for!) -->
+    <!-- week picker (manual, not bound) -->
     <div class="form-group">
         <label for="weekPicker">Week</label>
         <input type="week" id="weekPicker" class="form-control" />
@@ -52,21 +52,23 @@
 
     <!-- time slot picker -->
     <div class="form-group">
-        <label>Time Slot</label>
+        <label for="timeSlot">Time Slot</label>
         <select id="timeSlot" class="form-control">
             <option value="">-- Select Time Slot --</option>
         </select>
     </div>
 
-    <!-- smartboard checkbox (only shown sometimes) -->
+    <!-- smartboard checkbox (only shown for classrooms) -->
     <div class="form-group" id="smartboardCheckboxContainer" style="display: none;">
         <input asp-for="Booking.UsesSmartboard" type="checkbox" id="Booking_UsesSmartboard" />
         <label for="Booking_UsesSmartboard">Book Smartboard</label>
         <span asp-validation-for="Booking.UsesSmartboard" class="text-danger"></span>
     </div>
 
-    <!-- hidden inputs -->
-    <input asp-for="SelectedTimeSlot" type="hidden" />
+    <!-- hidden inputs for week/day/time slot + start/end time -->
+    <input asp-for="SelectedTimeSlot" type="hidden" data-val="false" />
+    <input asp-for="SelectedWeek" type="hidden" id="SelectedWeek" />
+    <input asp-for="SelectedDay" type="hidden" id="SelectedDay" />
     <input asp-for="Booking.StartTime" type="hidden" id="Booking_StartTime" />
     <input asp-for="Booking.EndTime" type="hidden" id="Booking_EndTime" />
 
