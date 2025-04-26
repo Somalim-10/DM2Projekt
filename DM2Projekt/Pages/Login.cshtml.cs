@@ -41,6 +41,7 @@ public class LoginModel : PageModel
         // save user info in session
         HttpContext.Session.SetInt32("UserId", user.UserId);
         HttpContext.Session.SetString("UserName", $"{user.FirstName} {user.LastName}");
+        HttpContext.Session.SetString("UserRole", user.Role.ToString());
 
         return RedirectToPage("/Index"); // go home
     }

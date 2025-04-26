@@ -14,6 +14,8 @@
     const selectedWeekInput = document.getElementById("SelectedWeek");
     const selectedDayInput = document.getElementById("SelectedDay");
 
+    const form = document.querySelector("form");
+
     let isClassroom = false; // true if room is a classroom
 
     // calculate selected full date (based on week + day)
@@ -44,7 +46,7 @@
 
         const isoDate = selectedDate.toISOString().split("T")[0];
 
-        fetch(`?handler=AvailableTimeSlots&roomId=${roomId}&date=${isoDate}`)
+        fetch(`Create?handler=AvailableTimeSlots&roomId=${roomId}&date=${isoDate}`)
             .then(res => res.json())
             .then(data => {
                 timeSlotSelect.innerHTML = '';
@@ -79,7 +81,7 @@
         const startTime = new Date(selectedSlot);
         const endTime = new Date(startTime.getTime() + 2 * 60 * 60 * 1000); // 2 hours later
 
-        fetch(`?handler=SmartboardCheck&roomId=${roomId}&start=${startTime.toISOString()}&end=${endTime.toISOString()}`)
+        fetch(`Create?handler=SmartboardCheck&roomId=${roomId}&start=${startTime.toISOString()}&end=${endTime.toISOString()}`)
             .then(res => res.json())
             .then(isAlreadyBooked => {
                 smartboardCheckbox.disabled = isAlreadyBooked;
@@ -117,7 +119,7 @@
             return;
         }
 
-        fetch(`?handler=RoomType&roomId=${roomId}`)
+        fetch(`Create?handler=RoomType&roomId=${roomId}`)
             .then(res => res.json())
             .then(room => {
                 isClassroom = room.roomType === "Classroom";
