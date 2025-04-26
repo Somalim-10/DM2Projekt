@@ -1,29 +1,31 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 using DM2Projekt.Data;
 using DM2Projekt.Models;
 
-namespace DM2Projekt.Pages.Rooms
+namespace DM2Projekt.Pages.Rooms;
+
+public class IndexModel : PageModel
 {
-    public class IndexModel : PageModel
+    private readonly DM2ProjektContext _context;
+
+    public IndexModel(DM2ProjektContext context)
     {
-        private readonly DM2Projekt.Data.DM2ProjektContext _context;
+        _context = context;
+    }
 
-        public IndexModel(DM2Projekt.Data.DM2ProjektContext context)
+    public IList<Room> Room { get; set; } = default!;
+
+    public async Task<IActionResult> OnGetAsync()
+    {
+        var userId = HttpContext.Session.GetInt32("UserId");
+        if (userId == null) // if not logged in
         {
-            _context = context;
+            return RedirectToPage("/Login");
         }
 
-        public IList<Room> Room { get;set; } = default!;
-
-        public async Task OnGetAsync()
-        {
-            Room = await _context.Room.ToListAsync();
-        }
+        Room = await _context.Room.ToListAsync();
+        return Page();
     }
 }

@@ -1,44 +1,48 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using Microsoft.AspNetCore.Mvc.Rendering;
 using DM2Projekt.Data;
 using DM2Projekt.Models;
 
-namespace DM2Projekt.Pages.Groups
+namespace DM2Projekt.Pages.Groups;
+
+public class CreateModel : PageModel
 {
-    public class CreateModel : PageModel
+    private readonly DM2ProjektContext _context;
+
+    public CreateModel(DM2ProjektContext context)
     {
-        private readonly DM2Projekt.Data.DM2ProjektContext _context;
+        _context = context;
+    }
 
-        public CreateModel(DM2Projekt.Data.DM2ProjektContext context)
-        {
-            _context = context;
-        }
+    [BindProperty]
+    public Group Group { get; set; } = default!;
 
-        public IActionResult OnGet()
-        {
+    public IActionResult OnGet()
+    {
+        var userRole = HttpContext.Session.GetString("UserRole");
+
+        // only Admins can open Create page
+        if (userRole != "Admin")
+            return RedirectToPage("/Groups/Index");
+
+        return Page();
+    }
+
+    public async Task<IActionResult> OnPostAsync()
+    {
+        var userRole = HttpContext.Session.GetString("UserRole");
+
+        // block non-Admins from posting
+        if (userRole != "Admin")
+            return RedirectToPage("/Groups/Index");
+
+        if (!ModelState.IsValid)
             return Page();
-        }
 
-        [BindProperty]
-        public Group Group { get; set; } = default!;
+        // save new group
+        _context.Group.Add(Group);
+        await _context.SaveChangesAsync();
 
-        // For more information, see https://aka.ms/RazorPagesCRUD.
-        public async Task<IActionResult> OnPostAsync()
-        {
-            if (!ModelState.IsValid)
-            {
-                return Page();
-            }
-
-            _context.Group.Add(Group);
-            await _context.SaveChangesAsync();
-
-            return RedirectToPage("./Index");
-        }
+        return RedirectToPage("./Index");
     }
 }

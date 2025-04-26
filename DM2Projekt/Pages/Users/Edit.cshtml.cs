@@ -1,57 +1,73 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using DM2Projekt.Data;
 using DM2Projekt.Models;
 
-namespace DM2Projekt.Pages.Users
+namespace DM2Projekt.Pages.Users;
+
+public class EditModel : PageModel
 {
-    public class EditModel : PageModel
+    private readonly DM2ProjektContext _context;
+
+    public EditModel(DM2ProjektContext context)
     {
-        private readonly DM2ProjektContext _context;
+        _context = context;
+    }
 
-        public EditModel(DM2ProjektContext context)
+    [BindProperty]
+    public User User { get; set; } = default!;
+
+    public async Task<IActionResult> OnGetAsync(int? id)
+    {
+        if (id == null) return NotFound();
+
+        var userId = HttpContext.Session.GetInt32("UserId");
+        var userRole = HttpContext.Session.GetString("UserRole");
+
+        if (userId == null) // not logged in
+            return RedirectToPage("/Login");
+
+        if (userRole != "Admin") // only Admin can edit users
+            return RedirectToPage("/Index");
+
+        var user = await _context.User.FirstOrDefaultAsync(m => m.UserId == id);
+        if (user == null) return NotFound();
+
+        User = user;
+        return Page();
+    }
+
+    public async Task<IActionResult> OnPostAsync()
+    {
+        if (!ModelState.IsValid) return Page();
+
+        var userId = HttpContext.Session.GetInt32("UserId");
+        var userRole = HttpContext.Session.GetString("UserRole");
+
+        if (userId == null) // not logged in
+            return RedirectToPage("/Login");
+
+        if (userRole != "Admin") // only Admin can edit users
+            return RedirectToPage("/Index");
+
+        _context.Attach(User).State = EntityState.Modified;
+
+        try
         {
-            _context = context;
+            await _context.SaveChangesAsync();
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            if (!UserExists(User.UserId)) return NotFound();
+            else throw;
         }
 
-        [BindProperty]
-        public User User { get; set; } = default!;
+        return RedirectToPage("./Index");
+    }
 
-        public async Task<IActionResult> OnGetAsync(int? id)
-        {
-            if (id == null) return NotFound();
-
-            var user = await _context.User.FirstOrDefaultAsync(m => m.UserId == id);
-            if (user == null) return NotFound();
-
-            User = user;
-            return Page();
-        }
-
-        public async Task<IActionResult> OnPostAsync()
-        {
-            if (!ModelState.IsValid) return Page();
-
-            _context.Attach(User).State = EntityState.Modified;
-
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!UserExists(User.UserId)) return NotFound();
-                else throw;
-            }
-
-            return RedirectToPage("./Index");
-        }
-
-        private bool UserExists(int id)
-        {
-            return _context.User.Any(e => e.UserId == id);
-        }
+    private bool UserExists(int id)
+    {
+        return _context.User.Any(e => e.UserId == id);
     }
 }

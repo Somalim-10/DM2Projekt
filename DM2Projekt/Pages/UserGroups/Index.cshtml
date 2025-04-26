@@ -2,41 +2,46 @@
 @model DM2Projekt.Pages.UserGroups.IndexModel
 
 @{
-    ViewData["Title"] = "Index";
+    ViewData["Title"] = "UserGroups";
+    var userRole = HttpContext.Session.GetString("UserRole");
 }
 
 <h1>UserGroups</h1>
 
-<p>
-    <a asp-page="Create">Create New</a>
-</p>
+<!-- Only Admins can create new usergroups -->
+@if (userRole == "Admin")
+{
+    <p>
+        <a asp-page="Create" class="btn btn-primary">Create New</a>
+    </p>
+}
 
 <table class="table">
     <thead>
         <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.UserGroup[0].User)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.UserGroup[0].Group)
-            </th>
-            <th></th>
+            <th>@Html.DisplayNameFor(model => model.UserGroup[0].User)</th>
+            <th>@Html.DisplayNameFor(model => model.UserGroup[0].Group)</th>
+            <th class="text-center">Actions</th>
         </tr>
     </thead>
     <tbody>
         @foreach (var item in Model.UserGroup)
         {
             <tr>
-                <td>
-                    @Html.DisplayFor(modelItem => item.User.Email)
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.Group.GroupName)
-                </td>
-                <td>
-                    <a asp-page="Edit" asp-route-userId="@item.UserId" asp-route-groupId="@item.GroupId">Edit</a> |
-                    <a asp-page="Details" asp-route-userId="@item.UserId" asp-route-groupId="@item.GroupId">Details</a> |
-                    <a asp-page="Delete" asp-route-userId="@item.UserId" asp-route-groupId="@item.GroupId">Delete</a>
+                <td>@Html.DisplayFor(modelItem => item.User.Email)</td>
+                <td>@Html.DisplayFor(modelItem => item.Group.GroupName)</td>
+                <td class="text-center">
+                    <!-- Everyone can view Details -->
+                    <a asp-page="./Details" asp-route-userId="@item.UserId" asp-route-groupId="@item.GroupId">Details</a>
+
+                    <!-- Only Admins can Edit and Delete -->
+                    @if (userRole == "Admin")
+                    {
+                        <span> | </span>
+                        <a asp-page="./Edit" asp-route-userId="@item.UserId" asp-route-groupId="@item.GroupId">Edit</a>
+                        <span> | </span>
+                        <a asp-page="./Delete" asp-route-userId="@item.UserId" asp-route-groupId="@item.GroupId">Delete</a>
+                    }
                 </td>
             </tr>
         }

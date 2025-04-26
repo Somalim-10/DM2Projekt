@@ -2,10 +2,11 @@
 @model DM2Projekt.Pages.Groups.DetailsModel
 
 @{
-    ViewData["Title"] = "Details";
+    ViewData["Title"] = "Group Details";
+    var userRole = HttpContext.Session.GetString("UserRole");
 }
 
-<h1>Details</h1>
+<h1>Group Details</h1>
 
 <div>
     <h4>Group</h4>
@@ -19,7 +20,15 @@
         </dd>
     </dl>
 </div>
+
 <div>
-    <a asp-page="./Edit" asp-route-id="@Model.Group.GroupId">Edit</a> |
+    @* Everyone can go back *@
     <a asp-page="./Index">Back to List</a>
+
+    @* Only Admins can edit *@
+    @if (userRole == "Admin")
+    {
+        <span> | </span>
+        <a asp-page="./Edit" asp-route-id="@Model.Group.GroupId">Edit</a>
+    }
 </div>
