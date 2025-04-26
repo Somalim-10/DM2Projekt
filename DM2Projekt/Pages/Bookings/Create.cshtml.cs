@@ -9,6 +9,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace DM2Projekt.Pages.Bookings;
 
+// backend for create booking page
 public class CreateModel : PageModel
 {
     private readonly DM2ProjektContext _context;
@@ -18,9 +19,11 @@ public class CreateModel : PageModel
         _context = context;
     }
 
+    // booking to save
     [BindProperty]
     public Booking Booking { get; set; } = default!;
 
+    // hidden fields for week, day and time slot
     [BindProperty]
     [Required]
     public string SelectedTimeSlot { get; set; } = "";
@@ -33,29 +36,35 @@ public class CreateModel : PageModel
     [Required]
     public string SelectedDay { get; set; } = "";
 
+    // when page loads
     public IActionResult OnGet()
     {
         PopulateDropdowns();
         return Page();
     }
 
+    // when form is submitted
     public async Task<IActionResult> OnPostAsync()
     {
+        // skip validation on StartTime and EndTime (we set manually)
         ModelState.Remove("Booking.StartTime");
         ModelState.Remove("Booking.EndTime");
 
+        // check other fields
         if (!ModelState.IsValid)
         {
             PopulateDropdowns();
             return Page();
         }
 
+        // try to parse selected timeslot
         if (!TryParseAndValidateTimeSlot(out var startTime))
         {
             PopulateDropdowns();
             return Page();
         }
 
+        // set booking start and end time (always 2 hours)
         Booking.StartTime = startTime;
         Booking.EndTime = startTime.AddHours(2);
 
@@ -65,22 +74,28 @@ public class CreateModel : PageModel
             return Page();
         }
 
+        // if meeting room, always auto-enable smartboard
         var room = GetRoom(Booking.RoomId);
         if (room?.RoomType == RoomType.MeetingRoom)
             Booking.UsesSmartboard = true;
 
+        // validate booking (conflicts, etc.)
         if (!ValidateBooking())
         {
             PopulateDropdowns();
             return Page();
         }
 
+        // save to database
         _context.Booking.Add(Booking);
         await _context.SaveChangesAsync();
 
         return RedirectToPage("./Index");
     }
 
+    // --- AJAX handlers below ---
+
+    // get available time slots for a room and date
     public JsonResult OnGetAvailableTimeSlots(int roomId, DateTime date)
     {
         var room = GetRoom(roomId);
@@ -98,6 +113,7 @@ public class CreateModel : PageModel
         return new JsonResult(availableSlots);
     }
 
+    // get room type (classroom or meeting room)
     public JsonResult OnGetRoomType(int roomId)
     {
         var room = GetRoom(roomId);
@@ -107,6 +123,7 @@ public class CreateModel : PageModel
         return new JsonResult(new { roomType = room.RoomType.ToString() });
     }
 
+    // check if smartboard is available
     public JsonResult OnGetSmartboardAvailability(int roomId, DateTime startTime, DateTime endTime)
     {
         var room = GetRoom(roomId);
@@ -122,6 +139,7 @@ public class CreateModel : PageModel
         return new JsonResult(new { available = !isTaken });
     }
 
+    // check if smartboard already booked
     public JsonResult OnGetSmartboardCheck(int roomId, DateTime start, DateTime end)
     {
         var room = GetRoom(roomId);
@@ -137,8 +155,9 @@ public class CreateModel : PageModel
         return new JsonResult(smartboardUsed);
     }
 
-    // --- Helper methods ---
+    // --- Helper methods below ---
 
+    // fill dropdown lists
     private void PopulateDropdowns()
     {
         ViewData["GroupId"] = new SelectList(_context.Group, "GroupId", "GroupName");
@@ -146,13 +165,16 @@ public class CreateModel : PageModel
         ViewData["CreatedByUserId"] = new SelectList(_context.User, "UserId", "Email");
     }
 
+    // get room by ID
     private Room? GetRoom(int roomId) =>
         _context.Room.FirstOrDefault(r => r.RoomId == roomId);
 
+    // get bookings for a room on a specific date
     private List<Booking> GetBookingsForRoomOnDate(int roomId, DateTime date) =>
         [.. _context.Booking
             .Where(b => b.RoomId == roomId && b.StartTime != null && b.StartTime.Value.Date == date.Date)];
 
+    // fixed time slots every day
     private static List<(DateTime start, DateTime end)> GetFixedTimeSlots(DateTime day)
     {
         var date = day.Date;
@@ -165,6 +187,7 @@ public class CreateModel : PageModel
         ];
     }
 
+    // check if a time slot is available
     private static bool IsSlotAvailable(Room room, List<Booking> bookings, (DateTime start, DateTime end) slot)
     {
         return room.RoomType switch
@@ -175,9 +198,11 @@ public class CreateModel : PageModel
         };
     }
 
+    // check if two slots match
     private static bool IsSameSlot(Booking booking, (DateTime start, DateTime end) slot) =>
         booking.StartTime == slot.start && booking.EndTime == slot.end;
 
+    // format slot for JSON
     private static object FormatSlot((DateTime start, DateTime end) slot) => new
     {
         start = slot.start.ToString("HH:mm"),
@@ -185,6 +210,7 @@ public class CreateModel : PageModel
         value = slot.start.ToString("o")
     };
 
+    // try parsing the selected timeslot
     private bool TryParseAndValidateTimeSlot(out DateTime startTime)
     {
         if (!DateTime.TryParse(SelectedTimeSlot, out startTime))
@@ -195,6 +221,7 @@ public class CreateModel : PageModel
         return true;
     }
 
+    // validate entire booking
     private bool ValidateBooking()
     {
         if (HasUserBookingConflict()) return false;
@@ -205,6 +232,7 @@ public class CreateModel : PageModel
         return true;
     }
 
+    // user cannot book two bookings at once
     private bool HasUserBookingConflict()
     {
         bool conflict = _context.Booking.Any(b =>
@@ -218,6 +246,7 @@ public class CreateModel : PageModel
         return conflict;
     }
 
+    // booking cannot last longer than 2 hours
     private bool BookingExceedsMaxLength()
     {
         if (Booking.StartTime != null && Booking.EndTime != null &&
@@ -229,6 +258,7 @@ public class CreateModel : PageModel
         return false;
     }
 
+    // a group can only have one active booking
     private bool GroupAlreadyHasBooking()
     {
         bool activeBooking = _context.Booking
@@ -240,6 +270,7 @@ public class CreateModel : PageModel
         return activeBooking;
     }
 
+    // smartboard must not be double-booked
     private bool IsSmartboardAlreadyInUse()
     {
         if (!Booking.UsesSmartboard)

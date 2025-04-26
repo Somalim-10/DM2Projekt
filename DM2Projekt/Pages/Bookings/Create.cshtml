@@ -7,7 +7,7 @@
 <h1>Create Booking</h1>
 
 <form method="post">
-    <!-- show all validation errors at top -->
+    <!-- show all validation errors at the top -->
     <div asp-validation-summary="All" class="text-danger"></div>
 
     <!-- group dropdown -->
@@ -31,13 +31,13 @@
         <span asp-validation-for="Booking.RoomId" class="text-danger"></span>
     </div>
 
-    <!-- week picker (manual, not bound) -->
+    <!-- week picker (manual field, not bound to model) -->
     <div class="form-group">
         <label for="weekPicker">Week</label>
         <input type="week" id="weekPicker" class="form-control" />
     </div>
 
-    <!-- day picker -->
+    <!-- day picker (manual field, not bound to model) -->
     <div class="form-group">
         <label for="dayOfWeek">Day</label>
         <select id="dayOfWeek" class="form-control">
@@ -58,14 +58,14 @@
         </select>
     </div>
 
-    <!-- smartboard checkbox (only shown for classrooms) -->
+    <!-- smartboard checkbox (only shown if classroom) -->
     <div class="form-group" id="smartboardCheckboxContainer" style="display: none;">
         <input asp-for="Booking.UsesSmartboard" type="checkbox" id="Booking_UsesSmartboard" />
         <label for="Booking_UsesSmartboard">Book Smartboard</label>
         <span asp-validation-for="Booking.UsesSmartboard" class="text-danger"></span>
     </div>
 
-    <!-- hidden inputs for week/day/time slot + start/end time -->
+    <!-- hidden fields for week, day, time slot, start and end time -->
     <input asp-for="SelectedTimeSlot" type="hidden" data-val="false" />
     <input asp-for="SelectedWeek" type="hidden" id="SelectedWeek" />
     <input asp-for="SelectedDay" type="hidden" id="SelectedDay" />
