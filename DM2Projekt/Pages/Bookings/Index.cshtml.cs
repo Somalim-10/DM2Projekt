@@ -24,6 +24,11 @@ public class IndexModel : PageModel
     public int? RoomId { get; set; } // selected room from URL
 
     public int? SelectedRoomId => RoomId; // helper to make it nicer in frontend
+
+    [BindProperty(SupportsGet = true)]
+    public string? Status { get; set; } // selected status from URL (Upcoming, Ongoing, Past)
+
+    public string? SelectedStatus => Status; // another helper for frontend
     // --- end filter stuff ---
 
     public async Task<IActionResult> OnGetAsync()
@@ -51,10 +56,29 @@ public class IndexModel : PageModel
             .Include(b => b.CreatedByUser)
             .AsQueryable();
 
-        // if a room is selected, filter it
+        // if a room is selected, filter by room
         if (RoomId.HasValue)
         {
             query = query.Where(b => b.RoomId == RoomId.Value);
+        }
+
+        // if status selected, filter by status
+        if (!string.IsNullOrEmpty(Status))
+        {
+            var now = DateTime.Now;
+            if (Status == "Upcoming")
+            {
+                query = query.Where(b => b.StartTime > now);
+            }
+            else if (Status == "Ongoing")
+            {
+                query = query.Where(b => b.StartTime <= now && b.EndTime > now);
+            }
+            else if (Status == "Past")
+            {
+                query = query.Where(b => b.EndTime <= now);
+            }
+            // if someone puts random value in URL? just ignore it quietly
         }
 
         // finally get the bookings

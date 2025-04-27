@@ -51,6 +51,7 @@
     <!-- filter form starts here -->
     <form method="get" class="row g-3 align-items-end mb-4">
 
+        <!-- room filter dropdown -->
         <div class="col-auto">
             <label for="RoomId" class="form-label">Room</label>
             <select id="RoomId" name="RoomId" class="form-select">
@@ -69,6 +70,40 @@
                             <option value="@room.Value">@room.Text</option>
                         }
                     }
+                }
+            </select>
+        </div>
+
+        <!-- status filter dropdown -->
+        <div class="col-auto">
+            <label for="Status" class="form-label">Status</label>
+            <select id="Status" name="Status" class="form-select">
+                <option value="">-- All Statuses --</option>
+                @if (Model.SelectedStatus == "Upcoming")
+                {
+                    <option value="Upcoming" selected>Upcoming</option>
+                }
+                else
+                {
+                    <option value="Upcoming">Upcoming</option>
+                }
+
+                @if (Model.SelectedStatus == "Ongoing")
+                {
+                    <option value="Ongoing" selected>Ongoing</option>
+                }
+                else
+                {
+                    <option value="Ongoing">Ongoing</option>
+                }
+
+                @if (Model.SelectedStatus == "Past")
+                {
+                    <option value="Past" selected>Past</option>
+                }
+                else
+                {
+                    <option value="Past">Past</option>
                 }
             </select>
         </div>
@@ -113,7 +148,7 @@
                                 <i class="bi bi-person me-2"></i>@item.CreatedByUser.Email
                             </p>
 
-                            <!-- status badge (now looks like real label, not button) -->
+                            <!-- status badge (pretty labels) -->
                             <p class="text-center mt-3 mb-0">
                                 @if (isOngoing)
                                 {
@@ -130,7 +165,7 @@
                             </p>
                         </div>
 
-                        <!-- only cancel button in footer -->
+                        <!-- cancel button if allowed -->
                         @if (userId != null && (userRole == "Admin" || userRole == "Teacher" || item.CreatedByUserId == userId))
                         {
                             <div class="mt-auto d-flex flex-column align-items-stretch gap-2">
