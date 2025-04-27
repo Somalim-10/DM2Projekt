@@ -3,6 +3,12 @@
 @{
     ViewData["Title"] = "Create Booking";
     var userRole = HttpContext.Session.GetString("UserRole");
+
+    // --- Set default week value for weekPicker ---
+    var currentDate = DateTime.UtcNow;
+    var week = System.Globalization.ISOWeek.GetWeekOfYear(currentDate);
+    var year = currentDate.Year;
+    var defaultWeekValue = $"{year}-W{week:D2}";
 }
 
 <div class="container py-4">
@@ -40,10 +46,10 @@
                     <span asp-validation-for="Booking.RoomId" class="text-danger small"></span>
                 </div>
 
-                <!-- week picker -->
+                <!-- week picker (default to current week) -->
                 <div class="mb-3">
                     <label for="weekPicker" class="form-label">Week</label>
-                    <input type="week" id="weekPicker" class="form-control" />
+                    <input type="week" id="weekPicker" class="form-control" value="@defaultWeekValue" />
                 </div>
 
                 <!-- day picker -->

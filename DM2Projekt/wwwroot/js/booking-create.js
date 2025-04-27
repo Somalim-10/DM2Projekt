@@ -17,6 +17,7 @@
     const form = document.querySelector("form");
 
     let isClassroom = false; // true if room is a classroom
+    let selectedRoomId = null; // remember selected room id
 
     // calculate selected full date (based on week + day)
     function getSelectedDate() {
@@ -35,7 +36,7 @@
 
     // update time slot dropdown
     function updateAvailableTimeSlots() {
-        const roomId = roomSelect.value;
+        const roomId = selectedRoomId;
         const selectedDate = getSelectedDate();
 
         if (!roomId || !selectedDate) {
@@ -61,10 +62,9 @@
                     timeSlotSelect.appendChild(option);
                 });
 
-                // show smartboard checkbox only if classroom
                 if (isClassroom) {
                     smartboardCheckboxContainer.style.display = "block";
-                    smartboardCheckbox.checked = false;
+                    smartboardCheckbox.disabled = true; // disable until user picks a slot
                 } else {
                     smartboardCheckboxContainer.style.display = "none";
                     smartboardCheckbox.checked = false;
@@ -74,12 +74,12 @@
 
     // check if smartboard is already booked for selected slot
     function checkSmartboardAvailability() {
-        const roomId = roomSelect.value;
+        const roomId = selectedRoomId;
         const selectedSlot = timeSlotSelect.value;
-        if (!selectedSlot) return;
+        if (!selectedSlot || !isClassroom) return;
 
         const startTime = new Date(selectedSlot);
-        const endTime = new Date(startTime.getTime() + 2 * 60 * 60 * 1000); // 2 hours later
+        const endTime = new Date(startTime.getTime() + 2 * 60 * 60 * 1000); // +2h
 
         fetch(`Create?handler=SmartboardCheck&roomId=${roomId}&start=${startTime.toISOString()}&end=${endTime.toISOString()}`)
             .then(res => res.json())
@@ -116,9 +116,11 @@
         if (!roomId) {
             smartboardCheckboxContainer.style.display = "none";
             smartboardCheckbox.checked = false;
+            selectedRoomId = null;
             return;
         }
 
+        selectedRoomId = roomId; // remember the selected room
         fetch(`Create?handler=RoomType&roomId=${roomId}`)
             .then(res => res.json())
             .then(room => {
@@ -142,6 +144,7 @@
     // when time slot changes
     timeSlotSelect.addEventListener("change", () => {
         updateHiddenTimeInputs(timeSlotSelect.value);
+        checkSmartboardAvailability(); // also check smartboard free or not
     });
 
     // before form submit, update hidden fields
