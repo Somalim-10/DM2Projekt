@@ -4,35 +4,55 @@
     ViewData["Title"] = "Cancel Booking";
 }
 
-<h2 class="mb-4">Cancel Booking</h2>
+<div class="container py-4">
 
-<div class="alert alert-warning">
-    Are you sure you want to cancel this booking?
-</div>
+    <h2 class="mb-4 text-danger">❌ Cancel Booking</h2>
 
-<dl class="row">
-    <dt class="col-sm-3">Created By</dt>
-    <dd class="col-sm-9">@Model.Booking.CreatedByUser.Email</dd>
+    <!-- strong alert with icon -->
+    <div class="alert alert-danger d-flex align-items-center" role="alert">
+        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+        Are you sure you want to cancel this booking?
+    </div>
 
-    <dt class="col-sm-3">Group</dt>
-    <dd class="col-sm-9">@Model.Booking.Group.GroupName</dd>
+    <!-- booking details inside card -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <dl class="row mb-0">
 
-    <dt class="col-sm-3">Room</dt>
-    <dd class="col-sm-9">@Model.Booking.Room.RoomName</dd>
+                <dt class="col-sm-3 text-muted">Created By</dt>
+                <dd class="col-sm-9 fw-semibold">@Model.Booking.CreatedByUser.Email</dd>
 
-    <dt class="col-sm-3">Date</dt>
-    <dd class="col-sm-9">
-        <strong>@Model.Booking.StartTime?.ToString("ddd, dd MMMM yyyy")</strong>
-    </dd>
+                <dt class="col-sm-3 text-muted">Group</dt>
+                <dd class="col-sm-9 fw-semibold">@Model.Booking.Group.GroupName</dd>
 
-    <dt class="col-sm-3">Time</dt>
-    <dd class="col-sm-9">
-        @Model.Booking.StartTime?.ToString("HH:mm") – @Model.Booking.EndTime?.ToString("HH:mm")
-    </dd>
-</dl>
+                <dt class="col-sm-3 text-muted">Room</dt>
+                <dd class="col-sm-9 fw-semibold">@Model.Booking.Room.RoomName</dd>
 
-<form method="post">
-    <input type="hidden" asp-for="Booking.BookingId" />
-    <button type="submit" class="btn btn-danger">Confirm Cancellation</button>
-    <a asp-page="./Index" class="btn btn-secondary">Back to List</a>
-</form>
+                <dt class="col-sm-3 text-muted">Date</dt>
+                <dd class="col-sm-9">
+                    <strong>@Model.Booking.StartTime?.ToString("ddd, dd MMMM yyyy")</strong>
+                </dd>
+
+                <dt class="col-sm-3 text-muted">Time</dt>
+                <dd class="col-sm-9">
+                    <span class="badge bg-light text-dark">
+                        @Model.Booking.StartTime?.ToString("HH:mm") – @Model.Booking.EndTime?.ToString("HH:mm")
+                    </span>
+                </dd>
+
+            </dl>
+        </div>
+    </div>
+
+    <!-- confirm and back buttons -->
+    <form method="post" class="d-flex gap-2">
+        <input type="hidden" asp-for="Booking.BookingId" />
+        <button type="submit" class="btn btn-danger">
+            <i class="bi bi-x-circle"></i> Confirm Cancellation
+        </button>
+        <a asp-page="./Index" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> Back to List
+        </a>
+    </form>
+
+</div> <!-- end container -->
