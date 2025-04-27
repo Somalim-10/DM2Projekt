@@ -7,16 +7,23 @@
     var userRole = HttpContext.Session.GetString("UserRole");
 }
 
-<!-- quick style to handle card hover (small lift) -->
+<!-- lil css for card hover and badge styling -->
 <style>
     .booking-card {
-        transition: transform 0.2s, box-shadow 0.2s;
+        transition: transform 0.2s, box-shadow 0.2s, filter 0.2s;
     }
 
         .booking-card:hover {
             transform: translateY(-5px);
             box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+            filter: brightness(1.02);
         }
+
+    .status-badge {
+        font-size: 0.9rem;
+        padding: 0.4em 0.8em;
+        border-radius: 999px;
+    }
 </style>
 
 <div class="container py-4">
@@ -31,7 +38,7 @@
         </div>
     }
 
-    <!-- create booking button -->
+    <!-- create booking button (only if logged in) -->
     @if (!string.IsNullOrEmpty(userName) && (userRole == "Student" || userRole == "Admin"))
     {
         <p>
@@ -41,7 +48,44 @@
         </p>
     }
 
-    <!-- bookings displayed as cards -->
+    <!-- filter form starts here -->
+    <form method="get" class="row g-3 align-items-end mb-4">
+
+        <div class="col-auto">
+            <label for="RoomId" class="form-label">Room</label>
+            <select id="RoomId" name="RoomId" class="form-select">
+                <option value="">-- All Rooms --</option>
+                @if (Model.RoomOptions != null)
+                {
+                    foreach (var room in Model.RoomOptions)
+                    {
+                        int roomId = int.Parse(room.Value);
+                        if (Model.SelectedRoomId.HasValue && Model.SelectedRoomId.Value == roomId)
+                        {
+                            <option value="@room.Value" selected>@room.Text</option>
+                        }
+                        else
+                        {
+                            <option value="@room.Value">@room.Text</option>
+                        }
+                    }
+                }
+            </select>
+        </div>
+
+        <!-- filter buttons -->
+        <div class="col-auto d-flex gap-2">
+            <button type="submit" class="btn btn-primary">
+                <i class="bi bi-funnel"></i> Apply
+            </button>
+            <a asp-page="./Index" class="btn btn-outline-secondary">
+                <i class="bi bi-x-circle"></i> Clear
+            </a>
+        </div>
+
+    </form>
+    <!-- filter form ends -->
+    <!-- bookings cards start -->
     <div class="row g-4">
         @foreach (var item in Model.Booking)
         {
@@ -53,10 +97,12 @@
                 <div class="card booking-card shadow-sm h-100">
                     <div class="card-body d-flex flex-column">
 
+                        <!-- title and room -->
                         <h5 class="card-title fw-bold">@item.Group.GroupName</h5>
                         <h6 class="card-subtitle text-muted mb-3">@item.Room.RoomName</h6>
 
-                        <div class="mb-4">
+                        <!-- date, time and who made it -->
+                        <div class="mb-3 small">
                             <p class="mb-2">
                                 <i class="bi bi-calendar-event me-2"></i>@item.StartTime?.ToString("ddd, dd MMM yyyy")
                             </p>
@@ -66,33 +112,35 @@
                             <p class="mb-2">
                                 <i class="bi bi-person me-2"></i>@item.CreatedByUser.Email
                             </p>
+
+                            <!-- status badge (now looks like real label, not button) -->
+                            <p class="text-center mt-3 mb-0">
+                                @if (isOngoing)
+                                {
+                                    <span class="badge bg-warning text-dark status-badge">Ongoing</span>
+                                }
+                                else if (isFuture)
+                                {
+                                    <span class="badge bg-info text-dark status-badge">Upcoming</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary status-badge">Past</span>
+                                }
+                            </p>
                         </div>
 
-                        <!-- Footer (status and optional cancel button) -->
-                        <div class="mt-auto d-flex flex-column align-items-stretch gap-2">
-
-                            @if (isOngoing)
-                            {
-                                <span class="badge bg-warning text-dark fs-6 py-2 text-center">Ongoing</span>
-                            }
-                            else if (isFuture)
-                            {
-                                <span class="badge bg-info text-dark fs-6 py-2 text-center">Upcoming</span>
-                            }
-                            else
-                            {
-                                <span class="badge bg-secondary fs-6 py-2 text-center">Past</span>
-                            }
-
-                            @if (userId != null && (userRole == "Admin" || userRole == "Teacher" || item.CreatedByUserId == userId))
-                            {
+                        <!-- only cancel button in footer -->
+                        @if (userId != null && (userRole == "Admin" || userRole == "Teacher" || item.CreatedByUserId == userId))
+                        {
+                            <div class="mt-auto d-flex flex-column align-items-stretch gap-2">
                                 <a asp-page="./Delete" asp-route-id="@item.BookingId"
                                    class="btn btn-outline-danger btn-sm w-100 d-flex align-items-center justify-content-center"
                                    title="Cancel this booking">
                                     <i class="bi bi-x-circle me-2"></i> Cancel
                                 </a>
-                            }
-                        </div>
+                            </div>
+                        }
 
                     </div>
                 </div>
