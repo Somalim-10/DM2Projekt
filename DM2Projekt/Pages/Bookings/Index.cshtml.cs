@@ -23,7 +23,7 @@ public class IndexModel : PageModel
     [BindProperty(SupportsGet = true)]
     public int? RoomId { get; set; } // selected room from URL
 
-    public int? SelectedRoomId => RoomId; // helper to make it nicer in frontend
+    public int? SelectedRoomId => RoomId; // helper for frontend
 
     [BindProperty(SupportsGet = true)]
     public string? Status { get; set; } // selected status from URL (Upcoming, Ongoing, Past)
@@ -78,7 +78,7 @@ public class IndexModel : PageModel
             {
                 query = query.Where(b => b.EndTime <= now);
             }
-            // if someone puts random value in URL? just ignore it quietly
+            // someone messes with url? just ignore
         }
 
         // finally get the bookings
