@@ -151,13 +151,16 @@
                             <h5 class="card-title fw-bold">@item.Group.GroupName</h5>
                             <h6 class="card-subtitle text-muted mb-3">@item.Room.RoomName</h6>
 
-                            <!-- date, time and who made it -->
+                            <!-- date, time, smartboard and who made it -->
                             <div class="mb-3 small">
                                 <p class="mb-2">
                                     <i class="bi bi-calendar-event me-2"></i>@item.StartTime?.ToString("ddd, dd MMM yyyy")
                                 </p>
                                 <p class="mb-2">
                                     <i class="bi bi-clock me-2"></i>@item.StartTime?.ToString("HH:mm") - @item.EndTime?.ToString("HH:mm")
+                                </p>
+                                <p class="mb-2">
+                                    <i class="bi bi-display me-2"></i>Smartboard: @(item.UsesSmartboard ? "Yes" : "No")
                                 </p>
                                 <p class="mb-2">
                                     <i class="bi bi-person me-2"></i>@item.CreatedByUser.Email
