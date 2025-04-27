@@ -23,7 +23,12 @@ public class IndexModel : PageModel
     [BindProperty(SupportsGet = true)]
     public int? RoomId { get; set; } // selected room from URL
 
-    public int? SelectedRoomId => RoomId; // helper to make it nicer in frontend
+    public int? SelectedRoomId => RoomId; // helper for frontend
+
+    [BindProperty(SupportsGet = true)]
+    public string? Status { get; set; } // selected status from URL
+
+    public string? SelectedStatus => Status; // helper for frontend
     // --- end filter stuff ---
 
     public async Task<IActionResult> OnGetAsync()
@@ -44,6 +49,12 @@ public class IndexModel : PageModel
             })
             .ToListAsync();
 
+        // if status not selected by user, default to "Upcoming"
+        if (string.IsNullOrEmpty(Status))
+        {
+            Status = "Upcoming";
+        }
+
         // start the bookings query
         var query = _context.Booking
             .Include(b => b.Group)
@@ -51,10 +62,29 @@ public class IndexModel : PageModel
             .Include(b => b.CreatedByUser)
             .AsQueryable();
 
-        // if a room is selected, filter it
+        // if a room is selected, filter by room
         if (RoomId.HasValue)
         {
             query = query.Where(b => b.RoomId == RoomId.Value);
+        }
+
+        // if status selected, filter by status
+        if (!string.IsNullOrEmpty(Status))
+        {
+            var now = DateTime.Now;
+            if (Status == "Upcoming")
+            {
+                query = query.Where(b => b.StartTime > now);
+            }
+            else if (Status == "Ongoing")
+            {
+                query = query.Where(b => b.StartTime <= now && b.EndTime > now);
+            }
+            else if (Status == "Past")
+            {
+                query = query.Where(b => b.EndTime <= now);
+            }
+            // someone messes with url? just ignore
         }
 
         // finally get the bookings

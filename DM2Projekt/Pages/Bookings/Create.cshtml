@@ -81,11 +81,15 @@
                 <input asp-for="Booking.StartTime" type="hidden" id="Booking_StartTime" />
                 <input asp-for="Booking.EndTime" type="hidden" id="Booking_EndTime" />
 
-                <!-- create button -->
-                <button type="submit" class="btn btn-primary mt-3">
-                    <i class="bi bi-plus-circle"></i> Create Booking
-                </button>
-
+                <!-- create and cancel buttons -->
+                <div class="d-flex gap-2 mt-3">
+                    <a asp-page="/Bookings/Index" class="btn btn-light">
+                        <i class="bi bi-arrow-left"></i> Back
+                    </a>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-plus-circle"></i> Create Booking
+                    </button>
+                </div>
             </form>
 
         </div>

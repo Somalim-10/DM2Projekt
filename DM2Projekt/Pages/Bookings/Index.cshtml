@@ -10,6 +10,7 @@
 <!-- lil css for card hover and badge styling -->
 <style>
     .booking-card {
+        position: relative; /* so we can move the badge inside */
         transition: transform 0.2s, box-shadow 0.2s, filter 0.2s;
     }
 
@@ -20,129 +21,175 @@
         }
 
     .status-badge {
-        font-size: 0.9rem;
-        padding: 0.4em 0.8em;
+        font-size: 0.8rem;
+        padding: 0.3em 0.7em;
         border-radius: 999px;
+        position: absolute;
+        top: 0.75rem;
+        right: 0.75rem;
     }
 </style>
 
 <div class="container py-4">
 
-    <h2 class="mb-4">📅 Active Bookings</h2>
-
-    <!-- show error message if any -->
-    @if (TempData["ErrorMessage"] != null)
-    {
-        <div class="alert alert-danger">
-            @TempData["ErrorMessage"]
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="mb-0">📅 Bookings</h2>
+            <small class="text-muted">Manage all your upcoming, ongoing and past room bookings.</small>
         </div>
-    }
-
-    <!-- create booking button (only if logged in) -->
-    @if (!string.IsNullOrEmpty(userName) && (userRole == "Student" || userRole == "Admin"))
-    {
-        <p>
-            <a asp-page="Create" class="btn btn-primary mb-4">
-                <i class="bi bi-plus-circle"></i> Create New Booking
+        @if (!string.IsNullOrEmpty(userName) && (userRole == "Student" || userRole == "Admin"))
+        {
+            <a asp-page="Create" class="btn btn-primary">
+                <i class="bi bi-plus-circle me-2"></i> Create New Booking
             </a>
-        </p>
-    }
+        }
+    </div>
 
-    <!-- filter form starts here -->
-    <form method="get" class="row g-3 align-items-end mb-4">
+    <!-- filter form inside a light box -->
+    <div class="bg-light p-3 rounded mb-4">
+        <form method="get" class="row g-3 align-items-end">
 
-        <div class="col-auto">
-            <label for="RoomId" class="form-label">Room</label>
-            <select id="RoomId" name="RoomId" class="form-select">
-                <option value="">-- All Rooms --</option>
-                @if (Model.RoomOptions != null)
-                {
-                    foreach (var room in Model.RoomOptions)
+            <!-- room filter dropdown -->
+            <div class="col-auto">
+                <label for="RoomId" class="form-label">Room</label>
+                <select id="RoomId" name="RoomId" class="form-select">
+                    <option value="">-- All Rooms --</option>
+                    @if (Model.RoomOptions != null)
                     {
-                        int roomId = int.Parse(room.Value);
-                        if (Model.SelectedRoomId.HasValue && Model.SelectedRoomId.Value == roomId)
+                        foreach (var room in Model.RoomOptions)
                         {
-                            <option value="@room.Value" selected>@room.Text</option>
-                        }
-                        else
-                        {
-                            <option value="@room.Value">@room.Text</option>
+                            int roomId = int.Parse(room.Value);
+                            if (Model.SelectedRoomId.HasValue && Model.SelectedRoomId.Value == roomId)
+                            {
+                                <option value="@room.Value" selected>@room.Text</option>
+                            }
+                            else
+                            {
+                                <option value="@room.Value">@room.Text</option>
+                            }
                         }
                     }
-                }
-            </select>
-        </div>
+                </select>
+            </div>
 
-        <!-- filter buttons -->
-        <div class="col-auto d-flex gap-2">
-            <button type="submit" class="btn btn-primary">
-                <i class="bi bi-funnel"></i> Apply
-            </button>
-            <a asp-page="./Index" class="btn btn-outline-secondary">
-                <i class="bi bi-x-circle"></i> Clear
-            </a>
-        </div>
+            <!-- status filter dropdown -->
+            <div class="col-auto">
+                <label for="Status" class="form-label">Status</label>
+                <select id="Status" name="Status" class="form-select">
+                    <option value="">-- All Statuses --</option>
+                    @if (Model.SelectedStatus == "Upcoming")
+                    {
+                        <option value="Upcoming" selected>Upcoming</option>
+                    }
+                    else
+                    {
+                        <option value="Upcoming">Upcoming</option>
+                    }
 
-    </form>
-    <!-- filter form ends -->
+                    @if (Model.SelectedStatus == "Ongoing")
+                    {
+                        <option value="Ongoing" selected>Ongoing</option>
+                    }
+                    else
+                    {
+                        <option value="Ongoing">Ongoing</option>
+                    }
+
+                    @if (Model.SelectedStatus == "Past")
+                    {
+                        <option value="Past" selected>Past</option>
+                    }
+                    else
+                    {
+                        <option value="Past">Past</option>
+                    }
+                </select>
+            </div>
+
+            <!-- filter buttons -->
+            <div class="col-auto d-flex gap-2">
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-funnel"></i> Apply
+                </button>
+                <a asp-page="./Index" class="btn btn-outline-secondary">
+                    <i class="bi bi-x-circle"></i> Clear
+                </a>
+            </div>
+
+        </form>
+    </div>
+
     <!-- bookings cards start -->
     <div class="row g-4">
-        @foreach (var item in Model.Booking)
+        @if (Model.Booking.Any())
         {
-            var now = DateTime.Now;
-            bool isOngoing = item.StartTime <= now && item.EndTime > now;
-            bool isFuture = item.StartTime > now;
+            @foreach (var item in Model.Booking)
+            {
+                var now = DateTime.Now;
+                bool isOngoing = item.StartTime <= now && item.EndTime > now;
+                bool isFuture = item.StartTime > now;
 
-            <div class="col-12 col-md-6 col-lg-4">
-                <div class="card booking-card shadow-sm h-100">
-                    <div class="card-body d-flex flex-column">
+                <div class="col-12 col-md-6 col-lg-4">
+                    <div class="card booking-card shadow-sm h-100">
+                        <div class="card-body d-flex flex-column">
 
-                        <!-- title and room -->
-                        <h5 class="card-title fw-bold">@item.Group.GroupName</h5>
-                        <h6 class="card-subtitle text-muted mb-3">@item.Room.RoomName</h6>
+                            <!-- status badge moved to top right -->
+                            @if (isOngoing)
+                            {
+                                <span class="badge bg-warning text-dark status-badge">Ongoing</span>
+                            }
+                            else if (isFuture)
+                            {
+                                <span class="badge bg-info text-dark status-badge">Upcoming</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-secondary status-badge">Past</span>
+                            }
 
-                        <!-- date, time and who made it -->
-                        <div class="mb-3 small">
-                            <p class="mb-2">
-                                <i class="bi bi-calendar-event me-2"></i>@item.StartTime?.ToString("ddd, dd MMM yyyy")
-                            </p>
-                            <p class="mb-2">
-                                <i class="bi bi-clock me-2"></i>@item.StartTime?.ToString("HH:mm") - @item.EndTime?.ToString("HH:mm")
-                            </p>
-                            <p class="mb-2">
-                                <i class="bi bi-person me-2"></i>@item.CreatedByUser.Email
-                            </p>
+                            <!-- title and room -->
+                            <h5 class="card-title fw-bold">@item.Group.GroupName</h5>
+                            <h6 class="card-subtitle text-muted mb-3">@item.Room.RoomName</h6>
 
-                            <!-- status badge (now looks like real label, not button) -->
-                            <p class="text-center mt-3 mb-0">
-                                @if (isOngoing)
-                                {
-                                    <span class="badge bg-warning text-dark status-badge">Ongoing</span>
-                                }
-                                else if (isFuture)
-                                {
-                                    <span class="badge bg-info text-dark status-badge">Upcoming</span>
-                                }
-                                else
-                                {
-                                    <span class="badge bg-secondary status-badge">Past</span>
-                                }
-                            </p>
-                        </div>
-
-                        <!-- only cancel button in footer -->
-                        @if (userId != null && (userRole == "Admin" || userRole == "Teacher" || item.CreatedByUserId == userId))
-                        {
-                            <div class="mt-auto d-flex flex-column align-items-stretch gap-2">
-                                <a asp-page="./Delete" asp-route-id="@item.BookingId"
-                                   class="btn btn-outline-danger btn-sm w-100 d-flex align-items-center justify-content-center"
-                                   title="Cancel this booking">
-                                    <i class="bi bi-x-circle me-2"></i> Cancel
-                                </a>
+                            <!-- date, time, smartboard and who made it -->
+                            <div class="mb-3 small">
+                                <p class="mb-2">
+                                    <i class="bi bi-calendar-event me-2"></i>@item.StartTime?.ToString("ddd, dd MMM yyyy")
+                                </p>
+                                <p class="mb-2">
+                                    <i class="bi bi-clock me-2"></i>@item.StartTime?.ToString("HH:mm") - @item.EndTime?.ToString("HH:mm")
+                                </p>
+                                <p class="mb-2">
+                                    <i class="bi bi-display me-2"></i>Smartboard: @(item.UsesSmartboard ? "Yes" : "No")
+                                </p>
+                                <p class="mb-2">
+                                    <i class="bi bi-person me-2"></i>@item.CreatedByUser.Email
+                                </p>
                             </div>
-                        }
 
+                            <!-- cancel button if allowed -->
+                            @if (userId != null && (userRole == "Admin" || userRole == "Teacher" || item.CreatedByUserId == userId))
+                            {
+                                <div class="mt-auto d-flex flex-column align-items-stretch gap-2">
+                                    <a asp-page="./Delete" asp-route-id="@item.BookingId"
+                                       class="btn btn-outline-danger btn-sm w-100 d-flex align-items-center justify-content-center"
+                                       title="Cancel this booking">
+                                        <i class="bi bi-x-circle me-2"></i> Cancel
+                                    </a>
+                                </div>
+                            }
+
+                        </div>
                     </div>
+                </div>
+            }
+        }
+        else
+        {
+            <!-- no bookings found -->
+            <div class="col-12">
+                <div class="alert alert-info text-center">
+                    📭 No bookings found matching your filters.
                 </div>
             </div>
         }
