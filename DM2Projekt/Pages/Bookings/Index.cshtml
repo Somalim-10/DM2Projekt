@@ -7,7 +7,7 @@
     var userRole = HttpContext.Session.GetString("UserRole");
 }
 
-<!-- quick style to handle card hover (small lift) -->
+<!-- lil css for card hover effect -->
 <style>
     .booking-card {
         transition: transform 0.2s, box-shadow 0.2s;
@@ -31,7 +31,7 @@
         </div>
     }
 
-    <!-- create booking button -->
+    <!-- create booking button (only if logged in) -->
     @if (!string.IsNullOrEmpty(userName) && (userRole == "Student" || userRole == "Admin"))
     {
         <p>
@@ -41,7 +41,44 @@
         </p>
     }
 
-    <!-- bookings displayed as cards -->
+    <!-- filter form starts here -->
+    <form method="get" class="row row-cols-1 row-cols-md-auto g-3 align-items-end mb-4">
+
+        <div class="col">
+            <label for="RoomId" class="form-label">Room</label>
+            <select id="RoomId" name="RoomId" class="form-select">
+                <option value="">-- All Rooms --</option>
+                @if (Model.RoomOptions != null)
+                {
+                    foreach (var room in Model.RoomOptions)
+                    {
+                        int roomId = int.Parse(room.Value);
+                        if (Model.SelectedRoomId.HasValue && Model.SelectedRoomId.Value == roomId)
+                        {
+                            <option value="@room.Value" selected>@room.Text</option>
+                        }
+                        else
+                        {
+                            <option value="@room.Value">@room.Text</option>
+                        }
+                    }
+                }
+            </select>
+        </div>
+
+        <!-- filter buttons -->
+        <div class="col">
+            <button type="submit" class="btn btn-primary">
+                <i class="bi bi-funnel"></i> Apply Filters
+            </button>
+            <a asp-page="./Index" class="btn btn-outline-secondary ms-2">
+                <i class="bi bi-x-circle"></i> Clear Filters
+            </a>
+        </div>
+
+    </form>
+    <!-- filter form ends -->
+    <!-- bookings cards start -->
     <div class="row g-4">
         @foreach (var item in Model.Booking)
         {
@@ -53,9 +90,11 @@
                 <div class="card booking-card shadow-sm h-100">
                     <div class="card-body d-flex flex-column">
 
+                        <!-- title and room -->
                         <h5 class="card-title fw-bold">@item.Group.GroupName</h5>
                         <h6 class="card-subtitle text-muted mb-3">@item.Room.RoomName</h6>
 
+                        <!-- date, time and who made it -->
                         <div class="mb-4">
                             <p class="mb-2">
                                 <i class="bi bi-calendar-event me-2"></i>@item.StartTime?.ToString("ddd, dd MMM yyyy")
@@ -68,7 +107,7 @@
                             </p>
                         </div>
 
-                        <!-- Footer (status and optional cancel button) -->
+                        <!-- badge and cancel button -->
                         <div class="mt-auto d-flex flex-column align-items-stretch gap-2">
 
                             @if (isOngoing)
