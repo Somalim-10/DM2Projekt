@@ -7,100 +7,106 @@
     var userRole = HttpContext.Session.GetString("UserRole");
 }
 
-<h2 class="mb-4">📅 Active Bookings</h2>
+<!-- container for better center and padding -->
+<div class="container py-4">
 
-<!-- show error message if any -->
-@if (TempData["ErrorMessage"] != null)
-{
-    <div class="alert alert-danger">
-        @TempData["ErrorMessage"]
-    </div>
-}
+    <h2 class="mb-4">📅 Active Bookings</h2>
 
-<!-- show create button if logged in and allowed -->
-@if (!string.IsNullOrEmpty(userName) && (userRole == "Student" || userRole == "Admin"))
-{
-    <p>
-        <a asp-page="Create" class="btn btn-success">
-            <i class="bi bi-plus-circle"></i> Create New Booking
-        </a>
-    </p>
-}
+    <!-- show error message if any -->
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger">
+            @TempData["ErrorMessage"]
+        </div>
+    }
 
-<!-- bookings table -->
-<table class="table table-striped table-hover align-middle">
-    <thead class="table-dark">
-        <tr>
-            <th scope="col">Group</th>
-            <th scope="col">Room</th>
-            <th scope="col">Smartboard</th>
-            <th scope="col">Time Slot</th>
-            <th scope="col">Created By</th>
-            <th scope="col">Status</th>
-            <th scope="col" class="text-center">Actions</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var item in Model.Booking)
-        {
-            var now = DateTime.Now;
-            bool isOngoing = item.StartTime <= now && item.EndTime > now;
-            bool isFuture = item.StartTime > now;
+    <!-- show create button if logged in and allowed -->
+    @if (!string.IsNullOrEmpty(userName) && (userRole == "Student" || userRole == "Admin"))
+    {
+        <p>
+            <a asp-page="Create" class="btn btn-primary mb-3">
+                <i class="bi bi-plus-circle"></i> Create New Booking
+            </a> <!-- make new booking button pop more -->
+        </p>
+    }
 
-            <tr>
-                <td>@item.Group.GroupName</td>
-                <td>@item.Room.RoomName</td>
+    <!-- bookings table inside responsive wrapper -->
+    <div class="table-responsive">
+        <table class="table table-striped table-hover table-sm shadow-sm align-middle">
+            <thead class="table-dark">
+                <tr>
+                    <th scope="col">Group</th>
+                    <th scope="col">Room</th>
+                    <th scope="col">Smartboard</th>
+                    <th scope="col">Time Slot</th>
+                    <th scope="col">Created By</th>
+                    <th scope="col">Status</th>
+                    <th scope="col" class="text-center">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model.Booking)
+                {
+                    var now = DateTime.Now;
+                    bool isOngoing = item.StartTime <= now && item.EndTime > now;
+                    bool isFuture = item.StartTime > now;
 
-                <td>
-                    @if (item.UsesSmartboard)
-                    {
-                        <span class="text-success fw-bold">✔️ Yes</span>
-                    }
-                    else
-                    {
-                        <span class="text-muted">❌ No</span>
-                    }
-                </td>
+                    <tr>
+                        <td>@item.Group.GroupName</td>
+                        <td>@item.Room.RoomName</td>
 
-                <td>
-                    <strong>@item.StartTime?.ToString("ddd, dd MMM")</strong><br />
-                    <small class="text-muted">
-                        @item.StartTime?.ToString("HH:mm") – @item.EndTime?.ToString("HH:mm")
-                    </small>
-                </td>
+                        <td>
+                            @if (item.UsesSmartboard)
+                            {
+                                <span class="text-success fw-bold">✔️ Yes</span>
+                            }
+                            else
+                            {
+                                <span class="text-muted">❌ No</span>
+                            }
+                        </td>
 
-                <td>@item.CreatedByUser.Email</td>
+                        <td>
+                            <span class="badge bg-light text-dark">
+                                @item.StartTime?.ToString("ddd, dd MMM, HH:mm") – @item.EndTime?.ToString("HH:mm")
+                            </span> <!-- cleaner timeslot badge -->
+                        </td>
 
-                <td>
-                    @if (isOngoing)
-                    {
-                        <span class="badge bg-warning text-dark">Ongoing</span>
-                    }
-                    else if (isFuture)
-                    {
-                        <span class="badge bg-info text-dark">Upcoming</span>
-                    }
-                    else
-                    {
-                        <span class="badge bg-secondary">Past</span>
-                    }
-                </td>
+                        <td>@item.CreatedByUser.Email</td>
 
-                <td class="text-center">
-                    <!-- always show View button -->
-                    <a asp-page="./Details" asp-route-id="@item.BookingId" class="btn btn-sm btn-outline-primary" title="View full details">
-                        <i class="bi bi-eye"></i> View
-                    </a>
+                        <td>
+                            @if (isOngoing)
+                            {
+                                <span class="badge bg-warning text-dark">Ongoing</span>
+                            }
+                            else if (isFuture)
+                            {
+                                <span class="badge bg-info text-dark">Upcoming</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-secondary">Past</span>
+                            }
+                        </td>
 
-                    <!-- show Cancel only if Admin, Teacher, or owner -->
-                    @if (userId != null && (userRole == "Admin" || userRole == "Teacher" || item.CreatedByUserId == userId))
-                    {
-                        <a asp-page="./Delete" asp-route-id="@item.BookingId" class="btn btn-sm btn-outline-danger ms-1" title="Cancel this booking">
-                            <i class="bi bi-x-circle"></i> Cancel
-                        </a>
-                    }
-                </td>
-            </tr>
-        }
-    </tbody>
-</table>
+                        <td class="text-center">
+                            <div class="d-flex justify-content-center gap-1">
+                                <a asp-page="./Details" asp-route-id="@item.BookingId" class="btn btn-sm btn-outline-primary" title="View full details">
+                                    <i class="bi bi-eye"></i> View
+                                </a>
+
+                                @if (userId != null && (userRole == "Admin" || userRole == "Teacher" || item.CreatedByUserId == userId))
+                                {
+                                    <a asp-page="./Delete" asp-route-id="@item.BookingId" class="btn btn-sm btn-outline-danger" title="Cancel this booking">
+                                        <i class="bi bi-x-circle"></i> Cancel
+                                    </a>
+                                }
+                            </div> <!-- better spacing between buttons -->
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div> <!-- end table wrapper -->
+
+</div> <!-- end container -->
