@@ -26,9 +26,9 @@ public class IndexModel : PageModel
     public int? SelectedRoomId => RoomId; // helper for frontend
 
     [BindProperty(SupportsGet = true)]
-    public string? Status { get; set; } // selected status from URL (Upcoming, Ongoing, Past)
+    public string? Status { get; set; } // selected status from URL
 
-    public string? SelectedStatus => Status; // another helper for frontend
+    public string? SelectedStatus => Status; // helper for frontend
     // --- end filter stuff ---
 
     public async Task<IActionResult> OnGetAsync()
@@ -48,6 +48,12 @@ public class IndexModel : PageModel
                 Text = r.RoomName
             })
             .ToListAsync();
+
+        // if status not selected by user, default to "Upcoming"
+        if (string.IsNullOrEmpty(Status))
+        {
+            Status = "Upcoming";
+        }
 
         // start the bookings query
         var query = _context.Booking
