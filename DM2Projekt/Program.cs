@@ -55,3 +55,5 @@ app.UseAuthorization();
 app.MapRazorPages();
 
 app.Run();
+
+// test if github actions work, does the tests run?
