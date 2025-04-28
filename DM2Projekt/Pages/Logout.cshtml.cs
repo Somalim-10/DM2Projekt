@@ -8,6 +8,6 @@ public class LogoutModel : PageModel
     public IActionResult OnPost()
     {
         HttpContext.Session.Clear(); // kill session
-        return RedirectToPage("/Index"); // go back home
+        return RedirectToPage("/Index"); // go home
     }
 }
