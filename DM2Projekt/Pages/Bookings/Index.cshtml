@@ -176,7 +176,7 @@
                             </div>
 
                             <!-- cancel button if allowed -->
-                            @if (userId != null && (userRole == "Admin" || userRole == "Teacher" || item.CreatedByUserId == userId))
+                            @if (userId != null && (userRole == "Admin" || userRole == "Teacher" || item.CreatedByUserId == userId) && (DateTime.Now < item.StartTime || (DateTime.Now <= item.StartTime && DateTime.Now >= item.EndTime)))
                             {
                                 <div class="mt-auto d-flex flex-column align-items-stretch gap-2">
                                     <a asp-page="./Delete" asp-route-id="@item.BookingId"
