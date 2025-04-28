@@ -1,12 +1,17 @@
 ﻿@page
-@model IndexModel
+@model DM2Projekt.Pages.IndexModel
 @{
     ViewData["Title"] = "Home page";
 }
 
-<div class="text-center" style="padding: 2rem; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
-    <h1 class="display-4">MY SOLDIERS, RAGE!</h1>
-    <p style="font-size: 1.2rem;">Fueled by caffeine. Powered by creatine. Inspired by Erwin.</p>
-    <img src="https://i.ytimg.com/vi/ipI1qRFo1Us/maxresdefault.jpg" alt="Erwin Smith screaming about pre-workout"
-         style="max-width: 400px; border-radius: 12px; box-shadow: 0 0 20px rgba(0,0,0,0.3); margin-top: 1rem;" />
+<div class="container mt-5 text-center">
+    <!-- lil margin top + center -->
+    <h1 class="display-4 mb-4">MY SOLDIERS, RAGE!</h1> <!-- big title -->
+
+    <p class="lead">Fueled by caffeine. Powered by creatine. Inspired by Erwin.</p> <!-- subtext -->
+
+    <img src="https://i.ytimg.com/vi/ipI1qRFo1Us/maxresdefault.jpg"
+         alt="Erwin Smith screaming about pre-workout"
+         class="img-fluid rounded shadow-sm mt-4"
+         style="max-width: 400px;" /> <!-- nice img -->
 </div>
