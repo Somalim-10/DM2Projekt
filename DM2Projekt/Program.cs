@@ -55,8 +55,3 @@ app.UseAuthorization();
 app.MapRazorPages();
 
 app.Run();
-
-
-// does the tests automatically run????
-
-// new comment
