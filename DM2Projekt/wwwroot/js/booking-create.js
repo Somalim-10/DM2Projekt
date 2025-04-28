@@ -62,12 +62,12 @@
                     timeSlotSelect.appendChild(option);
                 });
 
-                // !!!!!!!!!!!!!!!!!!!1 NYT STYKKE STARTER HER !!!!!!!!!!!!!!!!!!!1
+                //Checks and update timeslots
                 if (timeSlotSelect.value) {
                     updateHiddenTimeInputs(timeSlotSelect.value);
                     checkSmartboardAvailability();
                 }
-                // !!!!!!!!!!!!!!!!!!!1 NYT STYKKE SLUTTER HER !!!!!!!!!!!!!!!!!!!1
+                
 
                 if (isClassroom) {
                     smartboardCheckboxContainer.style.display = "block";
