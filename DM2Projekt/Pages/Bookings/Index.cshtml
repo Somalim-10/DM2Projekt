@@ -31,6 +31,14 @@
 </style>
 
 <div class="container py-4">
+    <!-- teacher fail message, less than 3 days notice -->
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger d-flex align-items-center" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+            @TempData["ErrorMessage"]
+        </div>
+    }
 
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
