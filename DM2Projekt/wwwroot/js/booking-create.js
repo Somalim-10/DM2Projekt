@@ -67,7 +67,7 @@
                     updateHiddenTimeInputs(timeSlotSelect.value);
                     checkSmartboardAvailability();
                 }
-                
+
 
                 if (isClassroom) {
                     smartboardCheckboxContainer.style.display = "block";
