@@ -62,6 +62,13 @@
                     timeSlotSelect.appendChild(option);
                 });
 
+                // !!!!!!!!!!!!!!!!!!!1 NYT STYKKE STARTER HER !!!!!!!!!!!!!!!!!!!1
+                if (timeSlotSelect.value) {
+                    updateHiddenTimeInputs(timeSlotSelect.value);
+                    checkSmartboardAvailability();
+                }
+                // !!!!!!!!!!!!!!!!!!!1 NYT STYKKE SLUTTER HER !!!!!!!!!!!!!!!!!!!1
+
                 if (isClassroom) {
                     smartboardCheckboxContainer.style.display = "block";
                     smartboardCheckbox.disabled = true; // disable until user picks a slot
@@ -71,6 +78,7 @@
                 }
             });
     }
+
 
     // check if smartboard is already booked for selected slot
     function checkSmartboardAvailability() {
