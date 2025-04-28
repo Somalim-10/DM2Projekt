@@ -227,16 +227,19 @@ public class CreateModel : PageModel
         return false;
     }
 
-    // check if group already has an active booking
+    // Check if group already has 3 or more active bookings
     private bool GroupAlreadyHasBooking()
     {
-        bool activeBooking = _context.Booking
-            .Any(b => b.GroupId == Booking.GroupId && b.EndTime > DateTime.Now);
+        int activeBookingCount = _context.Booking
+            .Count(b => b.GroupId == Booking.GroupId && b.EndTime > DateTime.Now);
 
-        if (activeBooking)
-            ModelState.AddModelError(nameof(Booking.GroupId), "This group already has an active booking.");
+        if (activeBookingCount >= 3)
+        {
+            ModelState.AddModelError(nameof(Booking.GroupId), "This group already has 3 or more active bookings.");
+            return true;
+        }
 
-        return activeBooking;
+        return false;
     }
 
     // check if smartboard is already taken
