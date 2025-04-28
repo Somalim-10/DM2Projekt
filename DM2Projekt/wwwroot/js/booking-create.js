@@ -62,6 +62,13 @@
                     timeSlotSelect.appendChild(option);
                 });
 
+                //Checks and update timeslots
+                if (timeSlotSelect.value) {
+                    updateHiddenTimeInputs(timeSlotSelect.value);
+                    checkSmartboardAvailability();
+                }
+                
+
                 if (isClassroom) {
                     smartboardCheckboxContainer.style.display = "block";
                     smartboardCheckbox.disabled = true; // disable until user picks a slot
@@ -71,6 +78,7 @@
                 }
             });
     }
+
 
     // check if smartboard is already booked for selected slot
     function checkSmartboardAvailability() {
