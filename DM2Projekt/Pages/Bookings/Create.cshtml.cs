@@ -5,6 +5,7 @@ using DM2Projekt.Data;
 using DM2Projekt.Models;
 using DM2Projekt.Models.Enums;
 using System.ComponentModel.DataAnnotations;
+using Microsoft.EntityFrameworkCore.Infrastructure.Internal;
 
 namespace DM2Projekt.Pages.Bookings;
 
@@ -199,8 +200,20 @@ public class CreateModel : PageModel
         if (GroupAlreadyHasBooking()) return false;
         if (IsSmartboardAlreadyInUse()) return false;
         if (HasGroupBookingConflict()) return false;
+        if (CheckIfBookingIsInThePast()) return false;
         return true;
     }
+
+    private bool CheckIfBookingIsInThePast()
+    {
+         if (Booking.StartTime < DateTime.Now)
+        { 
+            ModelState.AddModelError(nameof(Booking.StartTime), "Booking can't be in the past.");
+            return true;
+        }
+        return false;
+    }
+
 
     //check if user has another booking at the same time
     private bool HasUserBookingConflict()
