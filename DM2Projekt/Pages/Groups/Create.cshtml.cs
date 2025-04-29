@@ -21,8 +21,8 @@ public class CreateModel : PageModel
     {
         var userRole = HttpContext.Session.GetString("UserRole");
 
-        // only Admins can open Create page
-        if (userRole != "Admin")
+        // only admins and students can see this page
+        if (userRole != "Admin" && userRole != "Student")
             return RedirectToPage("/Groups/Index");
 
         return Page();
@@ -32,15 +32,39 @@ public class CreateModel : PageModel
     {
         var userRole = HttpContext.Session.GetString("UserRole");
 
-        // block non-Admins from posting
-        if (userRole != "Admin")
+        // block users that are not admin or student
+        if (userRole != "Admin" && userRole != "Student")
             return RedirectToPage("/Groups/Index");
 
         if (!ModelState.IsValid)
-            return Page();
+            return Page(); // something went wrong
 
-        // save new group
+        // get current logged-in user (from session)
+        var userId = HttpContext.Session.GetInt32("UserId");
+        if (userId == null)
+            return RedirectToPage("/Login");
+
+        var user = await _context.User.FindAsync(userId);
+
+        if (user == null)
+            return RedirectToPage("/Login");
+
+        // set who created this group
+        Group.CreatedByUserId = user.UserId;
+
+        // save group first
         _context.Group.Add(Group);
+        await _context.SaveChangesAsync(); // now we get GroupId
+
+        // add user to their own group
+        var membership = new UserGroup
+        {
+            UserId = user.UserId,
+            GroupId = Group.GroupId
+        };
+        _context.UserGroup.Add(membership);
+
+        // save that too
         await _context.SaveChangesAsync();
 
         return RedirectToPage("./Index");

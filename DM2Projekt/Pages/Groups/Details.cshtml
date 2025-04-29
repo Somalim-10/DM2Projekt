@@ -9,32 +9,54 @@
 <div class="container mt-4">
     <h1 class="mb-3">Group Details</h1>
 
-    <!-- lil card to show group info -->
-    <div class="card shadow-sm">
+    <!-- Group info card -->
+    <div class="card shadow-sm mb-4">
         <div class="card-body">
             <h4 class="card-title">Group Info</h4>
             <hr />
 
             <dl class="row">
-                <dt class="col-sm-3">
-                    @Html.DisplayNameFor(model => model.Group.GroupName)
-                </dt>
-                <dd class="col-sm-9">
-                    @Html.DisplayFor(model => model.Group.GroupName)
-                </dd>
+                <dt class="col-sm-3">Group Name</dt>
+                <dd class="col-sm-9">@Model.Group.GroupName</dd>
+
+                <dt class="col-sm-3">Created By</dt>
+                <dd class="col-sm-9">@Model.Group.CreatedByUser.FirstName @Model.Group.CreatedByUser.LastName</dd>
             </dl>
         </div>
     </div>
 
-    <!-- action buttons -->
-    <div class="mt-4 d-flex justify-content-between">
-        <!-- everyone gets this -->
+    <!-- Group members card -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <h4 class="card-title">Group Members</h4>
+            <hr />
+
+            @if (Model.Members.Any())
+            {
+                <ul class="list-group">
+                    @foreach (var user in Model.Members)
+                    {
+                        <li class="list-group-item">
+                            @user.FirstName @user.LastName (@user.Role)
+                        </li>
+                    }
+                </ul>
+            }
+            else
+            {
+                <p class="text-muted">No members in this group.</p>
+            }
+        </div>
+    </div>
+
+    <!-- back and maybe edit -->
+    <div class="d-flex justify-content-between">
         <a asp-page="./Index" class="btn btn-secondary">
             <i class="bi bi-arrow-left"></i> Back to List
         </a>
 
-        <!-- admin only gets edit btn -->
-        @if (userRole == "Admin")
+        <!-- Show edit button for Admin and group owner only -->
+        @if (ViewData["CanEdit"] != null && (bool)ViewData["CanEdit"])
         {
             <a asp-page="./Edit" asp-route-id="@Model.Group.GroupId" class="btn btn-warning">
                 <i class="bi bi-pencil-square"></i> Edit

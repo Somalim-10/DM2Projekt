@@ -3,31 +3,20 @@
 
 @{
     ViewData["Title"] = "Delete Group";
-    var userRole = HttpContext.Session.GetString("UserRole");
 }
 
 <div class="container mt-4">
     <h1 class="text-danger mb-4">Delete Group</h1>
 
-    @if (userRole != "Admin")
+    @if (Model.Group != null)
     {
-        <!-- if user not admin, just block em -->
-        <div class="alert alert-danger">
-            You are not allowed to delete groups.
-        </div>
-        <a asp-page="./Index" class="btn btn-secondary mt-3">
-            <i class="bi bi-arrow-left"></i> Back to List
-        </a>
-    }
-    else
-    {
-        <!-- delete warning -->
+        <!-- warning box -->
         <div class="alert alert-warning">
             <h4 class="alert-heading">Are you sure?</h4>
             <p>This will permanently delete the group.</p>
         </div>
 
-        <!-- lil card to show the group info -->
+        <!-- lil card to show group name -->
         <div class="card mb-4 shadow-sm">
             <div class="card-body">
                 <h5 class="card-title">Group Info</h5>
@@ -43,7 +32,7 @@
             </div>
         </div>
 
-        <!-- confirm delete form -->
+        <!-- form to confirm deletion -->
         <form method="post" class="d-flex gap-2">
             <input type="hidden" asp-for="Group.GroupId" />
 
@@ -57,5 +46,16 @@
                 <i class="bi bi-arrow-left"></i> Cancel
             </a>
         </form>
+    }
+    else
+    {
+        <!-- fallback error if not allowed -->
+        <div class="alert alert-danger">
+            You are not allowed to delete this group.
+        </div>
+
+        <a asp-page="./Index" class="btn btn-secondary mt-3">
+            <i class="bi bi-arrow-left"></i> Back to List
+        </a>
     }
 </div>

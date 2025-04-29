@@ -18,7 +18,9 @@ public class IndexModel : PageModel
 
     public async Task OnGetAsync()
     {
-        // just load all groups
-        Group = await _context.Group.ToListAsync();
+        Group = await _context.Group
+            .Include(g => g.CreatedByUser)
+            .Include(g => g.UserGroups) // <-- needed for checking membership
+            .ToListAsync();
     }
 }

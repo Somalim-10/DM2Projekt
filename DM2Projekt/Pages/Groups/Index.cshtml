@@ -4,15 +4,15 @@
 @{
     ViewData["Title"] = "Groups";
     var userRole = HttpContext.Session.GetString("UserRole");
+    var userId = HttpContext.Session.GetInt32("UserId");
 }
 
 <div class="container mt-4">
     <h1 class="mb-4">Groups</h1>
 
-    <!-- Only Admins can create new groups -->
-    @if (userRole == "Admin")
+    <!-- create group button -->
+    @if (userRole == "Admin" || userRole == "Student")
     {
-        <!-- big blue button -->
         <p>
             <a asp-page="Create" class="btn btn-primary">
                 <i class="bi bi-plus-circle"></i> Create New
@@ -20,49 +20,59 @@
         </p>
     }
 
-    <div class="table-responsive">
-        <table class="table table-bordered table-hover">
-            <thead class="table-light">
-                <tr>
-                    <!-- show group name -->
-                    <th>@Html.DisplayNameFor(model => model.Group[0].GroupName)</th>
+    <!-- card layout instead of table -->
+    <div class="row">
+        @foreach (var group in Model.Group)
+        {
+            var isOwner = group.CreatedByUserId == userId;
+            var isMember = group.UserGroups.Any(ug => ug.UserId == userId);
+            var canView = userRole == "Admin" || userRole == "Teacher" || isOwner || isMember;
+            var canEdit = userRole == "Admin" || isOwner; // Now, also show Edit if the student is the owner
+            var canDelete = userRole == "Admin" || (userRole == "Student" && isOwner);
 
-                    <!-- center action buttons -->
-                    <th class="text-center" style="width: 220px;">Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var item in Model.Group)
-                {
-                    <tr>
-                        <!-- show the name -->
-                        <td>@Html.DisplayFor(modelItem => item.GroupName)</td>
+            <div class="col-md-6 col-lg-4 mb-4">
+                <div class="card h-100 shadow-sm">
+                    <div class="card-body d-flex flex-column justify-content-between">
+                        <div>
+                            <h5 class="card-title">@group.GroupName</h5>
+                            <p class="card-text text-muted">
+                                Created by: @group.CreatedByUser.FirstName @group.CreatedByUser.LastName
+                            </p>
+                        </div>
 
-                        <!-- action buttons in one row -->
-                        <td class="text-center">
-                            <div class="btn-group" role="group">
-                                <!-- view btn -->
-                                <a asp-page="./Details" asp-route-id="@item.GroupId" class="btn btn-outline-secondary btn-sm">
-                                    <i class="bi bi-eye"></i> Details
-                                </a>
-
-                                @if (userRole == "Admin")
+                        @if (canView || canEdit || canDelete)
+                        {
+                            <div class="mt-3 d-flex flex-wrap gap-2">
+                                <!-- Always show details button to Admins, Teachers, and members/owners -->
+                                @if (canView)
                                 {
-                                    <!-- edit btn -->
-                                    <a asp-page="./Edit" asp-route-id="@item.GroupId" class="btn btn-outline-warning btn-sm">
+                                    <a asp-page="./Details" asp-route-id="@group.GroupId" class="btn btn-sm btn-outline-secondary">
+                                        <i class="bi bi-eye"></i> Details
+                                    </a>
+                                }
+
+                                @if (canEdit)
+                                {
+                                    <a asp-page="./Edit" asp-route-id="@group.GroupId" class="btn btn-sm btn-outline-warning">
                                         <i class="bi bi-pencil-square"></i> Edit
                                     </a>
+                                }
 
-                                    <!-- delete btn -->
-                                    <a asp-page="./Delete" asp-route-id="@item.GroupId" class="btn btn-outline-danger btn-sm">
+                                @if (canDelete)
+                                {
+                                    <a asp-page="./Delete" asp-route-id="@group.GroupId" class="btn btn-sm btn-outline-danger">
                                         <i class="bi bi-trash"></i> Delete
                                     </a>
                                 }
                             </div>
-                        </td>
-                    </tr>
-                }
-            </tbody>
-        </table>
+                        }
+                        else
+                        {
+                            <p class="mt-3 text-muted small">No actions available</p>
+                        }
+                    </div>
+                </div>
+            </div>
+        }
     </div>
 </div>
