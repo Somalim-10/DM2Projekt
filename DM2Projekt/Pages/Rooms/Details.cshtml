@@ -3,31 +3,47 @@
 
 @{
     ViewData["Title"] = "Room Details";
+    var userRole = HttpContext.Session.GetString("UserRole");
 }
 
-<h1>Room Details</h1>
+<div class="container mt-4">
+    <h1 class="mb-4">Room Details</h1>
 
-<div>
-    <h4>Room Info</h4>
-    <hr />
-    <dl class="row">
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.Room.RoomName)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.Room.RoomName)
-        </dd>
+    <!-- lil card to show room info -->
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <h4 class="card-title mb-4">Room Info</h4>
 
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.Room.RoomType)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.Room.RoomType)
-        </dd>
-    </dl>
-</div>
+            <dl class="row">
+                <dt class="col-sm-4">
+                    @Html.DisplayNameFor(model => model.Room.RoomName)
+                </dt>
+                <dd class="col-sm-8">
+                    @Html.DisplayFor(model => model.Room.RoomName)
+                </dd>
 
-<div>
-    <a asp-page="./Edit" asp-route-id="@Model.Room.RoomId" class="btn btn-primary">Edit</a>
-    <a asp-page="./Index" class="btn btn-secondary ms-2">Back to List</a>
+                <dt class="col-sm-4">
+                    @Html.DisplayNameFor(model => model.Room.RoomType)
+                </dt>
+                <dd class="col-sm-8">
+                    @Html.DisplayFor(model => model.Room.RoomType)
+                </dd>
+            </dl>
+        </div>
+    </div>
+
+    <!-- action buttons -->
+    <div class="mt-4 d-flex justify-content-between">
+        @if (userRole == "Admin")
+        {
+            <!-- only admin can see edit -->
+            <a asp-page="./Edit" asp-route-id="@Model.Room.RoomId" class="btn btn-warning">
+                <i class="bi bi-pencil-square"></i> Edit
+            </a>
+        }
+
+        <a asp-page="./Index" class="btn btn-secondary">
+            <i class="bi bi-arrow-left"></i> Back to List
+        </a>
+    </div>
 </div>
