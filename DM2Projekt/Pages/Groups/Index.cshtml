@@ -6,40 +6,63 @@
     var userRole = HttpContext.Session.GetString("UserRole");
 }
 
-<h1>Groups</h1>
+<div class="container mt-4">
+    <h1 class="mb-4">Groups</h1>
 
-<!-- Only Admins can create new groups -->
-@if (userRole == "Admin")
-{
-    <p>
-        <a asp-page="Create" class="btn btn-primary">Create New</a>
-    </p>
-}
+    <!-- Only Admins can create new groups -->
+    @if (userRole == "Admin")
+    {
+        <!-- big blue button -->
+        <p>
+            <a asp-page="Create" class="btn btn-primary">
+                <i class="bi bi-plus-circle"></i> Create New
+            </a>
+        </p>
+    }
 
-<table class="table">
-    <thead>
-        <tr>
-            <th>@Html.DisplayNameFor(model => model.Group[0].GroupName)</th>
-            <th class="text-center">Actions</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var item in Model.Group)
-        {
-            <tr>
-                <td>@Html.DisplayFor(modelItem => item.GroupName)</td>
-                <td class="text-center">
-                    <a asp-page="./Details" asp-route-id="@item.GroupId">Details</a>
+    <div class="table-responsive">
+        <table class="table table-bordered table-hover">
+            <thead class="table-light">
+                <tr>
+                    <!-- show group name -->
+                    <th>@Html.DisplayNameFor(model => model.Group[0].GroupName)</th>
 
-                    @if (userRole == "Admin")
-                    {
-                        <span> | </span>
-                        <a asp-page="./Edit" asp-route-id="@item.GroupId">Edit</a>
-                        <span> | </span>
-                        <a asp-page="./Delete" asp-route-id="@item.GroupId">Delete</a>
-                    }
-                </td>
-            </tr>
-        }
-    </tbody>
-</table>
+                    <!-- center action buttons -->
+                    <th class="text-center" style="width: 220px;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model.Group)
+                {
+                    <tr>
+                        <!-- show the name -->
+                        <td>@Html.DisplayFor(modelItem => item.GroupName)</td>
+
+                        <!-- action buttons in one row -->
+                        <td class="text-center">
+                            <div class="btn-group" role="group">
+                                <!-- view btn -->
+                                <a asp-page="./Details" asp-route-id="@item.GroupId" class="btn btn-outline-secondary btn-sm">
+                                    <i class="bi bi-eye"></i> Details
+                                </a>
+
+                                @if (userRole == "Admin")
+                                {
+                                    <!-- edit btn -->
+                                    <a asp-page="./Edit" asp-route-id="@item.GroupId" class="btn btn-outline-warning btn-sm">
+                                        <i class="bi bi-pencil-square"></i> Edit
+                                    </a>
+
+                                    <!-- delete btn -->
+                                    <a asp-page="./Delete" asp-route-id="@item.GroupId" class="btn btn-outline-danger btn-sm">
+                                        <i class="bi bi-trash"></i> Delete
+                                    </a>
+                                }
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
