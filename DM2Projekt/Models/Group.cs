@@ -11,6 +11,10 @@ public class Group
     [Required]
     public string GroupName { get; set; }
 
+    public int CreatedByUserId { get; set; }
+    public User CreatedByUser { get; set; } = null!; // nav property
+
+
     // users in this group
     public ICollection<UserGroup> UserGroups { get; set; } = [];
 

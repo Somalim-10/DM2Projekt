@@ -4,20 +4,19 @@ using Microsoft.EntityFrameworkCore;
 
 namespace DM2Projekt.Data;
 
-// this class adds fake/test data to database
+// adds fake/test data to the DB
 public static class SeedData
 {
     public static void Initialize(IServiceProvider serviceProvider)
     {
-        // make database context
         using var context = new DM2ProjektContext(
             serviceProvider.GetRequiredService<DbContextOptions<DM2ProjektContext>>());
 
-        // if any data already there, stop
-        if (context.User.Any() || context.Room.Any() || context.Group.Any())
+        // if all data already exists, skip
+        if (context.User.Any() && context.Room.Any() && context.Group.Any())
             return;
 
-        // make users
+        // add users
         var users = new List<User>
         {
             new() { FirstName = "Alice", LastName = "Johnson", Email = "alice.johnson@zealand.dk", Password = "password1", Role = Role.Teacher },
@@ -29,49 +28,56 @@ public static class SeedData
             new() { FirstName = "Samuel", LastName = "Andersen", Email = "samuel.andersen@zealand.dk", Password = "admin123", Role = Role.Admin }
         };
         context.User.AddRange(users);
+        context.SaveChanges(); // need this to get real UserIds
 
-        // make groups
+        // find users by email (so we don't assume IDs)
+        var bob = context.User.First(u => u.Email == "bob.martinez@edu.zealand.dk");
+        var charlie = context.User.First(u => u.Email == "charlie.nguyen@edu.zealand.dk");
+        var fiona = context.User.First(u => u.Email == "fiona.bennett@edu.zealand.dk");
+
+        // create groups
         var groups = new List<Group>
         {
-            new() { GroupName = "Group Alpha" },
-            new() { GroupName = "Group Beta" },
-            new() { GroupName = "Group Gamma" }
+            new() { GroupName = "Group Alpha", CreatedByUserId = bob.UserId },
+            new() { GroupName = "Group Beta", CreatedByUserId = bob.UserId },
+            new() { GroupName = "Group Gamma", CreatedByUserId = charlie.UserId }
         };
         context.Group.AddRange(groups);
+        context.SaveChanges(); // get GroupIds
 
-        // make rooms
+        // add rooms
         var rooms = new List<Room>
         {
             new() { RoomName = "Meeting Room 1", RoomType = RoomType.MeetingRoom },
             new() { RoomName = "Classroom 101", RoomType = RoomType.Classroom }
         };
         context.Room.AddRange(rooms);
-
-        // now save users, groups and rooms
         context.SaveChanges();
+
+        // get groups with real IDs
+        var createdGroups = context.Group.ToList();
 
         // link users to groups
         var userGroups = new List<UserGroup>
         {
-            new() { UserId = 2, GroupId = 1 },
-            new() { UserId = 3, GroupId = 1 },
-            new() { UserId = 2, GroupId = 2 },
-            new() { UserId = 6, GroupId = 3 },
-            new() { UserId = 3, GroupId = 3 }
+            new() { UserId = bob.UserId, GroupId = createdGroups[0].GroupId },
+            new() { UserId = charlie.UserId, GroupId = createdGroups[0].GroupId },
+            new() { UserId = bob.UserId, GroupId = createdGroups[1].GroupId },
+            new() { UserId = fiona.UserId, GroupId = createdGroups[2].GroupId },
+            new() { UserId = charlie.UserId, GroupId = createdGroups[2].GroupId }
         };
         context.UserGroup.AddRange(userGroups);
+        context.SaveChanges(); // don't forget this one!
 
-        // make bookings
+        // now make bookings
         var bookings = new List<Booking>();
         var random = new Random();
 
-        // find next Monday
         var nextMonday = DateTime.Today.AddDays(((int)DayOfWeek.Monday - (int)DateTime.Today.DayOfWeek + 7) % 7);
         var timeSlots = new[] { 8, 10, 12, 14 };
 
-        var createdGroups = context.Group.ToList();
         var allUsers = context.User
-            .Where(u => u.Role == Role.Student || u.Role == Role.Admin) // only students/admins can create
+            .Where(u => u.Role == Role.Student || u.Role == Role.Admin)
             .ToList();
         var allRooms = context.Room.ToList();
 
@@ -138,6 +144,6 @@ public static class SeedData
         }
 
         context.Booking.AddRange(bookings);
-        context.SaveChanges();
+        context.SaveChanges(); // final commit!
     }
 }
