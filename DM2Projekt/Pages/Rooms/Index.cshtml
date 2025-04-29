@@ -6,42 +6,55 @@
     var userRole = HttpContext.Session.GetString("UserRole");
 }
 
-<h1>Rooms</h1>
+<div class="container mt-4">
+    <h1 class="mb-4">Rooms</h1>
 
-<!-- Only Admins can see Create button -->
-@if (userRole == "Admin")
-{
-    <p>
-        <a asp-page="Create" class="btn btn-success">Create New Room</a>
-    </p>
-}
+    <!-- only admins can see Create button -->
+    @if (userRole == "Admin")
+    {
+        <div class="mb-4">
+            <a asp-page="Create" class="btn btn-success">
+                <i class="bi bi-plus-circle"></i> Create New Room
+            </a>
+        </div>
+    }
 
-<table class="table table-striped">
-    <thead class="table-dark">
-        <tr>
-            <th>@Html.DisplayNameFor(model => model.Room[0].RoomName)</th>
-            <th>@Html.DisplayNameFor(model => model.Room[0].RoomType)</th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
+    <!-- grid for the cards -->
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
         @foreach (var item in Model.Room)
         {
-            <tr>
-                <td>@Html.DisplayFor(modelItem => item.RoomName)</td>
-                <td>@Html.DisplayFor(modelItem => item.RoomType)</td>
-                <td>
-                    <!-- Everyone can view Details -->
-                    <a asp-page="./Details" asp-route-id="@item.RoomId" class="btn btn-sm btn-outline-primary">Details</a>
+            <div class="col">
+                <div class="card shadow-sm h-100">
+                    <div class="card-body d-flex flex-column">
+                        <!-- room name -->
+                        <h5 class="card-title">@item.RoomName</h5>
 
-                    <!-- Only Admins can Edit/Delete -->
-                    @if (userRole == "Admin")
-                    {
-                        <a asp-page="./Edit" asp-route-id="@item.RoomId" class="btn btn-sm btn-outline-warning ms-1">Edit</a>
-                        <a asp-page="./Delete" asp-route-id="@item.RoomId" class="btn btn-sm btn-outline-danger ms-1">Delete</a>
-                    }
-                </td>
-            </tr>
+                        <!-- room type -->
+                        <p class="card-text text-muted mb-4">
+                            @item.RoomType
+                        </p>
+
+                        <!-- action buttons -->
+                        <div class="mt-auto">
+                            <div class="btn-group" role="group">
+                                <a asp-page="./Details" asp-route-id="@item.RoomId" class="btn btn-sm btn-outline-primary">
+                                    <i class="bi bi-eye"></i> Details
+                                </a>
+
+                                @if (userRole == "Admin")
+                                {
+                                    <a asp-page="./Edit" asp-route-id="@item.RoomId" class="btn btn-sm btn-outline-warning">
+                                        <i class="bi bi-pencil-square"></i> Edit
+                                    </a>
+                                    <a asp-page="./Delete" asp-route-id="@item.RoomId" class="btn btn-sm btn-outline-danger">
+                                        <i class="bi bi-trash"></i> Delete
+                                    </a>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         }
-    </tbody>
-</table>
+    </div>
+</div>

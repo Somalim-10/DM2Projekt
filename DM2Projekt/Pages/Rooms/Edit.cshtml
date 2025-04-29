@@ -5,43 +5,55 @@
     ViewData["Title"] = "Edit Room";
 }
 
-<h1>Edit Room</h1>
+<div class="container mt-4">
+    <h1 class="mb-4">Edit Room</h1>
 
-<h4>Room Info</h4>
-<hr />
-<div class="row">
-    <div class="col-md-4">
-        <form method="post">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+    <!-- lil card for the form -->
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h4 class="card-title mb-4">Room Info</h4>
 
-            <!-- hidden field for ID -->
-            <input type="hidden" asp-for="Room.RoomId" />
+                    <form method="post">
+                        <!-- show validation errors -->
+                        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
 
-            <!-- room name input -->
-            <div class="form-group">
-                <label asp-for="Room.RoomName" class="control-label"></label>
-                <input asp-for="Room.RoomName" class="form-control" />
-                <span asp-validation-for="Room.RoomName" class="text-danger"></span>
+                        <!-- hidden field for id -->
+                        <input type="hidden" asp-for="Room.RoomId" />
+
+                        <!-- room name input -->
+                        <div class="mb-3">
+                            <label asp-for="Room.RoomName" class="form-label"></label>
+                            <input asp-for="Room.RoomName" class="form-control" />
+                            <span asp-validation-for="Room.RoomName" class="text-danger"></span>
+                        </div>
+
+                        <!-- room type dropdown -->
+                        <div class="mb-3">
+                            <label asp-for="Room.RoomType" class="form-label"></label>
+                            <select asp-for="Room.RoomType" class="form-select"
+                                    asp-items="Html.GetEnumSelectList<DM2Projekt.Models.Enums.RoomType>()">
+                            </select>
+                            <span asp-validation-for="Room.RoomType" class="text-danger"></span>
+                        </div>
+
+                        <!-- save btn -->
+                        <button type="submit" class="btn btn-success w-100">
+                            <i class="bi bi-check-circle"></i> Save
+                        </button>
+                    </form>
+                </div>
             </div>
 
-            <!-- room type dropdown -->
-            <div class="form-group">
-                <label asp-for="Room.RoomType" class="control-label"></label>
-                <select asp-for="Room.RoomType" class="form-control"
-                        asp-items="Html.GetEnumSelectList<DM2Projekt.Models.Enums.RoomType>()">
-                </select>
-                <span asp-validation-for="Room.RoomType" class="text-danger"></span>
+            <!-- back btn -->
+            <div class="mt-3 text-center">
+                <a asp-page="./Index" class="btn btn-link">
+                    <i class="bi bi-arrow-left"></i> Back to List
+                </a>
             </div>
-
-            <div class="form-group">
-                <input type="submit" value="Save" class="btn btn-primary" />
-            </div>
-        </form>
+        </div>
     </div>
-</div>
-
-<div>
-    <a asp-page="./Index" class="btn btn-secondary">Back to List</a>
 </div>
 
 @section Scripts {
