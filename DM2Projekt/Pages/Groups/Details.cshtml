@@ -39,8 +39,19 @@
                 <ul class="list-group">
                     @foreach (var user in Model.Members)
                     {
-                        <li class="list-group-item">
-                            @user.FirstName @user.LastName (@user.Role)
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <span>@user.FirstName @user.LastName (@user.Role)</span>
+
+                            @if (isCreator && user.UserId != userId)
+                            {
+                                <form method="post" asp-page-handler="Kick" class="d-inline">
+                                    <input type="hidden" name="KickUserId" value="@user.UserId" />
+                                    <input type="hidden" name="KickGroupId" value="@Model.Group.GroupId" />
+                                    <button type="submit" class="btn btn-sm btn-outline-danger">
+                                        <i class="bi bi-person-dash"></i> Remove
+                                    </button>
+                                </form>
+                            }
                         </li>
                     }
                 </ul>

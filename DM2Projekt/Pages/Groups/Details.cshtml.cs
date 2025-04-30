@@ -21,6 +21,12 @@ public class DetailsModel : PageModel
     [BindProperty]
     public int LeaveGroupId { get; set; }
 
+    [BindProperty]
+    public int KickUserId { get; set; }
+
+    [BindProperty]
+    public int KickGroupId { get; set; }
+
     public async Task<IActionResult> OnGetAsync(int? id)
     {
         if (id == null)
@@ -42,10 +48,8 @@ public class DetailsModel : PageModel
         var isCreator = group.CreatedByUserId == userId;
         var isAdmin = userRole == "Admin";
 
-        // Teachers are excluded from editing, only Admin and Owner (student) can edit
         var canEdit = isAdmin || isCreator;
 
-        // only show if they're in the group, made the group, admin, or is a teacher
         if (!(isMember || isCreator || isAdmin || userRole == "Teacher"))
             return RedirectToPage("/Groups/Index");
 
@@ -63,11 +67,7 @@ public class DetailsModel : PageModel
             return RedirectToPage("/Login");
 
         var group = await _context.Group.FindAsync(LeaveGroupId);
-        if (group == null)
-            return NotFound();
-
-        // Prevent owner from leaving
-        if (group.CreatedByUserId == userId)
+        if (group == null || group.CreatedByUserId == userId)
             return RedirectToPage(new { id = LeaveGroupId });
 
         var membership = await _context.UserGroup
@@ -80,5 +80,30 @@ public class DetailsModel : PageModel
         }
 
         return RedirectToPage("/Groups/Index");
+    }
+
+    public async Task<IActionResult> OnPostKickAsync()
+    {
+        var currentUserId = HttpContext.Session.GetInt32("UserId");
+        if (currentUserId == null)
+            return RedirectToPage("/Login");
+
+        var group = await _context.Group.FindAsync(KickGroupId);
+        if (group == null || group.CreatedByUserId != currentUserId)
+            return RedirectToPage("/Groups/Index");
+
+        if (KickUserId == currentUserId)
+            return RedirectToPage(new { id = KickGroupId }); // prevent self-kick
+
+        var membership = await _context.UserGroup
+            .FirstOrDefaultAsync(ug => ug.UserId == KickUserId && ug.GroupId == KickGroupId);
+
+        if (membership != null)
+        {
+            _context.UserGroup.Remove(membership);
+            await _context.SaveChangesAsync();
+        }
+
+        return RedirectToPage(new { id = KickGroupId });
     }
 }
