@@ -56,6 +56,9 @@
                                     <a asp-page="./Edit" asp-route-id="@group.GroupId" class="btn btn-sm btn-outline-warning">
                                         <i class="bi bi-pencil-square"></i> Edit
                                     </a>
+                                    <a asp-page="/GroupInvitations/Create" asp-route-groupId="@group.GroupId" class="btn btn-sm btn-outline-success">
+                                        <i class="bi bi-person-plus"></i> Invite
+                                    </a>
                                 }
 
                                 @if (canDelete)

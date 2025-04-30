@@ -1,47 +1,37 @@
 ﻿@page
 @model DM2Projekt.Pages.GroupInvitations.CreateModel
+@{
+    ViewData["Title"] = "Invite Student";
+}
 
-        @{
-        ViewData["Title"] = "Create";
-        }
-        
-        <h1>Create</h1>
-        
-    <h4>GroupInvitation</h4>
-    <hr />
-    <div class="row">
-    <div class="col-md-4">
-    <form method="post">
-    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+<h1>Invite Student to Group: @Model.Group?.GroupName</h1>
+<hr />
+<div class="row">
+    <div class="col-md-6">
+        <form method="post">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+            <input type="hidden" asp-for="GroupInvitation.GroupId" />
+
             <div class="form-group">
-                <label asp-for="GroupInvitation.GroupId" class="control-label"></label>
-                <select asp-for="GroupInvitation.GroupId" class ="form-control" asp-items="ViewBag.GroupId"></select>
+                <label asp-for="GroupInvitation.InvitedUserId" class="control-label">Invite Student (Email)</label>
+                <select asp-for="GroupInvitation.InvitedUserId" class="form-control" asp-items="Model.EligibleUsers"></select>
+                <span asp-validation-for="GroupInvitation.InvitedUserId" class="text-danger"></span>
             </div>
-            <div class="form-group">
-                <label asp-for="GroupInvitation.InvitedUserId" class="control-label"></label>
-                <select asp-for="GroupInvitation.InvitedUserId" class ="form-control" asp-items="ViewBag.InvitedUserId"></select>
-            </div>
-            <div class="form-group">
-                <label asp-for="GroupInvitation.IsAccepted" class="control-label"></label>
-                <input asp-for="GroupInvitation.IsAccepted" class="form-control" />
-                <span asp-validation-for="GroupInvitation.IsAccepted" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="GroupInvitation.SentAt" class="control-label"></label>
-                <input asp-for="GroupInvitation.SentAt" class="form-control" />
-                <span asp-validation-for="GroupInvitation.SentAt" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <input type="submit" value="Create" class="btn btn-primary" />
+
+            <input type="hidden" asp-for="GroupInvitation.SentAt" />
+            <input type="hidden" asp-for="GroupInvitation.IsAccepted" />
+
+            <div class="form-group mt-3">
+                <input type="submit" value="Send Invitation" class="btn btn-primary" />
+                <a asp-page="/Groups/Details" asp-route-id="@Model.Group?.GroupId" class="btn btn-secondary ms-2">Cancel</a>
             </div>
         </form>
     </div>
 </div>
 
-<div>
-    <a asp-page="Index">Back to List</a>
-</div>
-
 @section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
 }
