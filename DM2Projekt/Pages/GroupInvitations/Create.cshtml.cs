@@ -29,30 +29,32 @@ public class CreateModel : PageModel
         if (userId == null || groupId == null)
             return RedirectToPage("/Login");
 
-        // Load the group
+        // Load the group with members
         Group = await _context.Group
             .Include(g => g.UserGroups)
             .FirstOrDefaultAsync(g => g.GroupId == groupId);
 
         if (Group == null || Group.CreatedByUserId != userId)
-            return RedirectToPage("/Groups/Index"); // not allowed
+            return RedirectToPage("/Groups/Index");
 
-        // Get users who are students, not already in the group, and not already invited
-        var invitedIds = _context.GroupInvitation
-            .Where(i => i.GroupId == groupId)
-            .Select(i => i.InvitedUserId);
-
+        // Get users already in the group
         var groupMemberIds = Group.UserGroups.Select(ug => ug.UserId);
 
+        // Get users who have pending invites (IsAccepted == null)
+        var pendingInviteIds = await _context.GroupInvitation
+            .Where(i => i.GroupId == groupId && i.IsAccepted == null)
+            .Select(i => i.InvitedUserId)
+            .ToListAsync();
+
+        // Filter eligible users (students only, not already members or pending invites)
         var eligibleUsers = await _context.User
             .Where(u => u.Role == Role.Student &&
                         !groupMemberIds.Contains(u.UserId) &&
-                        !invitedIds.Contains(u.UserId))
+                        !pendingInviteIds.Contains(u.UserId))
             .ToListAsync();
 
         EligibleUsers = new SelectList(eligibleUsers, "UserId", "Email");
 
-        // Pre-fill and lock group ID
         GroupInvitation = new GroupInvitation
         {
             GroupId = Group.GroupId,
@@ -73,14 +75,16 @@ public class CreateModel : PageModel
         if (group == null || group.CreatedByUserId != userId)
             return RedirectToPage("/Groups/Index");
 
-        // Prevent duplicate invitations
-        bool alreadyInvited = await _context.GroupInvitation
-            .AnyAsync(i => i.GroupId == GroupInvitation.GroupId && i.InvitedUserId == GroupInvitation.InvitedUserId);
+        // Prevent duplicate pending invitations
+        bool alreadyPending = await _context.GroupInvitation
+            .AnyAsync(i => i.GroupId == GroupInvitation.GroupId &&
+                           i.InvitedUserId == GroupInvitation.InvitedUserId &&
+                           i.IsAccepted == null);
 
-        if (alreadyInvited)
+        if (alreadyPending)
         {
-            ModelState.AddModelError(string.Empty, "This user has already been invited.");
-            return await OnGetAsync(GroupInvitation.GroupId); // reload view
+            ModelState.AddModelError(string.Empty, "This user already has a pending invitation.");
+            return await OnGetAsync(GroupInvitation.GroupId); // reload form with dropdown
         }
 
         GroupInvitation.SentAt = DateTime.Now;
