@@ -15,8 +15,10 @@ public class IndexModel : PageModel
         _context = context;
     }
 
+    // List of pending invites for the current student
     public IList<GroupInvitation> GroupInvitation { get; set; } = [];
 
+    // Used to bind Accept/Decline forms
     [BindProperty]
     public int ActionInvitationId { get; set; }
 
@@ -25,9 +27,11 @@ public class IndexModel : PageModel
         var userId = HttpContext.Session.GetInt32("UserId");
         var userRole = HttpContext.Session.GetString("UserRole");
 
+        // only students allowed here
         if (userId == null || userRole != "Student")
             return RedirectToPage("/Index");
 
+        // grab all pending invites for this student
         GroupInvitation = await _context.GroupInvitation
             .Include(i => i.Group)
             .Where(i => i.InvitedUserId == userId && i.IsAccepted == null)
@@ -42,13 +46,14 @@ public class IndexModel : PageModel
         if (userId == null)
             return RedirectToPage("/Login");
 
-        // 🛑 Max 3 groups check
+        // check how many groups this user is already in
         int groupCount = await _context.UserGroup.CountAsync(ug => ug.UserId == userId);
         if (groupCount >= 3)
         {
+            // add an error so user knows why it failed
             ModelState.AddModelError(string.Empty, "You cannot join more than 3 groups.");
 
-            // Reload invitations so the page can render properly with the error
+            // re-fetch invites so page doesn't break
             GroupInvitation = await _context.GroupInvitation
                 .Include(i => i.Group)
                 .Where(i => i.InvitedUserId == userId && i.IsAccepted == null)
@@ -57,6 +62,7 @@ public class IndexModel : PageModel
             return Page();
         }
 
+        // find the invite again
         var invite = await _context.GroupInvitation
             .Include(i => i.Group)
             .FirstOrDefaultAsync(i =>
@@ -67,14 +73,13 @@ public class IndexModel : PageModel
         if (invite == null)
             return RedirectToPage();
 
+        // accept it and add the user to the group
         invite.IsAccepted = true;
-
-        var userGroup = new UserGroup
+        _context.UserGroup.Add(new UserGroup
         {
             UserId = userId.Value,
             GroupId = invite.GroupId
-        };
-        _context.UserGroup.Add(userGroup);
+        });
 
         await _context.SaveChangesAsync();
         return RedirectToPage();
@@ -95,6 +100,7 @@ public class IndexModel : PageModel
         if (invite == null)
             return RedirectToPage();
 
+        // just mark it declined
         invite.IsAccepted = false;
 
         await _context.SaveChangesAsync();
