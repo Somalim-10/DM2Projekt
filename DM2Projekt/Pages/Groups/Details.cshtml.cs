@@ -18,6 +18,9 @@ public class DetailsModel : PageModel
     public Group Group { get; set; } = default!;
     public List<User> Members { get; set; } = new List<User>();
 
+    [BindProperty]
+    public int LeaveGroupId { get; set; }
+
     public async Task<IActionResult> OnGetAsync(int? id)
     {
         if (id == null)
@@ -49,9 +52,33 @@ public class DetailsModel : PageModel
         Group = group;
         Members = group.UserGroups.Select(ug => ug.User).ToList();
 
-        // Pass canEdit to the view for button rendering
         ViewData["CanEdit"] = canEdit;
-
         return Page();
+    }
+
+    public async Task<IActionResult> OnPostLeaveAsync()
+    {
+        var userId = HttpContext.Session.GetInt32("UserId");
+        if (userId == null)
+            return RedirectToPage("/Login");
+
+        var group = await _context.Group.FindAsync(LeaveGroupId);
+        if (group == null)
+            return NotFound();
+
+        // Prevent owner from leaving
+        if (group.CreatedByUserId == userId)
+            return RedirectToPage(new { id = LeaveGroupId });
+
+        var membership = await _context.UserGroup
+            .FirstOrDefaultAsync(ug => ug.UserId == userId && ug.GroupId == LeaveGroupId);
+
+        if (membership != null)
+        {
+            _context.UserGroup.Remove(membership);
+            await _context.SaveChangesAsync();
+        }
+
+        return RedirectToPage("/Groups/Index");
     }
 }
