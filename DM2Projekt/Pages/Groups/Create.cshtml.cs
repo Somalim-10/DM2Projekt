@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using DM2Projekt.Data;
 using DM2Projekt.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace DM2Projekt.Pages.Groups;
 
@@ -21,7 +22,6 @@ public class CreateModel : PageModel
     {
         var userRole = HttpContext.Session.GetString("UserRole");
 
-        // only admins and students can see this page
         if (userRole != "Admin" && userRole != "Student")
             return RedirectToPage("/Groups/Index");
 
@@ -32,39 +32,47 @@ public class CreateModel : PageModel
     {
         var userRole = HttpContext.Session.GetString("UserRole");
 
-        // block users that are not admin or student
         if (userRole != "Admin" && userRole != "Student")
             return RedirectToPage("/Groups/Index");
 
         if (!ModelState.IsValid)
-            return Page(); // something went wrong
+            return Page();
 
-        // get current logged-in user (from session)
         var userId = HttpContext.Session.GetInt32("UserId");
         if (userId == null)
             return RedirectToPage("/Login");
 
         var user = await _context.User.FindAsync(userId);
-
         if (user == null)
             return RedirectToPage("/Login");
 
-        // set who created this group
+        // 🛑 Only 1 created group allowed
+        bool alreadyCreated = await _context.Group.AnyAsync(g => g.CreatedByUserId == userId);
+        if (alreadyCreated)
+        {
+            ModelState.AddModelError(string.Empty, "You can only create one group.");
+            return Page();
+        }
+
+        // 🛑 Max 3 groups total (including this one)
+        int groupCount = await _context.UserGroup.CountAsync(ug => ug.UserId == userId);
+        if (groupCount >= 3)
+        {
+            ModelState.AddModelError(string.Empty, "You cannot be in more than 3 groups.");
+            return Page();
+        }
+
         Group.CreatedByUserId = user.UserId;
 
-        // save group first
         _context.Group.Add(Group);
-        await _context.SaveChangesAsync(); // now we get GroupId
+        await _context.SaveChangesAsync();
 
-        // add user to their own group
         var membership = new UserGroup
         {
             UserId = user.UserId,
             GroupId = Group.GroupId
         };
         _context.UserGroup.Add(membership);
-
-        // save that too
         await _context.SaveChangesAsync();
 
         return RedirectToPage("./Index");

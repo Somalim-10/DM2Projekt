@@ -18,7 +18,7 @@ public class IndexModel : PageModel
     public IList<GroupInvitation> GroupInvitation { get; set; } = [];
 
     [BindProperty]
-    public int ActionInvitationId { get; set; } // for Accept/Decline form binding
+    public int ActionInvitationId { get; set; }
 
     public async Task<IActionResult> OnGetAsync()
     {
@@ -42,6 +42,14 @@ public class IndexModel : PageModel
         if (userId == null)
             return RedirectToPage("/Login");
 
+        // 🛑 Max 3 groups check
+        int groupCount = await _context.UserGroup.CountAsync(ug => ug.UserId == userId);
+        if (groupCount >= 3)
+        {
+            ModelState.AddModelError(string.Empty, "You cannot join more than 3 groups.");
+            return await OnGetAsync(); // reload with error
+        }
+
         var invite = await _context.GroupInvitation
             .Include(i => i.Group)
             .FirstOrDefaultAsync(i =>
@@ -52,10 +60,8 @@ public class IndexModel : PageModel
         if (invite == null)
             return RedirectToPage();
 
-        // Accept the invitation
         invite.IsAccepted = true;
 
-        // Add user to group
         var userGroup = new UserGroup
         {
             UserId = userId.Value,
@@ -82,7 +88,6 @@ public class IndexModel : PageModel
         if (invite == null)
             return RedirectToPage();
 
-        // Decline the invitation
         invite.IsAccepted = false;
 
         await _context.SaveChangesAsync();
