@@ -1,54 +1,43 @@
 ﻿@page
 @model DM2Projekt.Pages.GroupInvitations.IndexModel
-
 @{
-    ViewData["Title"] = "Index";
+    ViewData["Title"] = "My Invitations";
 }
 
-<h1>Index</h1>
+<h1>My Pending Group Invitations</h1>
 
-<p>
-    <a asp-page="Create">Create New</a>
-</p>
-<table class="table">
-    <thead>
-        <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.GroupInvitation[0].Group)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.GroupInvitation[0].InvitedUser)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.GroupInvitation[0].IsAccepted)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.GroupInvitation[0].SentAt)
-            </th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-@foreach (var item in Model.GroupInvitation) {
-        <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.Group.GroupName)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.InvitedUser.Email)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.IsAccepted)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.SentAt)
-            </td>
-            <td>
-                <a asp-page="./Edit" asp-route-id="@item.InvitationId">Edit</a> |
-                <a asp-page="./Details" asp-route-id="@item.InvitationId">Details</a> |
-                <a asp-page="./Delete" asp-route-id="@item.InvitationId">Delete</a>
-            </td>
-        </tr>
+@if (!Model.GroupInvitation.Any())
+{
+    <p class="text-muted">You have no pending invitations.</p>
 }
-    </tbody>
-</table>
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Group Name</th>
+                <th>Sent At</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var invite in Model.GroupInvitation)
+            {
+                <tr>
+                    <td>@invite.Group.GroupName</td>
+                    <td>@invite.SentAt.ToString("g")</td>
+                    <td>
+                        <form method="post" asp-page-handler="Accept" class="d-inline">
+                            <input type="hidden" name="ActionInvitationId" value="@invite.InvitationId" />
+                            <button type="submit" class="btn btn-sm btn-success">Accept</button>
+                        </form>
+                        <form method="post" asp-page-handler="Decline" class="d-inline ms-2">
+                            <input type="hidden" name="ActionInvitationId" value="@invite.InvitationId" />
+                            <button type="submit" class="btn btn-sm btn-outline-danger">Decline</button>
+                        </form>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}

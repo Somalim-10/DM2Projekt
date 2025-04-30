@@ -61,6 +61,15 @@
                                     <a class="nav-link text-dark" asp-area="" asp-page="/UserGroups/Index">UserGroups</a>
                                 </li>
                             }
+
+                            @if (userRole == "Student")
+                            {
+                                <li class="nav-item">
+                                    <a class="nav-link text-dark" asp-area="" asp-page="/GroupInvitations/Index">
+                                        📬 Invitations
+                                    </a>
+                                </li>
+                            }
                         }
                     </ul>
 
