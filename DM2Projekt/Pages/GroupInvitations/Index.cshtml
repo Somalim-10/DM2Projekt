@@ -6,6 +6,12 @@
 
 <h1>My Pending Group Invitations</h1>
 
+<!-- ✅ Only show error box if there are validation errors -->
+@if (!ViewData.ModelState.IsValid)
+{
+    <div asp-validation-summary="All" class="alert alert-danger"></div>
+}
+
 @if (!Model.GroupInvitation.Any())
 {
     <p class="text-muted">You have no pending invitations.</p>

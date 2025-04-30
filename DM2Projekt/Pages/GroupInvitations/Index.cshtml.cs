@@ -47,7 +47,14 @@ public class IndexModel : PageModel
         if (groupCount >= 3)
         {
             ModelState.AddModelError(string.Empty, "You cannot join more than 3 groups.");
-            return await OnGetAsync(); // reload with error
+
+            // Reload invitations so the page can render properly with the error
+            GroupInvitation = await _context.GroupInvitation
+                .Include(i => i.Group)
+                .Where(i => i.InvitedUserId == userId && i.IsAccepted == null)
+                .ToListAsync();
+
+            return Page();
         }
 
         var invite = await _context.GroupInvitation
