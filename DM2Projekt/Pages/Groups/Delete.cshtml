@@ -6,56 +6,54 @@
 }
 
 <div class="container mt-4">
-    <h1 class="text-danger mb-4">Delete Group</h1>
+    <h1 class="mb-4 text-danger">Delete Group</h1>
 
     @if (Model.Group != null)
     {
-        <!-- warning box -->
+        <!-- warning message -->
         <div class="alert alert-warning">
-            <h4 class="alert-heading">Are you sure?</h4>
-            <p>This will permanently delete the group.</p>
+            <h4 class="alert-heading">Heads up!</h4>
+            <p>This will permanently delete <strong>@Model.Group.GroupName</strong> and remove it for all members.</p>
         </div>
 
-        <!-- lil card to show group name -->
+        <!-- show group info in a card -->
         <div class="card mb-4 shadow-sm">
             <div class="card-body">
-                <h5 class="card-title">Group Info</h5>
-                <hr />
+                <h5 class="card-title mb-3">Group Details</h5>
                 <dl class="row">
-                    <dt class="col-sm-3">
-                        @Html.DisplayNameFor(model => model.Group.GroupName)
-                    </dt>
-                    <dd class="col-sm-9">
-                        @Html.DisplayFor(model => model.Group.GroupName)
-                    </dd>
+                    <dt class="col-sm-3">Group Name</dt>
+                    <dd class="col-sm-9">@Model.Group.GroupName</dd>
+
+                    <dt class="col-sm-3">Created By</dt>
+                    <dd class="col-sm-9">@Model.Group.CreatedByUser.FirstName @Model.Group.CreatedByUser.LastName</dd>
                 </dl>
             </div>
         </div>
 
-        <!-- form to confirm deletion -->
+        <!-- confirm delete form -->
         <form method="post" class="d-flex gap-2">
             <input type="hidden" asp-for="Group.GroupId" />
 
             <!-- red delete button -->
             <button type="submit" class="btn btn-danger">
-                <i class="bi bi-trash3-fill"></i> Delete
+                <i class="bi bi-trash3-fill me-1"></i> Delete
             </button>
 
-            <!-- back to list -->
-            <a asp-page="./Index" class="btn btn-secondary">
+            <!-- cancel and go back -->
+            <a asp-page="./Index" class="btn btn-outline-secondary">
                 <i class="bi bi-arrow-left"></i> Cancel
             </a>
         </form>
     }
     else
     {
-        <!-- fallback error if not allowed -->
+        <!-- fallback if user shouldn't be here -->
         <div class="alert alert-danger">
-            You are not allowed to delete this group.
+            🚫 You are not allowed to delete this group or it no longer exists.
         </div>
 
         <a asp-page="./Index" class="btn btn-secondary mt-3">
-            <i class="bi bi-arrow-left"></i> Back to List
+            <i class="bi bi-arrow-left"></i> Back to Groups
         </a>
     }
 </div>

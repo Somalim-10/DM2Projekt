@@ -23,17 +23,18 @@ public class DeleteModel : PageModel
         if (id == null)
             return NotFound();
 
+        // get the group (with creator info)
         var group = await _context.Group
             .Include(g => g.CreatedByUser)
-            .FirstOrDefaultAsync(m => m.GroupId == id);
+            .FirstOrDefaultAsync(g => g.GroupId == id);
 
         if (group == null)
             return NotFound();
 
-        var userRole = HttpContext.Session.GetString("UserRole");
         var userId = HttpContext.Session.GetInt32("UserId");
+        var userRole = HttpContext.Session.GetString("UserRole");
 
-        // only admins or the student who created the group
+        // 🛑 Only admins or the person who made it can delete
         if (userRole != "Admin" && group.CreatedByUserId != userId)
             return RedirectToPage("/Groups/Index");
 
@@ -50,10 +51,10 @@ public class DeleteModel : PageModel
         if (group == null)
             return NotFound();
 
-        var userRole = HttpContext.Session.GetString("UserRole");
         var userId = HttpContext.Session.GetInt32("UserId");
+        var userRole = HttpContext.Session.GetString("UserRole");
 
-        // same check again before deletion
+        // Check again before deleting
         if (userRole != "Admin" && group.CreatedByUserId != userId)
             return RedirectToPage("/Groups/Index");
 

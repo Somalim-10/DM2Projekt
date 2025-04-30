@@ -16,7 +16,7 @@ public class DetailsModel : PageModel
     }
 
     public Group Group { get; set; } = default!;
-    public List<User> Members { get; set; } = new List<User>();
+    public List<User> Members { get; set; } = new();
 
     [BindProperty]
     public int LeaveGroupId { get; set; }
@@ -32,9 +32,9 @@ public class DetailsModel : PageModel
         if (id == null)
             return NotFound();
 
+        // get group with members and creator
         var group = await _context.Group
-            .Include(g => g.UserGroups)
-                .ThenInclude(ug => ug.User)
+            .Include(g => g.UserGroups).ThenInclude(ug => ug.User)
             .Include(g => g.CreatedByUser)
             .FirstOrDefaultAsync(g => g.GroupId == id);
 
@@ -48,15 +48,16 @@ public class DetailsModel : PageModel
         var isCreator = group.CreatedByUserId == userId;
         var isAdmin = userRole == "Admin";
 
-        var canEdit = isAdmin || isCreator;
-
-        if (!(isMember || isCreator || isAdmin || userRole == "Teacher"))
+        // allow: members, creator, admins, teachers
+        var allowed = isMember || isCreator || isAdmin || userRole == "Teacher";
+        if (!allowed)
             return RedirectToPage("/Groups/Index");
 
         Group = group;
         Members = group.UserGroups.Select(ug => ug.User).ToList();
 
-        ViewData["CanEdit"] = canEdit;
+        ViewData["CanEdit"] = isAdmin || isCreator;
+
         return Page();
     }
 
@@ -84,16 +85,17 @@ public class DetailsModel : PageModel
 
     public async Task<IActionResult> OnPostKickAsync()
     {
-        var currentUserId = HttpContext.Session.GetInt32("UserId");
-        if (currentUserId == null)
+        var userId = HttpContext.Session.GetInt32("UserId");
+        if (userId == null)
             return RedirectToPage("/Login");
 
         var group = await _context.Group.FindAsync(KickGroupId);
-        if (group == null || group.CreatedByUserId != currentUserId)
+        if (group == null || group.CreatedByUserId != userId)
             return RedirectToPage("/Groups/Index");
 
-        if (KickUserId == currentUserId)
-            return RedirectToPage(new { id = KickGroupId }); // prevent self-kick
+        // 🛑 can't kick yourself
+        if (KickUserId == userId)
+            return RedirectToPage(new { id = KickGroupId });
 
         var membership = await _context.UserGroup
             .FirstOrDefaultAsync(ug => ug.UserId == KickUserId && ug.GroupId == KickGroupId);

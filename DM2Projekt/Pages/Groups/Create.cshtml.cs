@@ -22,6 +22,7 @@ public class CreateModel : PageModel
     {
         var userRole = HttpContext.Session.GetString("UserRole");
 
+        // only Admins and Students can make groups
         if (userRole != "Admin" && userRole != "Student")
             return RedirectToPage("/Groups/Index");
 
@@ -46,7 +47,7 @@ public class CreateModel : PageModel
         if (user == null)
             return RedirectToPage("/Login");
 
-        // 🛑 Only 1 created group allowed
+        // Can only create 1 group
         bool alreadyCreated = await _context.Group.AnyAsync(g => g.CreatedByUserId == userId);
         if (alreadyCreated)
         {
@@ -54,7 +55,7 @@ public class CreateModel : PageModel
             return Page();
         }
 
-        // 🛑 Max 3 groups total (including this one)
+        // Max 3 groups total (creator included)
         int groupCount = await _context.UserGroup.CountAsync(ug => ug.UserId == userId);
         if (groupCount >= 3)
         {
@@ -62,17 +63,17 @@ public class CreateModel : PageModel
             return Page();
         }
 
+        // all good, save group
         Group.CreatedByUserId = user.UserId;
-
         _context.Group.Add(Group);
         await _context.SaveChangesAsync();
 
-        var membership = new UserGroup
+        // add the user as a member of their group
+        _context.UserGroup.Add(new UserGroup
         {
             UserId = user.UserId,
             GroupId = Group.GroupId
-        };
-        _context.UserGroup.Add(membership);
+        });
         await _context.SaveChangesAsync();
 
         return RedirectToPage("./Index");

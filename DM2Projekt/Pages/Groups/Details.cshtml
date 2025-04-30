@@ -5,19 +5,19 @@
     ViewData["Title"] = "Group Details";
     var userRole = HttpContext.Session.GetString("UserRole");
     var userId = HttpContext.Session.GetInt32("UserId");
+
     var isCreator = Model.Group.CreatedByUser.UserId == userId;
     var isMember = Model.Members.Any(u => u.UserId == userId);
+    var canEdit = ViewData["CanEdit"] is bool b && b;
 }
 
 <div class="container mt-4">
-    <h1 class="mb-3">Group Details</h1>
+    <h1 class="mb-4">Group: @Model.Group.GroupName</h1>
 
-    <!-- Group info card -->
+    <!-- Group info -->
     <div class="card shadow-sm mb-4">
         <div class="card-body">
-            <h4 class="card-title">Group Info</h4>
-            <hr />
-
+            <h5 class="card-title mb-3">📘 Group Info</h5>
             <dl class="row">
                 <dt class="col-sm-3">Group Name</dt>
                 <dd class="col-sm-9">@Model.Group.GroupName</dd>
@@ -28,11 +28,10 @@
         </div>
     </div>
 
-    <!-- Group members card -->
+    <!-- Group members -->
     <div class="card shadow-sm mb-4">
         <div class="card-body">
-            <h4 class="card-title">Group Members</h4>
-            <hr />
+            <h5 class="card-title mb-3">👥 Group Members</h5>
 
             @if (Model.Members.Any())
             {
@@ -58,15 +57,14 @@
             }
             else
             {
-                <p class="text-muted">No members in this group.</p>
+                <p class="text-muted mb-0">No members yet.</p>
             }
 
-            <!-- Leave Group Button -->
             @if (isMember && !isCreator)
             {
-                <form method="post" asp-page-handler="Leave">
+                <form method="post" asp-page-handler="Leave" class="mt-3">
                     <input type="hidden" name="LeaveGroupId" value="@Model.Group.GroupId" />
-                    <button type="submit" class="btn btn-outline-danger mt-3">
+                    <button type="submit" class="btn btn-outline-danger">
                         <i class="bi bi-door-open"></i> Leave Group
                     </button>
                 </form>
@@ -74,14 +72,13 @@
         </div>
     </div>
 
-    <!-- back and maybe edit -->
+    <!-- back + edit -->
     <div class="d-flex justify-content-between">
         <a asp-page="./Index" class="btn btn-secondary">
-            <i class="bi bi-arrow-left"></i> Back to List
+            <i class="bi bi-arrow-left"></i> Back to Groups
         </a>
 
-        <!-- Show edit button for Admin and group owner only -->
-        @if (ViewData["CanEdit"] != null && (bool)ViewData["CanEdit"])
+        @if (canEdit)
         {
             <a asp-page="./Edit" asp-route-id="@Model.Group.GroupId" class="btn btn-warning">
                 <i class="bi bi-pencil-square"></i> Edit
