@@ -8,7 +8,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - DM2Projekt</title>
 
-    <!-- css links -->
+    <!-- Bootstrap and styles -->
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/DM2Projekt.styles.css" asp-append-version="true" />
@@ -17,9 +17,8 @@
 <body>
     <header>
         <nav class="navbar navbar-expand-sm navbar-light bg-white border-bottom shadow-sm mb-3">
-            <!-- navbar -->
             <div class="container">
-                <a class="navbar-brand" asp-area="" asp-page="/Index">DM2Projekt</a>
+                <a class="navbar-brand" asp-page="/Index">DM2Projekt</a>
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse"
                         aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
@@ -27,56 +26,72 @@
 
                 <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
                     <ul class="navbar-nav flex-grow-1">
-                        <!-- always visible links -->
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-page="/Index">Home</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-page="/Privacy">Privacy</a>
-                        </li>
+                        <li class="nav-item"><a class="nav-link text-dark" asp-page="/Index">Home</a></li>
+                        <li class="nav-item"><a class="nav-link text-dark" asp-page="/Privacy">Privacy</a></li>
 
-                        <!-- logged in only links -->
                         @{
                             var userName = HttpContextAccessor.HttpContext?.Session.GetString("UserName");
                             var userRole = HttpContextAccessor.HttpContext?.Session.GetString("UserRole");
                         }
+
                         @if (!string.IsNullOrEmpty(userName))
                         {
-                            <li class="nav-item">
-                                <a class="nav-link text-dark" asp-area="" asp-page="/Bookings/Index">Bookings</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link text-dark" asp-area="" asp-page="/Rooms/Index">Rooms</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link text-dark" asp-area="" asp-page="/Groups/Index">Groups</a>
-                            </li>
+                            <li class="nav-item"><a class="nav-link text-dark" asp-page="/Bookings/Index">Bookings</a></li>
+                            <li class="nav-item"><a class="nav-link text-dark" asp-page="/Rooms/Index">Rooms</a></li>
+                            <li class="nav-item"><a class="nav-link text-dark" asp-page="/Groups/Index">Groups</a></li>
 
                             @if (userRole == "Admin")
                             {
-                                <li class="nav-item">
-                                    <a class="nav-link text-dark" asp-area="" asp-page="/Users/Index">Users</a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link text-dark" asp-area="" asp-page="/UserGroups/Index">UserGroups</a>
-                                </li>
+                                <li class="nav-item"><a class="nav-link text-dark" asp-page="/Users/Index">Users</a></li>
+                                <li class="nav-item"><a class="nav-link text-dark" asp-page="/UserGroups/Index">UserGroups</a></li>
                             }
                         }
                     </ul>
 
-                    <!-- login/logout part -->
+                    <!-- check if student has pending invites -->
+                    @{
+                        var pendingInvites = 0;
+                        if (userRole == "Student")
+                        {
+                            var context = Context.RequestServices.GetService(typeof(DM2Projekt.Data.DM2ProjektContext)) as DM2Projekt.Data.DM2ProjektContext;
+                            var userId = HttpContextAccessor.HttpContext?.Session.GetInt32("UserId");
+
+                            if (context != null && userId.HasValue)
+                            {
+                                pendingInvites = context.GroupInvitation
+                                .Where(i => i.InvitedUserId == userId && i.IsAccepted == null)
+                                .Count();
+                            }
+                        }
+                    }
+
                     <ul class="navbar-nav">
                         @if (string.IsNullOrEmpty(userName))
                         {
-                            <li class="nav-item">
-                                <a class="nav-link text-dark" asp-area="" asp-page="/Login">Login</a>
-                            </li>
+                            <li class="nav-item"><a class="nav-link text-dark" asp-page="/Login">Login</a></li>
                         }
                         else
                         {
                             <li class="nav-item">
                                 <span class="nav-link text-dark">Hello, @userName</span>
                             </li>
+
+                            @if (userRole == "Student")
+                            {
+                                <li class="nav-item position-relative">
+                                    <a class="nav-link text-dark" asp-page="/GroupInvitations/Index">
+                                        📬 Invitations
+                                        @if (pendingInvites > 0)
+                                        {
+                                            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger small px-2 py-1">
+                                                @pendingInvites
+                                                <span class="visually-hidden">pending invitations</span>
+                                            </span>
+                                        }
+                                    </a>
+                                </li>
+                            }
+
                             <li class="nav-item">
                                 <form method="post" asp-page="/Logout" class="d-inline">
                                     <button type="submit" class="nav-link btn btn-link text-dark" style="text-decoration: none;">Logout</button>
@@ -97,7 +112,7 @@
 
     <footer class="border-top footer text-muted mt-5">
         <div class="container">
-            &copy; 2025 - DM2Projekt - <a asp-area="" asp-page="/Privacy">Privacy</a>
+            &copy; 2025 - DM2Projekt - <a asp-page="/Privacy">Privacy</a>
         </div>
     </footer>
 

@@ -4,81 +4,95 @@ using Microsoft.EntityFrameworkCore;
 using DM2Projekt.Data;
 using DM2Projekt.Models;
 
-namespace DM2Projekt.Pages.Groups;
-
-public class EditModel : PageModel
+namespace DM2Projekt.Pages.Groups
 {
-    private readonly DM2ProjektContext _context;
-
-    public EditModel(DM2ProjektContext context)
+    public class EditModel : PageModel
     {
-        _context = context;
-    }
+        private readonly DM2ProjektContext _context;
 
-    [BindProperty]
-    public Group Group { get; set; } = default!;
-
-    public async Task<IActionResult> OnGetAsync(int? id)
-    {
-        // check if logged in
-        var userRole = HttpContext.Session.GetString("UserRole");
-        if (userRole != "Admin")
+        public EditModel(DM2ProjektContext context)
         {
-            return RedirectToPage("/Groups/Index");
+            _context = context;
         }
 
-        if (id == null)
-        {
-            return NotFound();
-        }
+        [BindProperty]
+        public Group Group { get; set; } = default!;
 
-        var group = await _context.Group.FirstOrDefaultAsync(m => m.GroupId == id);
-        if (group == null)
+        public async Task<IActionResult> OnGetAsync(int? id)
         {
-            return NotFound();
-        }
+            if (id == null)
+                return NotFound();
 
-        Group = group;
-        return Page();
-    }
+            // Load the group with the associated CreatedByUser for validation in the view
+            var group = await _context.Group
+                .Include(g => g.CreatedByUser) // Ensure CreatedByUser is loaded
+                .FirstOrDefaultAsync(m => m.GroupId == id);
 
-    public async Task<IActionResult> OnPostAsync()
-    {
-        // check if logged in
-        var userRole = HttpContext.Session.GetString("UserRole");
-        if (userRole != "Admin")
-        {
-            return RedirectToPage("/Groups/Index");
-        }
+            if (group == null)
+                return NotFound();
 
-        if (!ModelState.IsValid)
-        {
+            var userRole = HttpContext.Session.GetString("UserRole");
+            var userId = HttpContext.Session.GetInt32("UserId");
+
+            var isAdmin = userRole == "Admin";
+            var isOwner = group.CreatedByUserId == userId;
+
+            if (!(isAdmin || isOwner))
+                return RedirectToPage("/Groups/Index");
+
+            Group = group;
             return Page();
         }
 
-        _context.Attach(Group).State = EntityState.Modified;
+        public async Task<IActionResult> OnPostAsync()
+        {
+            var userRole = HttpContext.Session.GetString("UserRole");
+            var userId = HttpContext.Session.GetInt32("UserId");
 
-        try
-        {
-            await _context.SaveChangesAsync();
-        }
-        catch (DbUpdateConcurrencyException)
-        {
-            if (!GroupExists(Group.GroupId))
-            {
+            // Fetch the group from the database, including the CreatedByUser to get the CreatedByUserId
+            var groupFromDb = await _context.Group
+                .Include(g => g.CreatedByUser) // Ensure CreatedByUser is included
+                .FirstOrDefaultAsync(g => g.GroupId == Group.GroupId);
+
+            if (groupFromDb == null)
                 return NotFound();
-            }
-            else
+
+            // Now, evaluate if the user is an Admin or the Owner based on the re-fetched group
+            var isAdmin = userRole == "Admin";
+            var isOwner = groupFromDb.CreatedByUserId == userId; // Now correctly evaluates ownership
+
+            // Check if the user is authorized to edit (either Admin or Owner)
+            if (!(isAdmin || isOwner))
+                return RedirectToPage("/Groups/Index");
+
+            if (!ModelState.IsValid)
+                return Page();
+
+            // Manually preserve the CreatedByUserId to avoid overwriting it during updates
+            Group.CreatedByUserId = groupFromDb.CreatedByUserId; // Ensure the CreatedByUserId is not lost
+
+            // Apply the updated values to the existing group entity
+            _context.Entry(groupFromDb).CurrentValues.SetValues(Group);
+
+            try
             {
-                throw;
+                // Save changes to the database
+                await _context.SaveChangesAsync();
             }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!GroupExists(Group.GroupId))
+                    return NotFound();
+                else
+                    throw;
+            }
+
+            return RedirectToPage("./Index");
         }
 
-        return RedirectToPage("./Index");
-    }
-
-    private bool GroupExists(int id)
-    {
-        return _context.Group.Any(e => e.GroupId == id);
+        private bool GroupExists(int id)
+        {
+            return _context.Group.Any(e => e.GroupId == id);
+        }
     }
 }

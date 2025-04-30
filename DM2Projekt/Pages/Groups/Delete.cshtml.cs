@@ -23,13 +23,19 @@ public class DeleteModel : PageModel
         if (id == null)
             return NotFound();
 
-        var group = await _context.Group.FirstOrDefaultAsync(m => m.GroupId == id);
+        // get the group (with creator info)
+        var group = await _context.Group
+            .Include(g => g.CreatedByUser)
+            .FirstOrDefaultAsync(g => g.GroupId == id);
 
         if (group == null)
             return NotFound();
 
+        var userId = HttpContext.Session.GetInt32("UserId");
         var userRole = HttpContext.Session.GetString("UserRole");
-        if (userRole != "Admin")
+
+        // 🛑 Only admins or the person who made it can delete
+        if (userRole != "Admin" && group.CreatedByUserId != userId)
             return RedirectToPage("/Groups/Index");
 
         Group = group;
@@ -41,17 +47,19 @@ public class DeleteModel : PageModel
         if (id == null)
             return NotFound();
 
+        var group = await _context.Group.FindAsync(id);
+        if (group == null)
+            return NotFound();
+
+        var userId = HttpContext.Session.GetInt32("UserId");
         var userRole = HttpContext.Session.GetString("UserRole");
-        if (userRole != "Admin")
+
+        // Check again before deleting
+        if (userRole != "Admin" && group.CreatedByUserId != userId)
             return RedirectToPage("/Groups/Index");
 
-        var group = await _context.Group.FindAsync(id);
-
-        if (group != null)
-        {
-            _context.Group.Remove(group);
-            await _context.SaveChangesAsync();
-        }
+        _context.Group.Remove(group);
+        await _context.SaveChangesAsync();
 
         return RedirectToPage("./Index");
     }

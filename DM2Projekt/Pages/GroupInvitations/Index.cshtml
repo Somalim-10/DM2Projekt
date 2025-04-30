@@ -1,0 +1,69 @@
+﻿@page
+@model DM2Projekt.Pages.GroupInvitations.IndexModel
+
+@{
+    ViewData["Title"] = "My Invitations";
+}
+
+<div class="container mt-4">
+    <h1 class="mb-4">My Pending Group Invitations</h1>
+
+    <!-- show any errors like max-group rejection -->
+    @if (!ViewData.ModelState.IsValid)
+    {
+        <div asp-validation-summary="All" class="alert alert-danger"></div>
+    }
+
+    @if (!Model.GroupInvitation.Any())
+    {
+        <!-- if no invites -->
+        <div class="alert alert-info">
+            🎉 You're all caught up — no pending invites right now.
+        </div>
+    }
+    else
+    {
+        <!-- loop through each invite and show it as a card -->
+        <div class="row row-cols-1 row-cols-md-2 g-4">
+            @foreach (var invite in Model.GroupInvitation)
+            {
+                <div class="col">
+                    <div class="card shadow-sm h-100">
+                        <div class="card-body d-flex flex-column justify-content-between">
+                            <div>
+                                <h5 class="card-title">
+                                    <i class="bi bi-people-fill text-primary me-2"></i>
+                                    @invite.Group.GroupName
+                                </h5>
+                                <p class="card-text text-muted">
+                                    Sent: <span class="fw-semibold">@invite.SentAt.ToString("g")</span>
+                                </p>
+                            </div>
+
+                            <!-- buttons -->
+                            <div class="mt-3">
+                                <form method="post" asp-page-handler="Accept" class="d-inline">
+                                    <input type="hidden" name="ActionInvitationId" value="@invite.InvitationId" />
+                                    <button type="submit" class="btn btn-success btn-sm">
+                                        <i class="bi bi-check-circle"></i> Accept
+                                    </button>
+                                </form>
+
+                                <form method="post" asp-page-handler="Decline" class="d-inline ms-2">
+                                    <input type="hidden" name="ActionInvitationId" value="@invite.InvitationId" />
+                                    <button type="submit" class="btn btn-outline-danger btn-sm">
+                                        <i class="bi bi-x-circle"></i> Decline
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+@section Scripts {
+    @await Html.PartialAsync("_ValidationScriptsPartial")
+}
