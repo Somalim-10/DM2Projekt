@@ -317,18 +317,23 @@ public class CreateModel : PageModel
         return new JsonResult(new { roomType = room.RoomType.ToString() });
     }
 
-    // check if smartboard is already booked
+    bool AreTimesEqualToMinute(DateTime a, DateTime b) =>
+    a.ToUniversalTime().ToString("yyyy-MM-dd HH:mm") == b.ToUniversalTime().ToString("yyyy-MM-dd HH:mm");
+
+    // Check if smartboard is already booked
     public JsonResult OnGetSmartboardCheck(int roomId, DateTime start, DateTime end)
     {
         var room = GetRoom(roomId);
         if (room?.RoomType != RoomType.Classroom)
             return new JsonResult(false);
 
-        bool smartboardUsed = _context.Booking.Any(b =>
-            b.RoomId == roomId &&
-            b.StartTime == start &&
-            b.EndTime == end &&
-            b.UsesSmartboard);
+        bool smartboardUsed = _context.Booking
+            .Where(b => b.RoomId == roomId && b.UsesSmartboard && b.StartTime.HasValue && b.EndTime.HasValue)
+            .ToList()
+            .Any(b =>
+                AreTimesEqualToMinute(b.StartTime.Value, start) &&
+                AreTimesEqualToMinute(b.EndTime.Value, end)
+            );
 
         return new JsonResult(smartboardUsed);
     }
