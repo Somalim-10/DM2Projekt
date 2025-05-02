@@ -165,4 +165,13 @@
     if (roomSelect.value) {
         roomSelect.dispatchEvent(new Event("change"));
     }
+
+    document.getElementById("Room_ImageUrl").addEventListener("input", function (e) {
+        var url = e.target.value;
+        var regex = /\.(jpg|jpeg|png|gif)$/i;
+        if (!regex.test(url)) {
+            alert("Please enter a valid image URL (e.g., ends with .jpg, .png).");
+        }
+    });
+
 });

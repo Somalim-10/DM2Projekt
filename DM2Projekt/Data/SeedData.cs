@@ -63,12 +63,12 @@ public static class SeedData
         };
         context.GroupInvitation.Add(invite1);
         context.SaveChanges();
-
+ 
         // ✅ ROOMS
         var rooms = new List<Room>
         {
-            new() { RoomName = "HQ Conference Room", RoomType = RoomType.MeetingRoom },
-            new() { RoomName = "Training Hall", RoomType = RoomType.Classroom }
+            new() { RoomName = "HQ Conference Room", RoomType = RoomType.MeetingRoom, ImageUrl="https://www.hoteljosef.com/wp-content/uploads/2024/06/Prague-small-conference-room.jpg" },
+            new() { RoomName = "Training Hall", RoomType = RoomType.Classroom, ImageUrl="https://www.appliedglobal.com/wp-content/uploads/How-to-Create-a-Modern-Meeting-Room-Setup.png" }
         };
         context.Room.AddRange(rooms);
         context.SaveChanges();
