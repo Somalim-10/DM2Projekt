@@ -37,6 +37,11 @@
                             </select>
                             <span asp-validation-for="Room.RoomType" class="text-danger"></span>
                         </div>
+                        <div class="mb-3">
+                            <label asp-for="Room.ImageUrl" class="form-label">Room Image URL</label>
+                            <input asp-for="Room.ImageUrl" class="form-control" />
+                            <span asp-validation-for="Room.ImageUrl" class="text-danger"></span>
+                        </div>
 
                         <!-- save btn -->
                         <button type="submit" class="btn btn-success w-100">
