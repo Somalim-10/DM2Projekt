@@ -5,25 +5,19 @@
 }
 
 <div class="container mt-5">
-    <!-- lil margin top -->
     <div class="row justify-content-center">
-        <!-- center form -->
         <div class="col-md-6">
             <div class="card shadow-sm">
-                <!-- nice card box -->
                 <div class="card-body">
-                    <h2 class="text-center mb-4">Login</h2> <!-- title -->
+                    <h2 class="text-center mb-4">Login</h2>
 
                     <form method="post">
-                        <!-- form start -->
                         <div class="mb-3">
-                            <!-- email input -->
                             <label asp-for="Input.Email" class="form-label">Email</label>
                             <input asp-for="Input.Email" class="form-control" placeholder="your email" />
                         </div>
 
                         <div class="mb-3">
-                            <!-- password input -->
                             <label asp-for="Input.Password" class="form-label">Password</label>
                             <input asp-for="Input.Password" type="password" class="form-control" placeholder="your password" />
                         </div>
@@ -31,15 +25,14 @@
                         @if (!string.IsNullOrEmpty(Model.ErrorMessage))
                         {
                             <div class="alert alert-danger" role="alert">
-                                @Model.ErrorMessage <!-- show errors -->
+                                @Model.ErrorMessage
                             </div>
                         }
 
                         <div class="d-grid">
-                            <!-- full width button -->
                             <button type="submit" class="btn btn-primary">Login</button>
                         </div>
-                    </form> <!-- form end -->
+                    </form>
                 </div>
             </div>
         </div>
