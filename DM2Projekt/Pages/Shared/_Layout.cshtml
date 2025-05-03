@@ -8,7 +8,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - DM2Projekt</title>
 
-    <!-- Bootstrap and styles -->
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/DM2Projekt.styles.css" asp-append-version="true" />
@@ -48,53 +47,34 @@
                         }
                     </ul>
 
-                    <!-- check if student has pending invites -->
-                    @{
-                        var pendingInvites = 0;
-                        if (userRole == "Student")
-                        {
-                            var context = Context.RequestServices.GetService(typeof(DM2Projekt.Data.DM2ProjektContext)) as DM2Projekt.Data.DM2ProjektContext;
-                            var userId = HttpContextAccessor.HttpContext?.Session.GetInt32("UserId");
-
-                            if (context != null && userId.HasValue)
-                            {
-                                pendingInvites = context.GroupInvitation
-                                .Where(i => i.InvitedUserId == userId && i.IsAccepted == null)
-                                .Count();
-                            }
-                        }
-                    }
-
                     <ul class="navbar-nav">
                         @if (string.IsNullOrEmpty(userName))
                         {
-                            <li class="nav-item"><a class="nav-link text-dark" asp-page="/Login">Login</a></li>
+                            <!-- Login-knap med ikon -->
+                            <li class="nav-item">
+                                <a class="btn btn-primary btn-sm ms-2" asp-page="/Login">
+                                    <i class="bi bi-person-circle me-1"></i> Login
+                                </a>
+                            </li>
                         }
                         else
                         {
-                            <li class="nav-item">
-                                <span class="nav-link text-dark">Hello, @userName</span>
+                            <!-- Dropdown med brugernavn og ikon -->
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle user-dropdown" href="#" role="button" data-bs-toggle="dropdown">
+                                    <i class="bi bi-person-circle me-1"></i> @userName
+                                </a>
+                                <ul class="dropdown-menu dropdown-menu-end">
+                                    <li><a class="dropdown-item" asp-page="/UserPage">Min profil</a></li>
+                                    <li><a class="dropdown-item" asp-page="/Bookings/UserBookings">Mine bookings</a></li>
+                                    <li><a class="dropdown-item" asp-page="/Groups/UserGroups">Mine grupper</a></li>
+                                </ul>
                             </li>
 
-                            @if (userRole == "Student")
-                            {
-                                <li class="nav-item position-relative">
-                                    <a class="nav-link text-dark" asp-page="/GroupInvitations/Index">
-                                        📬 Invitations
-                                        @if (pendingInvites > 0)
-                                        {
-                                            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger small px-2 py-1">
-                                                @pendingInvites
-                                                <span class="visually-hidden">pending invitations</span>
-                                            </span>
-                                        }
-                                    </a>
-                                </li>
-                            }
-
+                            <!-- Logout-knap -->
                             <li class="nav-item">
                                 <form method="post" asp-page="/Logout" class="d-inline">
-                                    <button type="submit" class="nav-link btn btn-link text-dark" style="text-decoration: none;">Logout</button>
+                                    <button type="submit" class="btn btn-danger btn-sm ms-2">Logout</button>
                                 </form>
                             </li>
                         }
@@ -116,7 +96,6 @@
         </div>
     </footer>
 
-    <!-- scripts -->
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
