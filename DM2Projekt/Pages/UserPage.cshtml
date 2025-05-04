@@ -37,8 +37,6 @@
                                 <div class="card-body">
                                     <h5 class="card-title">
                                         @booking.Room?.RoomName
-
-                                        @* if booking is today, show badge *@
                                         @if (booking.StartTime?.Date == DateTime.Today)
                                         {
                                             <span class="badge bg-info text-dark ms-2">Today</span>
@@ -56,7 +54,6 @@
                                                 @booking.StartTime?.ToString("D")
 
                                                 <br />
-
                                                 <i class="bi bi-clock me-1"></i>
                                                 @($"{booking.StartTime?.ToString("HH:mm")} - {booking.EndTime?.ToString("HH:mm")}")
 
@@ -68,7 +65,6 @@
                                                 @booking.StartTime?.ToString("f")
 
                                                 <br />
-
                                                 <i class="bi bi-clock-history me-1"></i>
                                                 @booking.EndTime?.ToString("f")
 
@@ -82,7 +78,6 @@
                                         }
                                     </p>
 
-                                    @* cancel only if you created it *@
                                     @if (Model.CurrentUserId == booking.CreatedByUserId)
                                     {
                                         <a asp-page="/Bookings/Delete" asp-route-id="@booking.BookingId"
@@ -125,8 +120,6 @@
                                     <div>
                                         <h5 class="card-title mb-0">
                                             @group.GroupName
-
-                                            @* show "Owner" tag if you made the group *@
                                             @if (Model.CurrentUserId == group.CreatedByUserId)
                                             {
                                                 <span class="badge bg-warning text-dark ms-2">Owner</span>

@@ -19,12 +19,12 @@ public class UserPageModel : PageModel
     public string UserEmail { get; set; }
     public string UserRole { get; set; }
 
-    public int? CurrentUserId { get; set; } // needed for checks in view
+    public int? CurrentUserId { get; set; } // for use in Razor checks
 
     public List<Booking> UpcomingBookings { get; set; } = new();
     public List<Group> UserGroups { get; set; } = new();
 
-    // show "in 2 days", "tomorrow", etc.
+    // shows "in 2 days", "tomorrow", etc.
     public static string GetRelativeTime(DateTime time)
     {
         var now = DateTime.Now;
@@ -41,17 +41,17 @@ public class UserPageModel : PageModel
         var userId = HttpContext.Session.GetInt32("UserId");
         var userRole = HttpContext.Session.GetString("UserRole");
 
-        // not logged in? bounce
+        // bounce if not logged in
         if (userId == null)
             return RedirectToPage("/Login");
 
-        // only students allowed here
+        // only students allowed
         if (userRole != "Student")
             return RedirectToPage("/Index");
 
         CurrentUserId = userId;
 
-        // grab user info
+        // basic user info
         var user = await _context.User.FirstOrDefaultAsync(u => u.UserId == userId.Value);
         if (user != null)
         {
@@ -62,7 +62,7 @@ public class UserPageModel : PageModel
 
         var now = DateTime.Now;
 
-        // get user's groups
+        // get all groups user is part of
         UserGroups = await _context.UserGroup
             .Where(ug => ug.UserId == userId)
             .Include(ug => ug.Group)
@@ -71,14 +71,14 @@ public class UserPageModel : PageModel
 
         var groupIds = UserGroups.Select(g => g.GroupId).ToHashSet();
 
-        // get upcoming bookings where user is involved
+        // get upcoming bookings (created by user or for a group they are in)
         var allUpcoming = await _context.Booking
             .Include(b => b.Room)
             .Include(b => b.Group)
             .Where(b => b.EndTime > now)
             .ToListAsync();
 
-        // filter in memory — chill and safe
+        // in-memory filter (avoids EF weirdness)
         UpcomingBookings = allUpcoming
             .Where(b => b.CreatedByUserId == userId || groupIds.Contains(b.GroupId))
             .OrderBy(b => b.StartTime)

@@ -112,11 +112,14 @@
                         else
                         {
                             <!-- Profile button -->
-                            <li class="nav-item">
-                                <a class="btn btn-outline-secondary btn-sm ms-2" asp-page="/UserPage">
-                                    <i class="bi bi-person-circle me-1"></i>@userName
-                                </a>
-                            </li>
+                            @if (userRole == "Student")
+                            {
+                                <li class="nav-item">
+                                    <a class="btn btn-outline-secondary btn-sm ms-2" asp-page="/UserPage">
+                                        <i class="bi bi-person-circle me-1"></i>@userName
+                                    </a>
+                                </li>
+                            }
 
                             <!-- Logout button -->
                             <li class="nav-item">
