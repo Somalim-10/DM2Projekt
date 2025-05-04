@@ -25,7 +25,10 @@
     {
         <div class="row justify-content-center mb-4">
             <div class="col-md-10">
-                <h4 class="mb-3"><i class="bi bi-calendar-check me-2"></i>Upcoming Bookings</h4>
+                <h4 class="mb-3 text-primary">
+                    <i class="bi bi-calendar-check me-2"></i>
+                    @Model.UpcomingBookings.Count booking@(Model.UpcomingBookings.Count == 1 ? "" : "s") coming up
+                </h4>
                 <div class="row g-3">
                     @foreach (var booking in Model.UpcomingBookings)
                     {
@@ -52,7 +55,7 @@
     {
         <div class="row justify-content-center text-center text-muted mb-4">
             <div class="col-md-8">
-                <p><i class="bi bi-calendar-x me-2"></i>No upcoming bookings.</p>
+                <p><i class="bi bi-calendar-x me-2"></i>No bookings coming up.</p>
             </div>
         </div>
     }
@@ -62,7 +65,10 @@
     {
         <div class="row justify-content-center mb-5">
             <div class="col-md-10">
-                <h4 class="mb-3"><i class="bi bi-people-fill me-2"></i>Your Groups</h4>
+                <h4 class="mb-3 text-primary">
+                    <i class="bi bi-people-fill me-2"></i>
+                    You're in @Model.UserGroups.Count group@(Model.UserGroups.Count == 1 ? "" : "s")
+                </h4>
                 <div class="row g-3">
                     @foreach (var group in Model.UserGroups)
                     {
@@ -87,7 +93,7 @@
     {
         <div class="row justify-content-center text-center text-muted">
             <div class="col-md-8">
-                <p><i class="bi bi-people me-2"></i>You’re not in any groups yet.</p>
+                <p><i class="bi bi-people me-2"></i>You're not in any groups yet.</p>
             </div>
         </div>
     }
