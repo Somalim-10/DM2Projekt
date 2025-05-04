@@ -1,18 +1,72 @@
 ﻿@page
 @model DM2Projekt.Pages.IndexModel
+@inject IHttpContextAccessor HttpContextAccessor
+
 @{
     ViewData["Title"] = "Home page";
+
+    var fullName = HttpContextAccessor.HttpContext?.Session.GetString("UserName");
+    var userRole = HttpContextAccessor.HttpContext?.Session.GetString("UserRole");
+    var firstName = fullName?.Split(' ').FirstOrDefault();
+    var next = Model.NextBooking;
+    var todayCount = Model.TodayBookingCount;
+    var totalUsers = Model.UserCount;
 }
 
-<div class="container mt-5 text-center">
-    <!-- lil margin top + center -->
-    <h1 class="display-4 mb-4">MY SOLDIERS, RAGE!</h1> <!-- big title -->
+<div class="container mt-5">
 
-    <p class="lead">Fueled by caffeine. Powered by creatine. Inspired by Erwin.</p> <!-- subtext -->
+    @* STUDENT *@
+    @if (userRole == "Student" && !string.IsNullOrEmpty(firstName))
+    {
+        <div class="text-center">
+            <h1 class="display-5 mb-3">Hey @firstName</h1>
 
-    <img src="https://i.ytimg.com/vi/ipI1qRFo1Us/maxresdefault.jpg"
-         alt="Erwin Smith screaming about pre-workout"
-         class="img-fluid rounded shadow-sm mt-4"
-         style="max-width: 400px;" /> <!-- nice img -->
+            @if (next != null)
+            {
+                <p class="text-muted mb-1">
+                    Your next booking is <strong>@next.Room.RoomName</strong> with <strong>@next.Group.GroupName</strong>.
+                </p>
+                <p class="text-muted small">
+                    @next.StartTime?.ToString("dddd, MMM d • HH:mm") — @IndexModel.GetRelativeTime(next.StartTime.Value)
+                </p>
+            }
+            else
+            {
+                <p class="text-muted">You don’t have any upcoming bookings.</p>
+            }
+        </div>
+    }
+
+    @* TEACHER *@
+    else if (userRole == "Teacher" && !string.IsNullOrEmpty(fullName))
+    {
+        <div class="bg-light rounded p-4 shadow-sm">
+            <h1 class="display-6 mb-3">Hello @fullName</h1>
+            <p class="text-muted">You're logged in as a teacher.</p>
+            <p class="text-muted small">You can view everything and delete bookings with 3 days' notice.</p>
+            <hr />
+            <p class="text-muted">📅 <strong>@todayCount</strong> bookings scheduled for today.</p>
+        </div>
+    }
+
+    @* ADMIN *@
+    else if (userRole == "Admin" && !string.IsNullOrEmpty(fullName))
+    {
+        <div class="bg-light rounded p-4 shadow-sm">
+            <h1 class="display-6 mb-3">Welcome back, @fullName</h1>
+            <p class="text-muted">You're an admin. Full access is available through the navigation above.</p>
+            <hr />
+            <p class="text-muted">👥 Managing <strong>@(totalUsers - 1)</strong> other users.</p>
+        </div>
+    }
+
+    @* GUEST *@
+    else
+    {
+        <div class="bg-light rounded p-4 shadow-sm text-center">
+            <h1 class="display-5 mb-3">Welcome</h1>
+            <p class="lead text-muted mb-1">This is the booking system for students and staff.</p>
+            <p class="text-muted">Students can book rooms. Staff can manage and supervise. Use the login button above to get started.</p>
+        </div>
+    }
 </div>
-
