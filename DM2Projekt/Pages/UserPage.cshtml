@@ -35,7 +35,15 @@
                         <div class="col-md-6">
                             <div class="card shadow-sm h-100">
                                 <div class="card-body">
-                                    <h5 class="card-title">@booking.Room?.RoomName</h5>
+                                    <h5 class="card-title">
+                                        @booking.Room?.RoomName
+
+                                        @* if booking is today, show badge *@
+                                        @if (booking.StartTime?.Date == DateTime.Today)
+                                        {
+                                            <span class="badge bg-info text-dark ms-2">Today</span>
+                                        }
+                                    </h5>
                                     <h6 class="card-subtitle mb-2 text-muted">@booking.Group?.GroupName</h6>
                                     <p class="card-text">
                                         <i class="bi bi-clock me-1"></i>
