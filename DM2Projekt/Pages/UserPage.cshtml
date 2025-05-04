@@ -6,7 +6,7 @@
 
 <div class="container mt-5">
 
-    <!-- user info -->
+    <!-- Profile summary -->
     <div class="row justify-content-center mb-4">
         <div class="col-md-6">
             <div class="card shadow-sm border-0">
@@ -14,13 +14,12 @@
                     <i class="bi bi-person-circle fs-1 mb-3 text-secondary"></i>
                     <h4 class="card-title">@Model.UserName</h4>
                     <p class="mb-1 text-muted">@Model.UserEmail</p>
-                    <span class="badge bg-primary">@Model.UserRole</span>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- upcoming bookings -->
+    <!-- Upcoming bookings -->
     @if (Model.UpcomingBookings.Any())
     {
         <div class="row justify-content-center mb-4">
@@ -78,6 +77,7 @@
                                         }
                                     </p>
 
+                                    @* cancel button for your own bookings *@
                                     @if (Model.CurrentUserId == booking.CreatedByUserId)
                                     {
                                         <a asp-page="/Bookings/Delete" asp-route-id="@booking.BookingId"
@@ -102,7 +102,7 @@
         </div>
     }
 
-    <!-- user groups -->
+    <!-- Groups -->
     @if (Model.UserGroups.Any())
     {
         <div class="row justify-content-center mb-5">

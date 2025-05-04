@@ -8,7 +8,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - DM2Projekt</title>
 
-    <!-- Bootstrap and icons -->
+    <!-- Bootstrap & icons -->
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/DM2Projekt.styles.css" asp-append-version="true" />
@@ -18,19 +18,18 @@
     <header>
         <nav class="navbar navbar-expand-sm navbar-light bg-light border-bottom shadow-sm mb-3">
             <div class="container">
-                <!-- Logo -->
+                <!-- Brand / logo -->
                 <a class="navbar-brand fw-bold text-primary" asp-page="/Index">
                     <i class="bi bi-house-door-fill me-1"></i> DM2Projekt
                 </a>
 
-                <!-- Mobile toggle -->
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse"
-                        aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+                <!-- Mobile menu toggle -->
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse">
                     <span class="navbar-toggler-icon"></span>
                 </button>
 
                 <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                    <!-- Left nav links -->
+                    <!-- Left-side nav links -->
                     <ul class="navbar-nav flex-grow-1">
                         <li class="nav-item">
                             <a class="nav-link text-dark" asp-page="/Index"><i class="bi bi-house-door me-1"></i>Home</a>
@@ -40,11 +39,12 @@
                         </li>
 
                         @{
-                            var userName = HttpContextAccessor.HttpContext?.Session.GetString("UserName");
+                            var fullName = HttpContextAccessor.HttpContext?.Session.GetString("UserName");
                             var userRole = HttpContextAccessor.HttpContext?.Session.GetString("UserRole");
+                            var firstName = fullName?.Split(' ').FirstOrDefault(); // just show the first name
                         }
 
-                        @if (!string.IsNullOrEmpty(userName))
+                        @if (!string.IsNullOrEmpty(firstName))
                         {
                             <li class="nav-item">
                                 <a class="nav-link text-dark" asp-page="/Bookings/Index"><i class="bi bi-calendar-check me-1"></i>Bookings</a>
@@ -56,6 +56,7 @@
                                 <a class="nav-link text-dark" asp-page="/Groups/Index"><i class="bi bi-people me-1"></i>Groups</a>
                             </li>
 
+                            @* Admin-only links *@
                             if (userRole == "Admin")
                             {
                                 <li class="nav-item">
@@ -68,11 +69,11 @@
                         }
                     </ul>
 
-                    <!-- Right side: Invitations, profile, logout or login -->
+                    <!-- Right-side: invites, profile, logout/login -->
                     <ul class="navbar-nav">
-                        @* Invitations for students *@
                         @{
                             var pendingInvites = 0;
+
                             if (userRole == "Student")
                             {
                                 var context = Context.RequestServices.GetService(typeof(DM2Projekt.Data.DM2ProjektContext)) as DM2Projekt.Data.DM2ProjektContext;
@@ -81,8 +82,7 @@
                                 if (context != null && userId.HasValue)
                                 {
                                     pendingInvites = context.GroupInvitation
-                                    .Where(i => i.InvitedUserId == userId && i.IsAccepted == null)
-                                    .Count();
+                                    .Count(i => i.InvitedUserId == userId && i.IsAccepted == null);
                                 }
 
                                 <li class="nav-item position-relative">
@@ -101,7 +101,7 @@
                         }
 
                         <!-- If not logged in -->
-                        @if (string.IsNullOrEmpty(userName))
+                        @if (string.IsNullOrEmpty(firstName))
                         {
                             <li class="nav-item">
                                 <a class="btn btn-primary btn-sm ms-2" asp-page="/Login">
@@ -111,17 +111,17 @@
                         }
                         else
                         {
-                            <!-- Profile button -->
+                            <!-- Only students get profile button -->
                             @if (userRole == "Student")
                             {
                                 <li class="nav-item">
                                     <a class="btn btn-outline-secondary btn-sm ms-2" asp-page="/UserPage">
-                                        <i class="bi bi-person-circle me-1"></i>@userName
+                                        <i class="bi bi-person-circle me-1"></i>@firstName
                                     </a>
                                 </li>
                             }
 
-                            <!-- Logout button -->
+                            <!-- Logout -->
                             <li class="nav-item">
                                 <form method="post" asp-page="/Logout" class="d-inline">
                                     <button type="submit" class="btn btn-danger btn-sm ms-2">
@@ -136,7 +136,7 @@
         </nav>
     </header>
 
-    <!-- Page content goes here -->
+    <!-- Main content -->
     <div class="container">
         <main role="main" class="pb-3">
             @RenderBody()
