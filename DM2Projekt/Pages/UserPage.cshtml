@@ -46,10 +46,40 @@
                                     </h5>
                                     <h6 class="card-subtitle mb-2 text-muted">@booking.Group?.GroupName</h6>
                                     <p class="card-text">
-                                        <i class="bi bi-clock me-1"></i>
-                                        @booking.StartTime?.ToString("f")<br />
-                                        <i class="bi bi-clock-history me-1"></i>
-                                        @booking.EndTime?.ToString("f")
+                                        @if (booking.StartTime.HasValue && booking.EndTime.HasValue)
+                                        {
+                                            var sameDay = booking.StartTime.Value.Date == booking.EndTime.Value.Date;
+
+                                            @if (sameDay)
+                                            {
+                                                <i class="bi bi-calendar-event me-1"></i>
+                                                @booking.StartTime?.ToString("D")
+
+                                                <br />
+
+                                                <i class="bi bi-clock me-1"></i>
+                                                @($"{booking.StartTime?.ToString("HH:mm")} - {booking.EndTime?.ToString("HH:mm")}")
+
+                                                <br />
+                                            }
+                                            else
+                                            {
+                                                <i class="bi bi-clock me-1"></i>
+                                                @booking.StartTime?.ToString("f")
+
+                                                <br />
+
+                                                <i class="bi bi-clock-history me-1"></i>
+                                                @booking.EndTime?.ToString("f")
+
+                                                <br />
+                                            }
+
+                                            <small class="text-muted">
+                                                <i class="bi bi-hourglass-split me-1"></i>
+                                                Starts @UserPageModel.GetRelativeTime(booking.StartTime.Value)
+                                            </small>
+                                        }
                                     </p>
 
                                     @* cancel only if you created it *@

@@ -24,6 +24,18 @@ public class UserPageModel : PageModel
     public List<Booking> UpcomingBookings { get; set; } = new();
     public List<Group> UserGroups { get; set; } = new();
 
+    // show "in 2 days", "tomorrow", etc.
+    public static string GetRelativeTime(DateTime time)
+    {
+        var now = DateTime.Now;
+        var span = time.Date - now.Date;
+
+        if (span.TotalDays == 0) return "today";
+        if (span.TotalDays == 1) return "tomorrow";
+        if (span.TotalDays < 7) return $"in {(int)span.TotalDays} days";
+        return time.ToString("d MMM");
+    }
+
     public async Task<IActionResult> OnGetAsync()
     {
         var userId = HttpContext.Session.GetInt32("UserId");
