@@ -19,6 +19,8 @@ public class UserPageModel : PageModel
     public string UserEmail { get; set; }
     public string UserRole { get; set; }
 
+    public int? CurrentUserId { get; set; } // so we can use it in the view
+
     public List<Booking> UpcomingBookings { get; set; } = new();
     public List<Group> UserGroups { get; set; } = new();
 
@@ -34,6 +36,8 @@ public class UserPageModel : PageModel
         // only students allowed here
         if (userRole != "Student")
             return RedirectToPage("/Index");
+
+        CurrentUserId = userId;
 
         // get user info
         var user = await _context.User.FirstOrDefaultAsync(u => u.UserId == userId.Value);
@@ -70,5 +74,4 @@ public class UserPageModel : PageModel
 
         return Page();
     }
-
 }
