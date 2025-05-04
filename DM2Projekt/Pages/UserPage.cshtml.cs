@@ -19,7 +19,7 @@ public class UserPageModel : PageModel
     public string UserEmail { get; set; }
     public string UserRole { get; set; }
 
-    public int? CurrentUserId { get; set; } // so we can use it in the view
+    public int? CurrentUserId { get; set; } // needed for checks in view
 
     public List<Booking> UpcomingBookings { get; set; } = new();
     public List<Group> UserGroups { get; set; } = new();
@@ -39,7 +39,7 @@ public class UserPageModel : PageModel
 
         CurrentUserId = userId;
 
-        // get user info
+        // grab user info
         var user = await _context.User.FirstOrDefaultAsync(u => u.UserId == userId.Value);
         if (user != null)
         {
@@ -59,14 +59,14 @@ public class UserPageModel : PageModel
 
         var groupIds = UserGroups.Select(g => g.GroupId).ToHashSet();
 
-        // get all future bookings (small number usually)
+        // get upcoming bookings where user is involved
         var allUpcoming = await _context.Booking
             .Include(b => b.Room)
             .Include(b => b.Group)
             .Where(b => b.EndTime > now)
             .ToListAsync();
 
-        // filter in memory — safe from EF madness
+        // filter in memory — chill and safe
         UpcomingBookings = allUpcoming
             .Where(b => b.CreatedByUserId == userId || groupIds.Contains(b.GroupId))
             .OrderBy(b => b.StartTime)
