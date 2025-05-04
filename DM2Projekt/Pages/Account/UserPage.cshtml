@@ -1,0 +1,148 @@
+﻿@page
+@model DM2Projekt.Pages.Account.UserPageModel
+@{
+    ViewData["Title"] = "User Profile";
+}
+
+<div class="container mt-5">
+
+    <!-- Profile summary -->
+    <div class="row justify-content-center mb-4">
+        <div class="col-md-6">
+            <div class="card shadow-sm border-0">
+                <div class="card-body text-center">
+                    <i class="bi bi-person-circle fs-1 mb-3 text-secondary"></i>
+                    <h4 class="card-title">@Model.UserName</h4>
+                    <p class="mb-1 text-muted">@Model.UserEmail</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Upcoming bookings -->
+    @if (Model.UpcomingBookings.Any())
+    {
+        <div class="row justify-content-center mb-4">
+            <div class="col-md-10">
+                <h4 class="mb-3 text-primary">
+                    <i class="bi bi-calendar-check me-2"></i>
+                    @Model.UpcomingBookings.Count booking@(Model.UpcomingBookings.Count == 1 ? "" : "s") coming up
+                </h4>
+                <div class="row g-3">
+                    @foreach (var booking in Model.UpcomingBookings)
+                    {
+                        <div class="col-md-6">
+                            <div class="card shadow-sm h-100">
+                                <div class="card-body">
+                                    <h5 class="card-title">
+                                        @booking.Room?.RoomName
+                                        @if (booking.StartTime?.Date == DateTime.Today)
+                                        {
+                                            <span class="badge bg-info text-dark ms-2">Today</span>
+                                        }
+                                    </h5>
+                                    <h6 class="card-subtitle mb-2 text-muted">@booking.Group?.GroupName</h6>
+                                    <p class="card-text">
+                                        @if (booking.StartTime.HasValue && booking.EndTime.HasValue)
+                                        {
+                                            var sameDay = booking.StartTime.Value.Date == booking.EndTime.Value.Date;
+
+                                            @if (sameDay)
+                                            {
+                                                <i class="bi bi-calendar-event me-1"></i>
+                                                @booking.StartTime?.ToString("D")
+
+                                                <br />
+                                                <i class="bi bi-clock me-1"></i>
+                                                @($"{booking.StartTime?.ToString("HH:mm")} - {booking.EndTime?.ToString("HH:mm")}")
+
+                                                <br />
+                                            }
+                                            else
+                                            {
+                                                <i class="bi bi-clock me-1"></i>
+                                                @booking.StartTime?.ToString("f")
+
+                                                <br />
+                                                <i class="bi bi-clock-history me-1"></i>
+                                                @booking.EndTime?.ToString("f")
+
+                                                <br />
+                                            }
+
+                                            <small class="text-muted">
+                                                <i class="bi bi-hourglass-split me-1"></i>
+                                                Starts @UserPageModel.GetRelativeTime(booking.StartTime.Value)
+                                            </small>
+                                        }
+                                    </p>
+
+                                    @* cancel button for your own bookings *@
+                                    @if (Model.CurrentUserId == booking.CreatedByUserId)
+                                    {
+                                        <a asp-page="/Bookings/Delete" asp-route-id="@booking.BookingId"
+                                           class="btn btn-sm btn-outline-danger mt-2">
+                                            <i class="bi bi-x-circle me-1"></i>Cancel
+                                        </a>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="row justify-content-center text-center text-muted mb-4">
+            <div class="col-md-8">
+                <p><i class="bi bi-calendar-x me-2"></i>No bookings coming up.</p>
+            </div>
+        </div>
+    }
+
+    <!-- Groups -->
+    @if (Model.UserGroups.Any())
+    {
+        <div class="row justify-content-center mb-5">
+            <div class="col-md-10">
+                <h4 class="mb-3 text-primary">
+                    <i class="bi bi-people-fill me-2"></i>
+                    You're in @Model.UserGroups.Count group@(Model.UserGroups.Count == 1 ? "" : "s")
+                </h4>
+                <div class="row g-3">
+                    @foreach (var group in Model.UserGroups)
+                    {
+                        <div class="col-md-6">
+                            <div class="card shadow-sm h-100">
+                                <div class="card-body d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h5 class="card-title mb-0">
+                                            @group.GroupName
+                                            @if (Model.CurrentUserId == group.CreatedByUserId)
+                                            {
+                                                <span class="badge bg-warning text-dark ms-2">Owner</span>
+                                            }
+                                        </h5>
+                                    </div>
+                                    <a class="btn btn-sm btn-outline-primary" asp-page="/Groups/Details" asp-route-id="@group.GroupId">
+                                        View
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="row justify-content-center text-center text-muted">
+            <div class="col-md-8">
+                <p><i class="bi bi-people me-2"></i>You're not in any groups yet.</p>
+            </div>
+        </div>
+    }
+</div>

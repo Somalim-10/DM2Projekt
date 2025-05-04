@@ -1,18 +1,106 @@
 ﻿@page
 @model DM2Projekt.Pages.IndexModel
+@inject IHttpContextAccessor HttpContextAccessor
+
 @{
     ViewData["Title"] = "Home page";
+
+    var fullName = HttpContextAccessor.HttpContext?.Session.GetString("UserName");
+    var userRole = HttpContextAccessor.HttpContext?.Session.GetString("UserRole");
+    var firstName = fullName?.Split(' ').FirstOrDefault();
+    var next = Model.NextBooking;
+    var todayCount = Model.TodayBookingCount;
+    var totalUsers = Model.UserCount;
+    var logo = "https://dkea.dk/files/styles/common_04/public/media/image/Zealand_logo_black_RGB_1600px_72dpi.png?itok=vUBCtnBv";
 }
 
-<div class="container mt-5 text-center">
-    <!-- lil margin top + center -->
-    <h1 class="display-4 mb-4">MY SOLDIERS, RAGE!</h1> <!-- big title -->
+<div class="container mt-5">
 
-    <p class="lead">Fueled by caffeine. Powered by creatine. Inspired by Erwin.</p> <!-- subtext -->
+    @* 🧑‍🎓 STUDENT *@
+    @if (userRole == "Student" && !string.IsNullOrEmpty(firstName))
+    {
+        <div class="mx-auto" style="max-width: 700px;">
+            <div class="bg-light rounded p-4 shadow-sm text-center mb-4">
+                <h1 class="display-5 mb-3">Hey @firstName</h1>
 
-    <img src="https://i.ytimg.com/vi/ipI1qRFo1Us/maxresdefault.jpg"
-         alt="Erwin Smith screaming about pre-workout"
-         class="img-fluid rounded shadow-sm mt-4"
-         style="max-width: 400px;" /> <!-- nice img -->
+                @if (next != null)
+                {
+                    <p class="text-muted mb-1">
+                        Your next booking is <strong>@next.Room.RoomName</strong> with <strong>@next.Group.GroupName</strong>.
+                    </p>
+                    <p class="text-muted small fw-semibold">
+                        @next.StartTime?.ToString("dddd, MMM d • HH:mm")<br />
+                        <span class="text-primary">@IndexModel.GetRelativeTime(next.StartTime.Value)</span>
+                    </p>
+                }
+                else
+                {
+                    <p class="text-muted">You don’t have any upcoming bookings.</p>
+                }
+            </div>
+
+            <div class="text-center">
+                <img src="@logo" alt="Zealand logo" class="img-fluid mt-4" style="max-width: 180px; opacity: 0.75;" />
+            </div>
+        </div>
+    }
+
+    @* 👩‍🏫 TEACHER *@
+    else if (userRole == "Teacher" && !string.IsNullOrEmpty(fullName))
+    {
+        <div class="mx-auto" style="max-width: 700px;">
+            <div class="bg-light rounded p-4 shadow-sm mb-4">
+                <h1 class="display-6 mb-2">Hello @fullName</h1>
+                <p class="text-muted mb-2">You're logged in as a teacher.</p>
+                <p class="text-muted small mb-3">
+                    You can view everything and delete bookings with at least 3 days' notice.
+                </p>
+                <hr />
+                <p class="text-muted mb-0">
+                    <i class="bi bi-calendar-event me-1"></i>
+                    <strong>@todayCount</strong> booking@(todayCount == 1 ? "" : "s") scheduled today.
+                </p>
+            </div>
+
+            <div class="text-center">
+                <img src="@logo" alt="Zealand logo" class="img-fluid mt-4" style="max-width: 180px; opacity: 0.75;" />
+            </div>
+        </div>
+    }
+
+    @* 👑 ADMIN *@
+    else if (userRole == "Admin" && !string.IsNullOrEmpty(fullName))
+    {
+        <div class="mx-auto" style="max-width: 700px;">
+            <div class="bg-light rounded p-4 shadow-sm mb-4 text-start">
+                <h1 class="display-6 mb-2">Welcome back, @fullName</h1>
+                <p class="text-muted mb-2">You're an admin. Use the navigation above to manage everything.</p>
+                <hr />
+                <p class="text-muted mb-0">
+                    <i class="bi bi-people-fill me-1"></i>
+                    You are currently managing <strong>@(totalUsers - 1)</strong> user@(totalUsers - 1 == 1 ? "" : "s").
+                </p>
+            </div>
+
+            <div class="text-center">
+                <img src="@logo" alt="Zealand logo" class="img-fluid mt-4" style="max-width: 180px; opacity: 0.75;" />
+            </div>
+        </div>
+    }
+
+    @* 👻 GUEST *@
+    else
+    {
+        <div class="mx-auto" style="max-width: 700px;">
+            <div class="bg-light rounded p-4 shadow-sm text-center mb-4">
+                <h1 class="display-5 mb-3">Room booking made simple</h1>
+                <p class="lead text-muted mb-1"><i class="bi bi-building me-1"></i> For students and staff at Zealand</p>
+                <p class="text-muted">Students can book rooms. Staff manage and supervise. Use the login button above to get started.</p>
+            </div>
+
+            <div class="text-center">
+                <img src="@logo" alt="Zealand logo" class="img-fluid mt-4" style="max-width: 180px; opacity: 0.75;" />
+            </div>
+        </div>
+    }
 </div>
-
