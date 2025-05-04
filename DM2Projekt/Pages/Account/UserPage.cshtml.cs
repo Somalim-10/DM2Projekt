@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 
-namespace DM2Projekt.Pages;
+namespace DM2Projekt.Pages.Account;
 
 public class UserPageModel : PageModel
 {
