@@ -22,7 +22,23 @@ public class UserPageModel : PageModel
     public List<Booking> UpcomingBookings { get; set; } = new();
     public List<Group> UserGroups { get; set; } = new();
 
-    // Show things like: "in 2 days", "tomorrow"
+    // handles form input from the password change thing
+    [BindProperty]
+    public ChangePasswordInputModel Input { get; set; }
+
+    // tracks result messages and state
+    public string PasswordChangeMessage { get; set; } = "";
+    public bool PasswordChangeSuccess { get; set; } = false;
+
+    // model for the form fields
+    public class ChangePasswordInputModel
+    {
+        public string CurrentPassword { get; set; }
+        public string NewPassword { get; set; }
+        public string ConfirmPassword { get; set; }
+    }
+
+    // used to show relative time like "in 2 days"
     public static string GetRelativeTime(DateTime time)
     {
         var now = DateTime.Now;
@@ -37,7 +53,7 @@ public class UserPageModel : PageModel
 
     public async Task<IActionResult> OnGetAsync()
     {
-        // must be logged in and a student
+        // make sure you're logged in and a student
         var userId = HttpContext.Session.GetInt32("UserId");
         var userRole = HttpContext.Session.GetString("UserRole");
 
@@ -55,6 +71,81 @@ public class UserPageModel : PageModel
 
         return Page();
     }
+
+    public async Task<IActionResult> OnPostAsync()
+    {
+        var userId = HttpContext.Session.GetInt32("UserId");
+        if (userId == null)
+            return RedirectToPage("/Login");
+
+        var user = await _context.User.FirstOrDefaultAsync(u => u.UserId == userId);
+        if (user == null)
+        {
+            PasswordChangeMessage = "User not found. Weird.";
+            await LoadAllUserData(userId.Value); // <--- makes sure UI doesn't break
+            return Page();
+        }
+
+        // check for empty fields
+        if (string.IsNullOrWhiteSpace(Input.CurrentPassword) ||
+            string.IsNullOrWhiteSpace(Input.NewPassword) ||
+            string.IsNullOrWhiteSpace(Input.ConfirmPassword))
+        {
+            PasswordChangeMessage = "Please fill in all the fields.";
+            await LoadAllUserData(userId.Value);
+            return Page();
+        }
+
+        // current password wrong
+        if (Input.CurrentPassword != user.Password)
+        {
+            PasswordChangeMessage = "Your current password is incorrect.";
+            await LoadAllUserData(userId.Value);
+            return Page();
+        }
+
+        // can't reuse same password
+        if (Input.CurrentPassword == Input.NewPassword)
+        {
+            PasswordChangeMessage = "New password can't be the same as the current one.";
+            await LoadAllUserData(userId.Value);
+            return Page();
+        }
+
+        // new + confirm don't match
+        if (Input.NewPassword != Input.ConfirmPassword)
+        {
+            PasswordChangeMessage = "New passwords don't match.";
+            await LoadAllUserData(userId.Value);
+            return Page();
+        }
+
+        // too short
+        if (Input.NewPassword.Length < 6)
+        {
+            PasswordChangeMessage = "Password should be at least 6 characters.";
+            await LoadAllUserData(userId.Value);
+            return Page();
+        }
+
+        // cool, everything checks out
+        user.Password = Input.NewPassword;
+        await _context.SaveChangesAsync();
+
+        PasswordChangeSuccess = true;
+        PasswordChangeMessage = "Password updated successfully!";
+        return await OnGetAsync(); // refreshes cleanly
+    }
+
+
+    private async Task LoadAllUserData(int userId)
+    {
+        CurrentUserId = userId;
+        await LoadUserInfo(userId);
+        await LoadUserGroups(userId);
+        await LoadUpcomingBookings(userId);
+    }
+
 
     private async Task LoadUserInfo(int userId)
     {
@@ -87,7 +178,6 @@ public class UserPageModel : PageModel
             .Where(b => b.EndTime > now)
             .ToListAsync();
 
-        // filter in memory (safe for joins)
         UpcomingBookings = bookings
             .Where(b => b.CreatedByUserId == userId || groupIds.Contains(b.GroupId))
             .OrderBy(b => b.StartTime)
