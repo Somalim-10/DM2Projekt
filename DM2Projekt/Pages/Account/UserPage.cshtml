@@ -6,7 +6,7 @@
 
 <div class="container mt-5">
 
-    <!-- Profile summary -->
+    <!-- profile card -->
     <div class="row justify-content-center mb-4">
         <div class="col-md-6">
             <div class="card shadow-sm border-0">
@@ -14,12 +14,65 @@
                     <i class="bi bi-person-circle fs-1 mb-3 text-secondary"></i>
                     <h4 class="card-title">@Model.UserName</h4>
                     <p class="mb-1 text-muted">@Model.UserEmail</p>
+
+                    <!-- lil button to toggle password section -->
+                    <button class="btn btn-sm btn-outline-secondary mt-3" type="button" data-bs-toggle="collapse" data-bs-target="#changePasswordForm">
+                        Change Password
+                    </button>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Upcoming bookings -->
+    <!-- change password (only shows when toggled or error happens) -->
+    <div class="row justify-content-center collapse @(Model.PasswordChangeMessage != "" ? "show" : "")" id="changePasswordForm">
+        <div class="col-md-6">
+            <div class="card shadow-sm border-0">
+                <div class="card-body" id="changePasswordCard">
+                    <h5 class="card-title">Change Password</h5>
+
+                    @* shows message if something went wrong or worked *@
+                    @if (!string.IsNullOrEmpty(Model.PasswordChangeMessage))
+                    {
+                        <div class="alert @(Model.PasswordChangeSuccess ? "alert-success" : "alert-danger")">
+                            @Model.PasswordChangeMessage
+                        </div>
+                    }
+
+                    <form method="post">
+                        <div class="mb-3">
+                            <label asp-for="Input.CurrentPassword" class="form-label">Current Password</label>
+                            <input asp-for="Input.CurrentPassword" class="form-control" type="password" />
+                        </div>
+                        <div class="mb-3">
+                            <label asp-for="Input.NewPassword" class="form-label">New Password</label>
+                            <input asp-for="Input.NewPassword" class="form-control" type="password" />
+                        </div>
+                        <div class="mb-3">
+                            <label asp-for="Input.ConfirmPassword" class="form-label">Confirm New Password</label>
+                            <input asp-for="Input.ConfirmPassword" class="form-control" type="password" />
+                        </div>
+                        <button type="submit" class="btn btn-primary">Update Password</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- auto scroll to form if there's a message -->
+    @if (!string.IsNullOrEmpty(Model.PasswordChangeMessage))
+    {
+        <script>
+            window.addEventListener('load', function () {
+                const card = document.getElementById("changePasswordCard");
+                if (card) {
+                    card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            });
+        </script>
+    }
+
+    <!-- upcoming bookings -->
     @if (Model.UpcomingBookings.Any())
     {
         <div class="row justify-content-center mb-4">
@@ -77,7 +130,7 @@
                                         }
                                     </p>
 
-                                    @* cancel button for your own bookings *@
+                                    @* if you made the booking, you can cancel it *@
                                     @if (Model.CurrentUserId == booking.CreatedByUserId)
                                     {
                                         <a asp-page="/Bookings/Delete" asp-route-id="@booking.BookingId"
@@ -102,7 +155,7 @@
         </div>
     }
 
-    <!-- Groups -->
+    <!-- user groups -->
     @if (Model.UserGroups.Any())
     {
         <div class="row justify-content-center mb-5">
