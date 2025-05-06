@@ -3,6 +3,8 @@ using DM2Projekt.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
+using System.Linq;
+using System.Text.RegularExpressions;
 
 namespace DM2Projekt.Pages.Account;
 
@@ -15,24 +17,23 @@ public class UserPageModel : PageModel
         _context = context;
     }
 
-    // Logged-in user's name + email
     public string UserName { get; set; }
     public string UserEmail { get; set; }
+    public string? ProfileImagePath { get; set; }
     public int? CurrentUserId { get; set; }
 
-    // Lists of upcoming bookings and groups
     public List<Booking> UpcomingBookings { get; set; } = new();
-    public List<Group> UserGroups { get; set; } = new();
+    public List<Models.Group> UserGroups { get; set; } = new();
 
-    // Handles password form input
     [BindProperty]
     public ChangePasswordInputModel Input { get; set; }
 
-    // Message and flag for feedback
+    [BindProperty]
+    public string? NewProfileImageUrl { get; set; }
+
     public string PasswordChangeMessage { get; set; } = "";
     public bool PasswordChangeSuccess { get; set; } = false;
 
-    // Used for form binding
     public class ChangePasswordInputModel
     {
         public string CurrentPassword { get; set; }
@@ -40,7 +41,6 @@ public class UserPageModel : PageModel
         public string ConfirmPassword { get; set; }
     }
 
-    // Returns stuff like "today", "in 3 days", etc.
     public static string GetRelativeTime(DateTime time)
     {
         var now = DateTime.Now;
@@ -55,7 +55,6 @@ public class UserPageModel : PageModel
 
     public async Task<IActionResult> OnGetAsync()
     {
-        // Gotta be logged in and a student
         var userId = HttpContext.Session.GetInt32("UserId");
         var userRole = HttpContext.Session.GetString("UserRole");
 
@@ -65,7 +64,6 @@ public class UserPageModel : PageModel
         if (userRole != "Student")
             return RedirectToPage("/Index");
 
-        // Save user ID and load their stuff
         CurrentUserId = userId;
         await LoadAllUserData(userId.Value);
 
@@ -86,7 +84,6 @@ public class UserPageModel : PageModel
             return Page();
         }
 
-        // Check: everything filled?
         if (string.IsNullOrWhiteSpace(Input.CurrentPassword) ||
             string.IsNullOrWhiteSpace(Input.NewPassword) ||
             string.IsNullOrWhiteSpace(Input.ConfirmPassword))
@@ -96,7 +93,6 @@ public class UserPageModel : PageModel
             return Page();
         }
 
-        // Check: current password correct?
         if (Input.CurrentPassword != user.Password)
         {
             PasswordChangeMessage = "Your current password is incorrect.";
@@ -104,7 +100,6 @@ public class UserPageModel : PageModel
             return Page();
         }
 
-        // Check: reusing old password?
         if (Input.CurrentPassword == Input.NewPassword)
         {
             PasswordChangeMessage = "New password can't be the same as the current one.";
@@ -112,7 +107,6 @@ public class UserPageModel : PageModel
             return Page();
         }
 
-        // Check: new + confirm match?
         if (Input.NewPassword != Input.ConfirmPassword)
         {
             PasswordChangeMessage = "New passwords don't match.";
@@ -120,7 +114,6 @@ public class UserPageModel : PageModel
             return Page();
         }
 
-        // Check: new password long enough?
         if (Input.NewPassword.Length < 6)
         {
             PasswordChangeMessage = "Password should be at least 6 characters.";
@@ -128,16 +121,38 @@ public class UserPageModel : PageModel
             return Page();
         }
 
-        // All good — save new password
         user.Password = Input.NewPassword;
         await _context.SaveChangesAsync();
 
         PasswordChangeSuccess = true;
         PasswordChangeMessage = "Password updated successfully!";
-        return await OnGetAsync(); // reload everything cleanly
+        return await OnGetAsync();
     }
 
-    // Shortcut to load everything user-related
+    public async Task<IActionResult> OnPostSetProfilePictureUrlAsync()
+    {
+        var userId = HttpContext.Session.GetInt32("UserId");
+        if (userId == null || string.IsNullOrWhiteSpace(NewProfileImageUrl))
+            return RedirectToPage("/Login");
+
+        var user = await _context.User.FirstOrDefaultAsync(u => u.UserId == userId);
+        if (user == null)
+            return RedirectToPage("/Login");
+
+        // Validate that it's an actual image URL ending in image extensions
+        var pattern = @"^https?:\/\/.*\.(jpg|jpeg|png|gif|webp)$";
+        if (!Regex.IsMatch(NewProfileImageUrl, pattern, RegexOptions.IgnoreCase))
+        {
+            // Optional: feedback logic if you want to show a message (add a flag or message field)
+            return RedirectToPage(); // silently fail if invalid
+        }
+
+        user.ProfileImagePath = NewProfileImageUrl;
+        await _context.SaveChangesAsync();
+
+        return RedirectToPage();
+    }
+
     private async Task LoadAllUserData(int userId)
     {
         CurrentUserId = userId;
@@ -146,7 +161,6 @@ public class UserPageModel : PageModel
         await LoadUpcomingBookings(userId);
     }
 
-    // Loads the user's name + email
     private async Task LoadUserInfo(int userId)
     {
         var user = await _context.User.FirstOrDefaultAsync(u => u.UserId == userId);
@@ -155,10 +169,10 @@ public class UserPageModel : PageModel
         {
             UserName = $"{user.FirstName} {user.LastName}";
             UserEmail = user.Email;
+            ProfileImagePath = user.ProfileImagePath;
         }
     }
 
-    // Loads all groups the user is in
     private async Task LoadUserGroups(int userId)
     {
         UserGroups = await _context.UserGroup
@@ -168,7 +182,6 @@ public class UserPageModel : PageModel
             .ToListAsync();
     }
 
-    // Loads all upcoming bookings made by the user or their groups
     private async Task LoadUpcomingBookings(int userId)
     {
         var now = DateTime.Now;

@@ -11,12 +11,45 @@
         <div class="col-md-6">
             <div class="card shadow-sm border-0">
                 <div class="card-body text-center">
-                    <i class="bi bi-person-circle fs-1 mb-3 text-secondary"></i>
-                    <h4 class="card-title">@Model.UserName</h4>
+
+                    <!-- Profile picture or default icon -->
+                    @if (!string.IsNullOrEmpty(Model.ProfileImagePath))
+                    {
+                        <img src="@Model.ProfileImagePath" alt="Profile" class="rounded-circle mb-3"
+                             style="width: 100px; height: 100px; object-fit: cover;"
+                             onerror="this.onerror=null; this.src='/images/default-profile.png';" />
+                    }
+                    else
+                    {
+                        <i class="bi bi-person-circle fs-1 mb-3 text-secondary"></i>
+                    }
+
+                    <!-- Button to show picture URL form -->
+                    <button class="btn btn-sm btn-outline-secondary mb-2" type="button"
+                            data-bs-toggle="collapse" data-bs-target="#changePictureForm">
+                        Change Profile Picture
+                    </button>
+
+                    <!-- Form to update picture from URL -->
+                    <div class="collapse" id="changePictureForm">
+                        <form method="post" asp-page-handler="SetProfilePictureUrl" class="mt-2">
+                            <input type="url" name="NewProfileImageUrl"
+                                   class="form-control form-control-sm mb-2"
+                                   placeholder="Paste image URL (https://...jpg, .png)"
+                                   pattern="https?:\/\/.*\.(jpg|jpeg|png|gif|webp)$"
+                                   title="Only image URLs ending in .jpg, .png, .gif, etc. are allowed"
+                                   required />
+                            <button type="submit" class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-image-fill me-1"></i>Set Picture from URL
+                            </button>
+                        </form>
+                    </div>
+
+                    <h4 class="card-title mt-3">@Model.UserName</h4>
                     <p class="mb-1 text-muted">@Model.UserEmail</p>
 
-                    <!-- lil button to toggle password section -->
-                    <button class="btn btn-sm btn-outline-secondary mt-3" type="button" data-bs-toggle="collapse" data-bs-target="#changePasswordForm">
+                    <button class="btn btn-sm btn-outline-secondary mt-3" type="button"
+                            data-bs-toggle="collapse" data-bs-target="#changePasswordForm">
                         Change Password
                     </button>
                 </div>
@@ -31,7 +64,6 @@
                 <div class="card-body" id="changePasswordCard">
                     <h5 class="card-title">Change Password</h5>
 
-                    @* shows message if something went wrong or worked *@
                     @if (!string.IsNullOrEmpty(Model.PasswordChangeMessage))
                     {
                         <div class="alert @(Model.PasswordChangeSuccess ? "alert-success" : "alert-danger")">
@@ -59,7 +91,7 @@
         </div>
     </div>
 
-    <!-- auto scroll to form if there's a message -->
+    <!-- auto-scroll if there's a password change message -->
     @if (!string.IsNullOrEmpty(Model.PasswordChangeMessage))
     {
         <script>
@@ -104,22 +136,18 @@
                                             {
                                                 <i class="bi bi-calendar-event me-1"></i>
                                                 @booking.StartTime?.ToString("D")
-
                                                 <br />
                                                 <i class="bi bi-clock me-1"></i>
                                                 @($"{booking.StartTime?.ToString("HH:mm")} - {booking.EndTime?.ToString("HH:mm")}")
-
                                                 <br />
                                             }
                                             else
                                             {
                                                 <i class="bi bi-clock me-1"></i>
                                                 @booking.StartTime?.ToString("f")
-
                                                 <br />
                                                 <i class="bi bi-clock-history me-1"></i>
                                                 @booking.EndTime?.ToString("f")
-
                                                 <br />
                                             }
 
@@ -130,7 +158,6 @@
                                         }
                                     </p>
 
-                                    @* if you made the booking, you can cancel it *@
                                     @if (Model.CurrentUserId == booking.CreatedByUserId)
                                     {
                                         <a asp-page="/Bookings/Delete" asp-route-id="@booking.BookingId"
