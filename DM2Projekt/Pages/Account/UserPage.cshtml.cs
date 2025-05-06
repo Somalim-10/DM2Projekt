@@ -15,22 +15,24 @@ public class UserPageModel : PageModel
         _context = context;
     }
 
+    // Logged-in user's name + email
     public string UserName { get; set; }
     public string UserEmail { get; set; }
     public int? CurrentUserId { get; set; }
 
+    // Lists of upcoming bookings and groups
     public List<Booking> UpcomingBookings { get; set; } = new();
     public List<Group> UserGroups { get; set; } = new();
 
-    // handles form input from the password change thing
+    // Handles password form input
     [BindProperty]
     public ChangePasswordInputModel Input { get; set; }
 
-    // tracks result messages and state
+    // Message and flag for feedback
     public string PasswordChangeMessage { get; set; } = "";
     public bool PasswordChangeSuccess { get; set; } = false;
 
-    // model for the form fields
+    // Used for form binding
     public class ChangePasswordInputModel
     {
         public string CurrentPassword { get; set; }
@@ -38,7 +40,7 @@ public class UserPageModel : PageModel
         public string ConfirmPassword { get; set; }
     }
 
-    // used to show relative time like "in 2 days"
+    // Returns stuff like "today", "in 3 days", etc.
     public static string GetRelativeTime(DateTime time)
     {
         var now = DateTime.Now;
@@ -53,7 +55,7 @@ public class UserPageModel : PageModel
 
     public async Task<IActionResult> OnGetAsync()
     {
-        // make sure you're logged in and a student
+        // Gotta be logged in and a student
         var userId = HttpContext.Session.GetInt32("UserId");
         var userRole = HttpContext.Session.GetString("UserRole");
 
@@ -63,11 +65,9 @@ public class UserPageModel : PageModel
         if (userRole != "Student")
             return RedirectToPage("/Index");
 
+        // Save user ID and load their stuff
         CurrentUserId = userId;
-
-        await LoadUserInfo(userId.Value);
-        await LoadUserGroups(userId.Value);
-        await LoadUpcomingBookings(userId.Value);
+        await LoadAllUserData(userId.Value);
 
         return Page();
     }
@@ -82,11 +82,11 @@ public class UserPageModel : PageModel
         if (user == null)
         {
             PasswordChangeMessage = "User not found. Weird.";
-            await LoadAllUserData(userId.Value); // <--- makes sure UI doesn't break
+            await LoadAllUserData(userId.Value);
             return Page();
         }
 
-        // check for empty fields
+        // Check: everything filled?
         if (string.IsNullOrWhiteSpace(Input.CurrentPassword) ||
             string.IsNullOrWhiteSpace(Input.NewPassword) ||
             string.IsNullOrWhiteSpace(Input.ConfirmPassword))
@@ -96,7 +96,7 @@ public class UserPageModel : PageModel
             return Page();
         }
 
-        // current password wrong
+        // Check: current password correct?
         if (Input.CurrentPassword != user.Password)
         {
             PasswordChangeMessage = "Your current password is incorrect.";
@@ -104,7 +104,7 @@ public class UserPageModel : PageModel
             return Page();
         }
 
-        // can't reuse same password
+        // Check: reusing old password?
         if (Input.CurrentPassword == Input.NewPassword)
         {
             PasswordChangeMessage = "New password can't be the same as the current one.";
@@ -112,7 +112,7 @@ public class UserPageModel : PageModel
             return Page();
         }
 
-        // new + confirm don't match
+        // Check: new + confirm match?
         if (Input.NewPassword != Input.ConfirmPassword)
         {
             PasswordChangeMessage = "New passwords don't match.";
@@ -120,7 +120,7 @@ public class UserPageModel : PageModel
             return Page();
         }
 
-        // too short
+        // Check: new password long enough?
         if (Input.NewPassword.Length < 6)
         {
             PasswordChangeMessage = "Password should be at least 6 characters.";
@@ -128,16 +128,16 @@ public class UserPageModel : PageModel
             return Page();
         }
 
-        // cool, everything checks out
+        // All good — save new password
         user.Password = Input.NewPassword;
         await _context.SaveChangesAsync();
 
         PasswordChangeSuccess = true;
         PasswordChangeMessage = "Password updated successfully!";
-        return await OnGetAsync(); // refreshes cleanly
+        return await OnGetAsync(); // reload everything cleanly
     }
 
-
+    // Shortcut to load everything user-related
     private async Task LoadAllUserData(int userId)
     {
         CurrentUserId = userId;
@@ -146,7 +146,7 @@ public class UserPageModel : PageModel
         await LoadUpcomingBookings(userId);
     }
 
-
+    // Loads the user's name + email
     private async Task LoadUserInfo(int userId)
     {
         var user = await _context.User.FirstOrDefaultAsync(u => u.UserId == userId);
@@ -158,6 +158,7 @@ public class UserPageModel : PageModel
         }
     }
 
+    // Loads all groups the user is in
     private async Task LoadUserGroups(int userId)
     {
         UserGroups = await _context.UserGroup
@@ -167,6 +168,7 @@ public class UserPageModel : PageModel
             .ToListAsync();
     }
 
+    // Loads all upcoming bookings made by the user or their groups
     private async Task LoadUpcomingBookings(int userId)
     {
         var now = DateTime.Now;

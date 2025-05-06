@@ -6,7 +6,7 @@
 
 <div class="container mt-5">
 
-    <!-- Profile summary -->
+    <!-- profile card -->
     <div class="row justify-content-center mb-4">
         <div class="col-md-6">
             <div class="card shadow-sm border-0">
@@ -15,7 +15,7 @@
                     <h4 class="card-title">@Model.UserName</h4>
                     <p class="mb-1 text-muted">@Model.UserEmail</p>
 
-                    <!-- Toggle button to show/hide the form -->
+                    <!-- lil button to toggle password section -->
                     <button class="btn btn-sm btn-outline-secondary mt-3" type="button" data-bs-toggle="collapse" data-bs-target="#changePasswordForm">
                         Change Password
                     </button>
@@ -24,13 +24,14 @@
         </div>
     </div>
 
-    <!-- Change password (will stay open if there's a message) -->
+    <!-- change password (only shows when toggled or error happens) -->
     <div class="row justify-content-center collapse @(Model.PasswordChangeMessage != "" ? "show" : "")" id="changePasswordForm">
         <div class="col-md-6">
             <div class="card shadow-sm border-0">
                 <div class="card-body" id="changePasswordCard">
                     <h5 class="card-title">Change Password</h5>
 
+                    @* shows message if something went wrong or worked *@
                     @if (!string.IsNullOrEmpty(Model.PasswordChangeMessage))
                     {
                         <div class="alert @(Model.PasswordChangeSuccess ? "alert-success" : "alert-danger")">
@@ -58,7 +59,7 @@
         </div>
     </div>
 
-    <!-- scroll to error/success automatically -->
+    <!-- auto scroll to form if there's a message -->
     @if (!string.IsNullOrEmpty(Model.PasswordChangeMessage))
     {
         <script>
@@ -71,8 +72,7 @@
         </script>
     }
 
-    <!-- The rest of your page remains unchanged... -->
-    <!-- Upcoming bookings -->
+    <!-- upcoming bookings -->
     @if (Model.UpcomingBookings.Any())
     {
         <div class="row justify-content-center mb-4">
@@ -130,7 +130,7 @@
                                         }
                                     </p>
 
-                                    @* cancel button for your own bookings *@
+                                    @* if you made the booking, you can cancel it *@
                                     @if (Model.CurrentUserId == booking.CreatedByUserId)
                                     {
                                         <a asp-page="/Bookings/Delete" asp-route-id="@booking.BookingId"
@@ -155,7 +155,7 @@
         </div>
     }
 
-    <!-- Groups -->
+    <!-- user groups -->
     @if (Model.UserGroups.Any())
     {
         <div class="row justify-content-center mb-5">
