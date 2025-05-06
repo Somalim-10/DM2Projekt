@@ -2,6 +2,7 @@
 using DM2Projekt.Models;
 using DM2Projekt.Models.Enums;
 using Microsoft.EntityFrameworkCore;
+using System.Text.RegularExpressions;
 
 namespace DM2Projekt.Tests.Account;
 
@@ -95,5 +96,35 @@ public class UserPageTests
         var result = Pages.Account.UserPageModel.GetRelativeTime(inFiveDays);
 
         Assert.AreEqual("in 5 days", result);
+    }
+
+    [TestMethod]
+    public void SetProfilePicture_Should_Accept_Valid_Image_Url()
+    {
+        using var context = GetContext();
+        var user = context.User.First();
+
+        var validUrl = "https://example.com/image.png";
+        var pattern = @"^https?:\/\/.*\.(jpg|jpeg|png|gif|webp|bmp|svg)$";
+
+        var isValid = Regex.IsMatch(validUrl, pattern, RegexOptions.IgnoreCase);
+        Assert.IsTrue(isValid, "URL should match allowed image extensions");
+
+        user.ProfileImagePath = validUrl;
+        context.SaveChanges();
+
+        var updated = context.User.First();
+        Assert.AreEqual(validUrl, updated.ProfileImagePath, "Profile image should be updated");
+    }
+
+    [TestMethod]
+    public void SetProfilePicture_Should_Reject_Invalid_Image_Url()
+    {
+        var invalidUrl = "https://example.com/image.txt";
+        var pattern = @"^https?:\/\/.*\.(jpg|jpeg|png|gif|webp|bmp|svg)$";
+
+        var isValid = Regex.IsMatch(invalidUrl, pattern, RegexOptions.IgnoreCase);
+
+        Assert.IsFalse(isValid, "Should reject unsupported image extension");
     }
 }

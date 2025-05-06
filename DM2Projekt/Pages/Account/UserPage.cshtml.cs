@@ -3,7 +3,6 @@ using DM2Projekt.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
-using System.Linq;
 using System.Text.RegularExpressions;
 
 namespace DM2Projekt.Pages.Account;
@@ -33,6 +32,10 @@ public class UserPageModel : PageModel
 
     public string PasswordChangeMessage { get; set; } = "";
     public bool PasswordChangeSuccess { get; set; } = false;
+
+    // NEW: Profile picture feedback
+    public string ProfilePictureMessage { get; set; } = "";
+    public bool ProfilePictureSuccess { get; set; } = false;
 
     public class ChangePasswordInputModel
     {
@@ -132,25 +135,37 @@ public class UserPageModel : PageModel
     public async Task<IActionResult> OnPostSetProfilePictureUrlAsync()
     {
         var userId = HttpContext.Session.GetInt32("UserId");
-        if (userId == null || string.IsNullOrWhiteSpace(NewProfileImageUrl))
+        if (userId == null)
             return RedirectToPage("/Login");
 
         var user = await _context.User.FirstOrDefaultAsync(u => u.UserId == userId);
         if (user == null)
             return RedirectToPage("/Login");
 
-        // Validate that it's an actual image URL ending in image extensions
-        var pattern = @"^https?:\/\/.*\.(jpg|jpeg|png|gif|webp)$";
+        if (string.IsNullOrWhiteSpace(NewProfileImageUrl))
+        {
+            ProfilePictureMessage = "Please provide a valid image URL.";
+            ProfilePictureSuccess = false;
+            await LoadAllUserData(userId.Value);
+            return Page();
+        }
+
+        var pattern = @"^https?:\/\/.*\.(jpg|jpeg|png|gif|webp|bmp|svg)$";
         if (!Regex.IsMatch(NewProfileImageUrl, pattern, RegexOptions.IgnoreCase))
         {
-            // Optional: feedback logic if you want to show a message (add a flag or message field)
-            return RedirectToPage(); // silently fail if invalid
+            ProfilePictureMessage = "Invalid image URL. Supported formats: .jpg, .jpeg, .png, .gif, .webp, .bmp, .svg";
+            ProfilePictureSuccess = false;
+            await LoadAllUserData(userId.Value);
+            return Page();
         }
 
         user.ProfileImagePath = NewProfileImageUrl;
         await _context.SaveChangesAsync();
 
-        return RedirectToPage();
+        ProfilePictureMessage = "Profile picture updated!";
+        ProfilePictureSuccess = true;
+
+        return await OnGetAsync();
     }
 
     private async Task LoadAllUserData(int userId)
