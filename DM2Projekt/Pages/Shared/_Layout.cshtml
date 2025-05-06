@@ -36,8 +36,16 @@
                         @{
                             var fullName = HttpContextAccessor.HttpContext?.Session.GetString("UserName");
                             var userRole = HttpContextAccessor.HttpContext?.Session.GetString("UserRole");
+                            var userId = HttpContextAccessor.HttpContext?.Session.GetInt32("UserId");
                             var firstName = fullName?.Split(' ').FirstOrDefault();
                             var isLoggedIn = !string.IsNullOrEmpty(firstName);
+
+                            string? profileUrl = null;
+                            if (userRole == "Student" && userId != null)
+                            {
+                                var db = Context.RequestServices.GetService(typeof(DM2Projekt.Data.DM2ProjektContext)) as DM2Projekt.Data.DM2ProjektContext;
+                                profileUrl = db?.User.FirstOrDefault(u => u.UserId == userId)?.ProfileImagePath;
+                            }
                         }
 
                         @if (isLoggedIn)
@@ -75,12 +83,10 @@
                         @{
                             var pendingInvites = 0;
 
-                            if (userRole == "Student")
+                            if (userRole == "Student" && userId.HasValue)
                             {
                                 var context = Context.RequestServices.GetService(typeof(DM2Projekt.Data.DM2ProjektContext)) as DM2Projekt.Data.DM2ProjektContext;
-                                var userId = HttpContextAccessor.HttpContext?.Session.GetInt32("UserId");
-
-                                if (context != null && userId.HasValue)
+                                if (context != null)
                                 {
                                     pendingInvites = context.GroupInvitation
                                     .Count(i => i.InvitedUserId == userId && i.IsAccepted == null);
@@ -113,9 +119,19 @@
                         {
                             if (userRole == "Student")
                             {
-                                <li class="nav-item">
-                                    <a class="btn btn-outline-secondary btn-sm ms-2" asp-page="/Account/UserPage">
-                                        <i class="bi bi-person-circle me-1"></i>@firstName
+                                <li class="nav-item d-flex align-items-center ms-2">
+                                    <a class="btn btn-outline-secondary btn-sm d-flex align-items-center" asp-page="/Account/UserPage">
+                                        @if (!string.IsNullOrEmpty(profileUrl))
+                                        {
+                                            <img src="@profileUrl"
+                                                 alt="Profile" class="rounded-circle me-2"
+                                                 style="width: 28px; height: 28px; object-fit: cover;" />
+                                        }
+                                        else
+                                        {
+                                            <i class="bi bi-person-circle me-2"></i>
+                                        }
+                                        @firstName
                                     </a>
                                 </li>
                             }
