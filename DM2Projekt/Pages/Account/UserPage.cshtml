@@ -2,21 +2,85 @@
 @model DM2Projekt.Pages.Account.UserPageModel
 @{
     ViewData["Title"] = "User Profile";
+    var showPictureForm = !string.IsNullOrEmpty(Model.ProfilePictureMessage);
 }
+
+<style>
+    /* lil pencil button at bottom-right of image */
+    .edit-profile-btn {
+        bottom: 4px;
+        right: 4px;
+        border-radius: 50%;
+        background-color: white;
+        z-index: 10;
+        transition: background-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+        .edit-profile-btn:hover {
+            background-color: #f8f9fa;
+            box-shadow: 0 0 4px rgba(0, 0, 0, 0.15);
+        }
+</style>
 
 <div class="container mt-5">
 
-    <!-- profile card -->
+    <!-- 🧍 Profile Card -->
     <div class="row justify-content-center mb-4">
         <div class="col-md-6">
             <div class="card shadow-sm border-0">
                 <div class="card-body text-center">
-                    <i class="bi bi-person-circle fs-1 mb-3 text-secondary"></i>
-                    <h4 class="card-title">@Model.UserName</h4>
+
+                    <!-- 📸 Profile Image or Icon + Edit Button -->
+                    <div class="position-relative d-inline-block">
+                        @if (!string.IsNullOrEmpty(Model.ProfileImagePath))
+                        {
+                            <img src="@Model.ProfileImagePath"
+                                 alt="Profile"
+                                 class="rounded-circle mb-2"
+                                 style="width: 100px; height: 100px; object-fit: cover;"
+                                 onerror="this.onerror=null; this.src='/images/default-profile.png';" />
+                        }
+                        else
+                        {
+                            <i class="bi bi-person-circle mb-2 text-secondary" style="font-size: 100px;"></i>
+                        }
+
+                        <button type="button"
+                                class="btn btn-sm btn-outline-secondary position-absolute edit-profile-btn"
+                                title="Change Profile Picture"
+                                onclick="togglePictureForm()">
+                            <i class="bi bi-pencil-fill"></i>
+                        </button>
+                    </div>
+
+                    <!-- 🌐 Update Profile Picture Form (URL) -->
+                    <div id="pictureForm" class="mt-3 @(showPictureForm ? "" : "d-none")">
+                        <form method="post" asp-page-handler="SetProfilePictureUrl" class="text-center">
+                            <input type="url" name="NewProfileImageUrl"
+                                   class="form-control form-control-sm mb-2"
+                                   placeholder="Paste image URL (https://...)"
+                                   pattern="https?:\/\/.*\.(jpg|jpeg|png|gif|webp|bmp|svg)$"
+                                   title="Allowed: .jpg, .png, .gif, .svg etc."
+                                   required />
+                            <button type="submit" class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-image-fill me-1"></i>Set Picture
+                            </button>
+                        </form>
+
+                        @if (!string.IsNullOrEmpty(Model.ProfilePictureMessage))
+                        {
+                            <div class="alert mt-2 @(Model.ProfilePictureSuccess ? "alert-success" : "alert-danger")">
+                                @Model.ProfilePictureMessage
+                            </div>
+                        }
+                    </div>
+
+                    <!-- 🧾 User Name + Email + Change Password Toggle -->
+                    <h4 class="card-title mt-3">@Model.UserName</h4>
                     <p class="mb-1 text-muted">@Model.UserEmail</p>
 
-                    <!-- lil button to toggle password section -->
-                    <button class="btn btn-sm btn-outline-secondary mt-3" type="button" data-bs-toggle="collapse" data-bs-target="#changePasswordForm">
+                    <button class="btn btn-sm btn-outline-secondary mt-3" type="button"
+                            data-bs-toggle="collapse" data-bs-target="#changePasswordForm">
                         Change Password
                     </button>
                 </div>
@@ -24,14 +88,13 @@
         </div>
     </div>
 
-    <!-- change password (only shows when toggled or error happens) -->
+    <!-- 🔐 Change Password Section -->
     <div class="row justify-content-center collapse @(Model.PasswordChangeMessage != "" ? "show" : "")" id="changePasswordForm">
         <div class="col-md-6">
             <div class="card shadow-sm border-0">
                 <div class="card-body" id="changePasswordCard">
                     <h5 class="card-title">Change Password</h5>
 
-                    @* shows message if something went wrong or worked *@
                     @if (!string.IsNullOrEmpty(Model.PasswordChangeMessage))
                     {
                         <div class="alert @(Model.PasswordChangeSuccess ? "alert-success" : "alert-danger")">
@@ -42,15 +105,15 @@
                     <form method="post">
                         <div class="mb-3">
                             <label asp-for="Input.CurrentPassword" class="form-label">Current Password</label>
-                            <input asp-for="Input.CurrentPassword" class="form-control" type="password" />
+                            <input asp-for="Input.CurrentPassword" type="password" class="form-control" />
                         </div>
                         <div class="mb-3">
                             <label asp-for="Input.NewPassword" class="form-label">New Password</label>
-                            <input asp-for="Input.NewPassword" class="form-control" type="password" />
+                            <input asp-for="Input.NewPassword" type="password" class="form-control" />
                         </div>
                         <div class="mb-3">
                             <label asp-for="Input.ConfirmPassword" class="form-label">Confirm New Password</label>
-                            <input asp-for="Input.ConfirmPassword" class="form-control" type="password" />
+                            <input asp-for="Input.ConfirmPassword" type="password" class="form-control" />
                         </div>
                         <button type="submit" class="btn btn-primary">Update Password</button>
                     </form>
@@ -59,20 +122,17 @@
         </div>
     </div>
 
-    <!-- auto scroll to form if there's a message -->
+    <!-- 👇 Scroll to Password Form if it has feedback -->
     @if (!string.IsNullOrEmpty(Model.PasswordChangeMessage))
     {
         <script>
             window.addEventListener('load', function () {
-                const card = document.getElementById("changePasswordCard");
-                if (card) {
-                    card.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                }
+                document.getElementById("changePasswordCard")?.scrollIntoView({ behavior: 'smooth' });
             });
         </script>
     }
 
-    <!-- upcoming bookings -->
+    <!-- 🗓️ Upcoming Bookings -->
     @if (Model.UpcomingBookings.Any())
     {
         <div class="row justify-content-center mb-4">
@@ -100,24 +160,28 @@
                                         {
                                             var sameDay = booking.StartTime.Value.Date == booking.EndTime.Value.Date;
 
-                                            @if (sameDay)
+                                            if (sameDay)
                                             {
                                                 <i class="bi bi-calendar-event me-1"></i>
+
                                                 @booking.StartTime?.ToString("D")
 
                                                 <br />
                                                 <i class="bi bi-clock me-1"></i>
-                                                @($"{booking.StartTime?.ToString("HH:mm")} - {booking.EndTime?.ToString("HH:mm")}")
+
+                                                @($"{booking.StartTime:HH:mm} - {booking.EndTime:HH:mm}")
 
                                                 <br />
                                             }
                                             else
                                             {
                                                 <i class="bi bi-clock me-1"></i>
+
                                                 @booking.StartTime?.ToString("f")
 
                                                 <br />
                                                 <i class="bi bi-clock-history me-1"></i>
+
                                                 @booking.EndTime?.ToString("f")
 
                                                 <br />
@@ -130,7 +194,6 @@
                                         }
                                     </p>
 
-                                    @* if you made the booking, you can cancel it *@
                                     @if (Model.CurrentUserId == booking.CreatedByUserId)
                                     {
                                         <a asp-page="/Bookings/Delete" asp-route-id="@booking.BookingId"
@@ -155,7 +218,7 @@
         </div>
     }
 
-    <!-- user groups -->
+    <!-- 👥 User Groups -->
     @if (Model.UserGroups.Any())
     {
         <div class="row justify-content-center mb-5">
@@ -199,3 +262,11 @@
         </div>
     }
 </div>
+
+<script>
+    // toggles the profile image update form
+    function togglePictureForm() {
+        const form = document.getElementById("pictureForm");
+        form.classList.toggle("d-none");
+    }
+</script>

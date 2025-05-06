@@ -15,6 +15,8 @@ public class User
     [Required]
     public string LastName { get; set; }
 
+    public string? ProfileImagePath { get; set; } // e.g., "/uploads/profiles/3.jpg"
+
     [Required, EmailAddress]
     public string Email { get; set; }
 

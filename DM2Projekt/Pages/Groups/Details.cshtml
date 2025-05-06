@@ -39,7 +39,21 @@
                     @foreach (var user in Model.Members)
                     {
                         <li class="list-group-item d-flex justify-content-between align-items-center">
-                            <span>@user.FirstName @user.LastName (@user.Role)</span>
+                            <div class="d-flex align-items-center">
+                                @if (!string.IsNullOrEmpty(user.ProfileImagePath))
+                                {
+                                    <img src="@user.ProfileImagePath"
+                                         alt="Profile" class="rounded-circle me-3"
+                                         style="width: 40px; height: 40px; object-fit: cover;"
+                                         onerror="this.onerror=null; this.src='/images/default-profile.png';" />
+                                }
+                                else
+                                {
+                                    <i class="bi bi-person-circle fs-3 me-3 text-secondary"></i>
+                                }
+
+                                <span>@user.FirstName @user.LastName (@user.Role)</span>
+                            </div>
 
                             @if (isCreator && user.UserId != userId)
                             {
