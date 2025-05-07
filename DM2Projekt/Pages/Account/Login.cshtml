@@ -22,6 +22,7 @@
                             <input asp-for="Input.Password" type="password" class="form-control" placeholder="your password" />
                         </div>
 
+                        @* Show error if login fails *@
                         @if (!string.IsNullOrEmpty(Model.ErrorMessage))
                         {
                             <div class="alert alert-danger" role="alert">
