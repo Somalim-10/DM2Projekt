@@ -2,13 +2,9 @@
 using DM2Projekt.Models;
 using Microsoft.EntityFrameworkCore;
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using DM2Projekt.Pages.Rooms; // <-- for IndexModel
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-
 
 namespace DM2Projekt.Tests.RoomsTest
 {
@@ -44,6 +40,5 @@ namespace DM2Projekt.Tests.RoomsTest
             Assert.AreEqual(1, filtered.Count);
             Assert.AreEqual("Lokale A", filtered[0].RoomName);
         }
-
     }
 }
