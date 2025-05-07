@@ -19,12 +19,12 @@ public static class SeedData
         var users = new List<User>
         {
             new() { FirstName = "Admin", LastName = "Zealand", Email = "admin@zealand.dk", Password = "admin", Role = Role.Admin },
-            new() { FirstName = "Erwin", LastName = "Smith", Email = "erwin@zealand.dk", Password = "123", Role = Role.Teacher },
-            new() { FirstName = "Armin", LastName = "Arlert", Email = "armin@edu.zealand.dk", Password = "123", Role = Role.Student },
-            new() { FirstName = "Mikasa", LastName = "Ackerman", Email = "mikasa@edu.zealand.dk", Password = "123", Role = Role.Student },
-            new() { FirstName = "Levi", LastName = "Ackerman", Email = "levi@edu.zealand.dk", Password = "123", Role = Role.Student },
-            new() { FirstName = "Hange", LastName = "Zoe", Email = "hange@zealand.dk", Password = "123", Role = Role.Teacher },
-            new() { FirstName = "Jean", LastName = "Kirstein", Email = "jean@edu.zealand.dk", Password = "123", Role = Role.Student }
+            new() { FirstName = "Erwin", LastName = "Smith", Email = "erwin@zealand.dk", Password = "123", Role = Role.Teacher, ProfileImagePath="https://beneaththetangles.com/wp-content/uploads/2022/03/erwin-smith-3.png" },
+            new() { FirstName = "Armin", LastName = "Arlert", Email = "armin@edu.zealand.dk", Password = "123", Role = Role.Student, ProfileImagePath="https://cdn.staticneo.com/w/attackontitan/ArminArlert.jpg" },
+            new() { FirstName = "Mikasa", LastName = "Ackerman", Email = "mikasa@edu.zealand.dk", Password = "123", Role = Role.Student, ProfileImagePath="https://images.alphacoders.com/814/thumb-1920-814882.png" },
+            new() { FirstName = "Levi", LastName = "Ackerman", Email = "levi@edu.zealand.dk", Password = "123", Role = Role.Student, ProfileImagePath="https://m.media-amazon.com/images/I/61TFHjGsTsL._AC_UF894,1000_QL80_.jpg" },
+            new() { FirstName = "Hange", LastName = "Zoe", Email = "hange@zealand.dk", Password = "123", Role = Role.Teacher, ProfileImagePath="https://i.pinimg.com/736x/e6/12/36/e61236c229ff742adad85eb01f4a3312.jpg" },
+            new() { FirstName = "Jean", LastName = "Kirstein", Email = "jean@edu.zealand.dk", Password = "123", Role = Role.Student, ProfileImagePath="https://cdn.staticneo.com/w/attackontitan/JeanKirstein.jpg" }
         };
         context.User.AddRange(users);
         context.SaveChanges();
@@ -63,7 +63,7 @@ public static class SeedData
         };
         context.GroupInvitation.Add(invite1);
         context.SaveChanges();
- 
+
         // ✅ ROOMS
         var rooms = new List<Room>
         {
