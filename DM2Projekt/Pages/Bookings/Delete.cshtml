@@ -8,13 +8,13 @@
 
     <h2 class="mb-4 text-danger">❌ Cancel Booking</h2>
 
-    <!-- strong alert with icon -->
+    <!-- Big red warning box -->
     <div class="alert alert-danger d-flex align-items-center" role="alert">
         <i class="bi bi-exclamation-triangle-fill me-2"></i>
         Are you sure you want to cancel this booking?
     </div>
 
-    <!-- booking details inside card -->
+    <!-- Show booking details -->
     <div class="card shadow-sm mb-4">
         <div class="card-body">
             <dl class="row mb-0">
@@ -44,7 +44,7 @@
         </div>
     </div>
 
-    <!-- confirm and back buttons -->
+    <!-- Confirm or back out -->
     <form method="post" class="d-flex gap-2">
         <input type="hidden" asp-for="Booking.BookingId" />
         <button type="submit" class="btn btn-danger">
@@ -55,4 +55,4 @@
         </a>
     </form>
 
-</div> <!-- end container -->
+</div>
