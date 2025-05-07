@@ -1,62 +1,58 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 using DM2Projekt.Data;
 using DM2Projekt.Models;
 
-namespace DM2Projekt.Pages.GroupInvitations
+namespace DM2Projekt.Pages.GroupInvitations;
+
+public class DeleteModel : PageModel
 {
-    public class DeleteModel : PageModel
+    private readonly DM2ProjektContext _context;
+
+    public DeleteModel(DM2ProjektContext context)
     {
-        private readonly DM2Projekt.Data.DM2ProjektContext _context;
+        _context = context;
+    }
 
-        public DeleteModel(DM2Projekt.Data.DM2ProjektContext context)
-        {
-            _context = context;
-        }
+    [BindProperty]
+    public GroupInvitation GroupInvitation { get; set; } = default!;
 
-        [BindProperty]
-        public GroupInvitation GroupInvitation { get; set; } = default!;
-
-        public async Task<IActionResult> OnGetAsync(int? id)
-        {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var groupinvitation = await _context.GroupInvitation.FirstOrDefaultAsync(m => m.InvitationId == id);
-
-            if (groupinvitation is not null)
-            {
-                GroupInvitation = groupinvitation;
-
-                return Page();
-            }
-
+    public async Task<IActionResult> OnGetAsync(int? id)
+    {
+        if (id == null)
             return NotFound();
-        }
 
-        public async Task<IActionResult> OnPostAsync(int? id)
+        var invitation = await GetInvitationAsync(id.Value);
+        if (invitation == null)
+            return NotFound();
+
+        GroupInvitation = invitation;
+        return Page();
+    }
+
+    public async Task<IActionResult> OnPostAsync(int? id)
+    {
+        if (id == null)
+            return NotFound();
+
+        var invitation = await _context.GroupInvitation.FindAsync(id);
+        if (invitation != null)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var groupinvitation = await _context.GroupInvitation.FindAsync(id);
-            if (groupinvitation != null)
-            {
-                GroupInvitation = groupinvitation;
-                _context.GroupInvitation.Remove(GroupInvitation);
-                await _context.SaveChangesAsync();
-            }
-
-            return RedirectToPage("./Index");
+            GroupInvitation = invitation;
+            _context.GroupInvitation.Remove(invitation);
+            await _context.SaveChangesAsync();
         }
+
+        return RedirectToPage("./Index");
+    }
+
+    // Pulls the full invitation for display
+    private async Task<GroupInvitation?> GetInvitationAsync(int id)
+    {
+        return await _context.GroupInvitation
+            .Include(i => i.Group)
+            .Include(i => i.InvitedUser)
+            .FirstOrDefaultAsync(i => i.InvitationId == id);
     }
 }
