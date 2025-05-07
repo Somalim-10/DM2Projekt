@@ -1,5 +1,4 @@
 ﻿document.addEventListener("DOMContentLoaded", () => {
-    // get all needed HTML elements
     const roomSelect = document.getElementById("Booking_RoomId");
     const weekPicker = document.getElementById("weekPicker");
     const dayOfWeekSelect = document.getElementById("dayOfWeek");
@@ -16,10 +15,9 @@
 
     const form = document.querySelector("form");
 
-    let isClassroom = false; // true if room is a classroom
-    let selectedRoomId = null; // remember selected room id
+    let isClassroom = false;
+    let selectedRoomId = null;
 
-    // calculate selected full date (based on week + day)
     function getSelectedDate() {
         const week = weekPicker.value;
         const day = parseInt(dayOfWeekSelect.value);
@@ -34,11 +32,9 @@
         return monday;
     }
 
-    // update time slot dropdown
     function updateAvailableTimeSlots() {
         const roomId = selectedRoomId;
         const selectedDate = getSelectedDate();
-
         if (!roomId || !selectedDate) {
             smartboardCheckboxContainer.style.display = "none";
             smartboardCheckbox.checked = false;
@@ -50,7 +46,7 @@
         fetch(`Create?handler=AvailableTimeSlots&roomId=${roomId}&date=${isoDate}`)
             .then(res => res.json())
             .then(data => {
-                timeSlotSelect.innerHTML = '';
+                timeSlotSelect.innerHTML = "";
 
                 if (!data.length) {
                     timeSlotSelect.innerHTML = '<option value="">No available slots</option>';
@@ -62,16 +58,14 @@
                     timeSlotSelect.appendChild(option);
                 });
 
-                //Checks and update timeslots
                 if (timeSlotSelect.value) {
                     updateHiddenTimeInputs(timeSlotSelect.value);
                     checkSmartboardAvailability();
                 }
 
-
                 if (isClassroom) {
                     smartboardCheckboxContainer.style.display = "block";
-                    smartboardCheckbox.disabled = true; // disable until user picks a slot
+                    smartboardCheckbox.disabled = true;
                 } else {
                     smartboardCheckboxContainer.style.display = "none";
                     smartboardCheckbox.checked = false;
@@ -79,25 +73,6 @@
             });
     }
 
-
-    // check if smartboard is already booked for selected slot
-    function checkSmartboardAvailability() {
-        const roomId = selectedRoomId;
-        const selectedSlot = timeSlotSelect.value;
-        if (!selectedSlot || !isClassroom) return;
-
-        const startTime = new Date(selectedSlot);
-        const endTime = new Date(startTime.getTime() + 2 * 60 * 60 * 1000); // +2h
-
-        fetch(`Create?handler=SmartboardCheck&roomId=${roomId}&start=${startTime.toISOString()}&end=${endTime.toISOString()}`)
-            .then(res => res.json())
-            .then(isAlreadyBooked => {
-                smartboardCheckbox.disabled = isAlreadyBooked;
-                if (isAlreadyBooked) smartboardCheckbox.checked = false;
-            });
-    }
-
-    // fill hidden time slot fields
     function updateHiddenTimeInputs(selectedStart) {
         if (!selectedStart) return;
 
@@ -106,29 +81,41 @@
 
         startInput.value = startDate.toISOString();
         endInput.value = endDate.toISOString();
-
         if (selectedTimeSlotInput) {
             selectedTimeSlotInput.value = startDate.toISOString();
         }
     }
 
-    // fill hidden week/day fields
     function updateHiddenWeekDayInputs() {
         if (selectedWeekInput) selectedWeekInput.value = weekPicker.value;
         if (selectedDayInput) selectedDayInput.value = dayOfWeekSelect.value;
     }
 
-    // when room is changed
+    function checkSmartboardAvailability() {
+        if (!isClassroom || !timeSlotSelect.value) return;
+
+        const startTime = new Date(timeSlotSelect.value);
+        const endTime = new Date(startTime.getTime() + 2 * 60 * 60 * 1000);
+
+        fetch(`Create?handler=SmartboardCheck&roomId=${selectedRoomId}&start=${startTime.toISOString()}&end=${endTime.toISOString()}`)
+            .then(res => res.json())
+            .then(isBooked => {
+                smartboardCheckbox.disabled = isBooked;
+                if (isBooked) smartboardCheckbox.checked = false;
+            });
+    }
+
+    // Event listeners
     roomSelect.addEventListener("change", () => {
         const roomId = roomSelect.value;
+        selectedRoomId = roomId;
+
         if (!roomId) {
             smartboardCheckboxContainer.style.display = "none";
             smartboardCheckbox.checked = false;
-            selectedRoomId = null;
             return;
         }
 
-        selectedRoomId = roomId; // remember the selected room
         fetch(`Create?handler=RoomType&roomId=${roomId}`)
             .then(res => res.json())
             .then(room => {
@@ -137,41 +124,40 @@
             });
     });
 
-    // when week changes
     weekPicker.addEventListener("change", () => {
         updateAvailableTimeSlots();
         updateHiddenWeekDayInputs();
     });
 
-    // when day changes
     dayOfWeekSelect.addEventListener("change", () => {
         updateAvailableTimeSlots();
         updateHiddenWeekDayInputs();
     });
 
-    // when time slot changes
     timeSlotSelect.addEventListener("change", () => {
         updateHiddenTimeInputs(timeSlotSelect.value);
-        checkSmartboardAvailability(); // also check smartboard free or not
+        checkSmartboardAvailability();
     });
 
-    // before form submit, update hidden fields
     form.addEventListener("submit", () => {
         updateHiddenTimeInputs(timeSlotSelect.value);
         updateHiddenWeekDayInputs();
     });
 
-    // if room is pre-selected, trigger load
+    // Preload if room is already selected
     if (roomSelect.value) {
         roomSelect.dispatchEvent(new Event("change"));
     }
 
-    document.getElementById("Room_ImageUrl").addEventListener("input", function (e) {
-        var url = e.target.value;
-        var regex = /\.(jpg|jpeg|png|gif)$/i;
-        if (!regex.test(url)) {
-            alert("Please enter a valid image URL (e.g., ends with .jpg, .png).");
-        }
-    });
-
+    // Quick validation for image URL input (optional, but present in original)
+    const imgInput = document.getElementById("Room_ImageUrl");
+    if (imgInput) {
+        imgInput.addEventListener("input", function (e) {
+            const url = e.target.value;
+            const regex = /\.(jpg|jpeg|png|gif)$/i;
+            if (!regex.test(url)) {
+                alert("Please enter a valid image URL (e.g., ends with .jpg, .png).");
+            }
+        });
+    }
 });
