@@ -27,6 +27,15 @@ public class IndexModel : PageModel
 
     public IList<Room> Room { get; set; } = default!;
 
+    public IQueryable<Room> FilterRooms(IQueryable<Room> query, int? roomId)
+    {
+        if (roomId.HasValue)
+        {
+            query = query.Where(r => r.RoomId == roomId.Value);
+        }
+        return query;
+    }
+
     public async Task<IActionResult> OnGetAsync()
     {
 
