@@ -4,7 +4,6 @@
     ViewData["Title"] = "Create Booking";
     var userRole = HttpContext.Session.GetString("UserRole");
 
-    // --- Set default week value for weekPicker ---
     var currentDate = DateTime.UtcNow;
     var week = System.Globalization.ISOWeek.GetWeekOfYear(currentDate);
     var year = currentDate.Year;
@@ -12,24 +11,21 @@
 }
 
 <div class="container py-4">
-
     <h1 class="mb-4">📋 Create Booking</h1>
 
     <div class="card shadow-sm">
         <div class="card-body">
-
-            <!-- validation errors -->
             <div asp-validation-summary="All" class="text-danger mb-3"></div>
 
             <form method="post">
-                <!-- group dropdown -->
+                <!-- Group -->
                 <div class="mb-3">
                     <label asp-for="Booking.GroupId" class="form-label"></label>
                     <select asp-for="Booking.GroupId" class="form-select" asp-items="ViewBag.GroupId"></select>
                     <span asp-validation-for="Booking.GroupId" class="text-danger small"></span>
                 </div>
 
-                <!-- user dropdown (only Admin/Teacher) -->
+                <!-- User (Admin/Teacher only) -->
                 @if (userRole == "Admin" || userRole == "Teacher")
                 {
                     <div class="mb-3">
@@ -39,20 +35,20 @@
                     </div>
                 }
 
-                <!-- room dropdown -->
+                <!-- Room -->
                 <div class="mb-3">
                     <label asp-for="Booking.RoomId" class="form-label"></label>
                     <select asp-for="Booking.RoomId" class="form-select" asp-items="ViewBag.RoomId" id="Booking_RoomId"></select>
                     <span asp-validation-for="Booking.RoomId" class="text-danger small"></span>
                 </div>
 
-                <!-- week picker (default to current week) -->
+                <!-- Week Picker -->
                 <div class="mb-3">
                     <label for="weekPicker" class="form-label">Week</label>
                     <input type="week" id="weekPicker" class="form-control" value="@defaultWeekValue" />
                 </div>
 
-                <!-- day picker -->
+                <!-- Day Picker -->
                 <div class="mb-3">
                     <label for="dayOfWeek" class="form-label">Day</label>
                     <select id="dayOfWeek" class="form-select">
@@ -65,7 +61,7 @@
                     </select>
                 </div>
 
-                <!-- time slot picker -->
+                <!-- Time Slot -->
                 <div class="mb-3">
                     <label for="timeSlot" class="form-label">Time Slot</label>
                     <select id="timeSlot" class="form-select">
@@ -73,21 +69,21 @@
                     </select>
                 </div>
 
-                <!-- smartboard checkbox -->
+                <!-- Smartboard (only visible for classrooms) -->
                 <div class="form-check mb-3" id="smartboardCheckboxContainer" style="display: none;">
                     <input asp-for="Booking.UsesSmartboard" class="form-check-input" type="checkbox" id="Booking_UsesSmartboard" />
                     <label class="form-check-label" for="Booking_UsesSmartboard">Book Smartboard</label>
                     <span asp-validation-for="Booking.UsesSmartboard" class="text-danger small"></span>
                 </div>
 
-                <!-- hidden fields -->
+                <!-- Hidden fields -->
                 <input asp-for="SelectedTimeSlot" type="hidden" data-val="false" />
                 <input asp-for="SelectedWeek" type="hidden" id="SelectedWeek" />
                 <input asp-for="SelectedDay" type="hidden" id="SelectedDay" />
                 <input asp-for="Booking.StartTime" type="hidden" id="Booking_StartTime" />
                 <input asp-for="Booking.EndTime" type="hidden" id="Booking_EndTime" />
 
-                <!-- create and cancel buttons -->
+                <!-- Buttons -->
                 <div class="d-flex gap-2 mt-3">
                     <a asp-page="/Bookings/Index" class="btn btn-light">
                         <i class="bi bi-arrow-left"></i> Back
@@ -97,10 +93,8 @@
                     </button>
                 </div>
             </form>
-
         </div>
     </div>
-
 </div>
 
 @section Scripts {

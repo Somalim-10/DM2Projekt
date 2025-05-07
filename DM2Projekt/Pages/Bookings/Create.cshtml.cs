@@ -18,54 +18,41 @@ public class CreateModel : PageModel
         _context = context;
     }
 
-    // booking info that we save
+    // Booking being created
     [BindProperty]
     public Booking Booking { get; set; } = default!;
 
-    // hidden fields from form
-    [BindProperty]
-    [Required]
+    // These come from hidden inputs on the form
+    [BindProperty, Required]
     public string SelectedTimeSlot { get; set; } = "";
 
-    [BindProperty]
-    [Required]
+    [BindProperty, Required]
     public string SelectedWeek { get; set; } = "";
 
-    [BindProperty]
-    [Required]
+    [BindProperty, Required]
     public string SelectedDay { get; set; } = "";
 
-    // when page loads
     public IActionResult OnGet()
     {
         var userId = HttpContext.Session.GetInt32("UserId");
-        if (userId == null) // if not logged in
-            return RedirectToPage("/Login");
+        if (userId == null) return RedirectToPage("/Login");
 
         var userRole = HttpContext.Session.GetString("UserRole");
-        if (userRole == "Teacher") // teachers shouldn't book
-        {
-            return RedirectToPage("/Bookings/Index");
-        }
+        if (userRole == "Teacher") return RedirectToPage("/Bookings/Index");
 
         PopulateDropdowns();
         return Page();
     }
 
-    // when form is submitted
     public async Task<IActionResult> OnPostAsync()
     {
         var userId = HttpContext.Session.GetInt32("UserId");
         var userRole = HttpContext.Session.GetString("UserRole");
 
-        if (userId == null) // if not logged in
-            return RedirectToPage("/Login");
+        if (userId == null) return RedirectToPage("/Login");
+        if (userRole == "Teacher") return RedirectToPage("/Bookings/Index");
 
-        if (userRole == "Teacher") // teachers shouldn't book
-        {
-            return RedirectToPage("/Bookings/Index");
-        }
-
+        // Don't validate Start/End from the form (we generate them)
         ModelState.Remove("Booking.StartTime");
         ModelState.Remove("Booking.EndTime");
 
@@ -75,54 +62,47 @@ public class CreateModel : PageModel
             return Page();
         }
 
-        // parse selected timeslot
         if (!TryParseAndValidateTimeSlot(out var startTime))
         {
             PopulateDropdowns();
             return Page();
         }
 
-        // set booking start and end (always 2 hours)
         Booking.StartTime = startTime;
         Booking.EndTime = startTime.AddHours(2);
 
-        // for students, force their own userId
         if (userRole == "Student")
-        {
             Booking.CreatedByUserId = userId.Value;
-        }
 
         var room = GetRoom(Booking.RoomId);
-        // auto-enable smartboard if meeting room
         if (room?.RoomType == RoomType.MeetingRoom)
             Booking.UsesSmartboard = true;
 
-        // extra validation
         if (!ValidateBooking())
         {
             PopulateDropdowns();
             return Page();
         }
 
-        // save booking
         _context.Booking.Add(Booking);
         await _context.SaveChangesAsync();
 
         return RedirectToPage("./Index");
     }
 
-    // load dropdown lists
+    // === Dropdown Helpers ===
+
     private void PopulateDropdowns()
     {
-        var userRole = HttpContext.Session.GetString("UserRole");
+        var role = HttpContext.Session.GetString("UserRole");
         var userId = HttpContext.Session.GetInt32("UserId");
 
-        if (userRole == "Admin" || userRole == "Teacher")
+        if (role == "Admin" || role == "Teacher")
         {
             ViewData["GroupId"] = new SelectList(_context.Group, "GroupId", "GroupName");
             ViewData["CreatedByUserId"] = new SelectList(_context.User, "UserId", "Email");
         }
-        else if (userRole == "Student" && userId != null)
+        else if (role == "Student" && userId != null)
         {
             var myGroups = _context.UserGroup
                 .Where(ug => ug.UserId == userId)
@@ -135,29 +115,26 @@ public class CreateModel : PageModel
         ViewData["RoomId"] = new SelectList(_context.Room, "RoomId", "RoomName");
     }
 
-    // get a room from DB
     private Room? GetRoom(int roomId) =>
         _context.Room.FirstOrDefault(r => r.RoomId == roomId);
 
-    // get bookings for a specific day
     private List<Booking> GetBookingsForRoomOnDate(int roomId, DateTime date) =>
-        [.. _context.Booking
-            .Where(b => b.RoomId == roomId && b.StartTime != null && b.StartTime.Value.Date == date.Date)];
+        _context.Booking
+            .Where(b => b.RoomId == roomId && b.StartTime != null && b.StartTime.Value.Date == date.Date)
+            .ToList();
 
-    // generate fixed time slots (always same times)
     private static List<(DateTime start, DateTime end)> GetFixedTimeSlots(DateTime day)
     {
         var date = day.Date;
-        return
-        [
+        return new()
+        {
             (date.AddHours(8), date.AddHours(10)),
             (date.AddHours(10), date.AddHours(12)),
             (date.AddHours(12), date.AddHours(14)),
             (date.AddHours(14), date.AddHours(16))
-        ];
+        };
     }
 
-    // check if a time slot is available
     private static bool IsSlotAvailable(Room room, List<Booking> bookings, (DateTime start, DateTime end) slot)
     {
         return room.RoomType switch
@@ -168,11 +145,9 @@ public class CreateModel : PageModel
         };
     }
 
-    // check if two slots match
-    private static bool IsSameSlot(Booking booking, (DateTime start, DateTime end) slot) =>
-        booking.StartTime == slot.start && booking.EndTime == slot.end;
+    private static bool IsSameSlot(Booking b, (DateTime start, DateTime end) slot) =>
+        b.StartTime == slot.start && b.EndTime == slot.end;
 
-    // format slot for frontend (start, end, value)
     private static object FormatSlot((DateTime start, DateTime end) slot) => new
     {
         start = slot.start.ToString("HH:mm"),
@@ -180,7 +155,6 @@ public class CreateModel : PageModel
         value = slot.start.ToString("o")
     };
 
-    // parse and validate the selected slot
     private bool TryParseAndValidateTimeSlot(out DateTime startTime)
     {
         if (!DateTime.TryParse(SelectedTimeSlot, out startTime))
@@ -191,16 +165,16 @@ public class CreateModel : PageModel
         return true;
     }
 
-    // validate the booking
+    // === Booking Validation ===
+
     private bool ValidateBooking()
     {
-        if (HasUserBookingConflict()) return false;
-        if (BookingExceedsMaxLength()) return false;
-        if (GroupAlreadyHasBooking()) return false;
-        if (IsSmartboardAlreadyInUse()) return false;
-        if (HasGroupBookingConflict()) return false;
-        if (CheckIfBookingIsInThePast()) return false;
-        return true;
+        return !CheckIfBookingIsInThePast()
+            && !HasUserBookingConflict()
+            && !BookingExceedsMaxLength()
+            && !GroupAlreadyHasBooking()
+            && !IsSmartboardAlreadyInUse()
+            && !HasGroupBookingConflict();
     }
 
     private bool CheckIfBookingIsInThePast()
@@ -213,11 +187,9 @@ public class CreateModel : PageModel
         return false;
     }
 
-
-    //check if user has another booking at the same time
     private bool HasUserBookingConflict()
     {
-        bool conflict = _context.Booking.Any(b =>
+        var conflict = _context.Booking.Any(b =>
             b.CreatedByUserId == Booking.CreatedByUserId &&
             b.StartTime < Booking.EndTime &&
             b.EndTime > Booking.StartTime);
@@ -228,10 +200,9 @@ public class CreateModel : PageModel
         return conflict;
     }
 
-    // Check if group already has another booking at the same time
     private bool HasGroupBookingConflict()
     {
-        bool conflict = _context.Booking.Any(b =>
+        var conflict = _context.Booking.Any(b =>
             b.GroupId == Booking.GroupId &&
             b.StartTime < Booking.EndTime &&
             b.EndTime > Booking.StartTime);
@@ -242,11 +213,9 @@ public class CreateModel : PageModel
         return conflict;
     }
 
-    // check if booking is longer than 2 hours
     private bool BookingExceedsMaxLength()
     {
-        if (Booking.StartTime != null && Booking.EndTime != null &&
-            (Booking.EndTime.Value - Booking.StartTime.Value).TotalHours > 2)
+        if ((Booking.EndTime - Booking.StartTime)?.TotalHours > 2)
         {
             ModelState.AddModelError(nameof(SelectedTimeSlot), "Booking can maximum last 2 hours.");
             return true;
@@ -254,13 +223,12 @@ public class CreateModel : PageModel
         return false;
     }
 
-    // Check if group already has 3 or more active bookings
     private bool GroupAlreadyHasBooking()
     {
-        int activeBookingCount = _context.Booking
+        int active = _context.Booking
             .Count(b => b.GroupId == Booking.GroupId && b.EndTime > DateTime.Now);
 
-        if (activeBookingCount >= 3)
+        if (active >= 3)
         {
             ModelState.AddModelError(nameof(Booking.GroupId), "This group already has 3 or more active bookings.");
             return true;
@@ -269,27 +237,24 @@ public class CreateModel : PageModel
         return false;
     }
 
-    // check if smartboard is already taken
     private bool IsSmartboardAlreadyInUse()
     {
-        if (!Booking.UsesSmartboard)
-            return false;
+        if (!Booking.UsesSmartboard) return false;
 
-        bool smartboardUsed = _context.Booking.Any(b =>
+        bool taken = _context.Booking.Any(b =>
             b.RoomId == Booking.RoomId &&
             b.StartTime == Booking.StartTime &&
             b.EndTime == Booking.EndTime &&
             b.UsesSmartboard);
 
-        if (smartboardUsed)
+        if (taken)
             ModelState.AddModelError(nameof(Booking.UsesSmartboard), "Smartboard already booked at this time.");
 
-        return smartboardUsed;
+        return taken;
     }
 
-    // --- AJAX handlers ---
+    // === AJAX ===
 
-    // send available time slots for selected room/date
     public JsonResult OnGetAvailableTimeSlots(int roomId, DateTime date)
     {
         var room = GetRoom(roomId);
@@ -299,15 +264,14 @@ public class CreateModel : PageModel
         var slots = GetFixedTimeSlots(date);
         var bookings = GetBookingsForRoomOnDate(roomId, date);
 
-        var availableSlots = slots
+        var available = slots
             .Where(slot => IsSlotAvailable(room, bookings, slot))
             .Select(FormatSlot)
             .ToList();
 
-        return new JsonResult(availableSlots);
+        return new JsonResult(available);
     }
 
-    // send room type info (Classroom/MeetingRoom)
     public JsonResult OnGetRoomType(int roomId)
     {
         var room = GetRoom(roomId);
@@ -317,24 +281,21 @@ public class CreateModel : PageModel
         return new JsonResult(new { roomType = room.RoomType.ToString() });
     }
 
-    bool AreTimesEqualToMinute(DateTime a, DateTime b) =>
-    a.ToUniversalTime().ToString("yyyy-MM-dd HH:mm") == b.ToUniversalTime().ToString("yyyy-MM-dd HH:mm");
-
-    // Check if smartboard is already booked
     public JsonResult OnGetSmartboardCheck(int roomId, DateTime start, DateTime end)
     {
         var room = GetRoom(roomId);
         if (room?.RoomType != RoomType.Classroom)
             return new JsonResult(false);
 
-        bool smartboardUsed = _context.Booking
+        var taken = _context.Booking
             .Where(b => b.RoomId == roomId && b.UsesSmartboard && b.StartTime.HasValue && b.EndTime.HasValue)
             .ToList()
-            .Any(b =>
-                AreTimesEqualToMinute(b.StartTime.Value, start) &&
-                AreTimesEqualToMinute(b.EndTime.Value, end)
-            );
+            .Any(b => AreTimesEqualToMinute(b.StartTime.Value, start) && AreTimesEqualToMinute(b.EndTime.Value, end));
 
-        return new JsonResult(smartboardUsed);
+        return new JsonResult(taken);
     }
+
+    private bool AreTimesEqualToMinute(DateTime a, DateTime b) =>
+        a.ToUniversalTime().ToString("yyyy-MM-dd HH:mm") ==
+        b.ToUniversalTime().ToString("yyyy-MM-dd HH:mm");
 }
