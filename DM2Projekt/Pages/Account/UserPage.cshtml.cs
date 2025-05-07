@@ -179,6 +179,14 @@ public class UserPageModel : PageModel
             return await ReloadAndReturn(userId.Value);
         }
 
+        // ✅ Check if image exists (is it an actual URL?)
+        if (!await UrlExistsAsync(NewProfileImageUrl))
+        {
+            ProfilePictureMessage = "The image URL seems to be broken or inaccessible.";
+            ProfilePictureSuccess = false;
+            return await ReloadAndReturn(userId.Value);
+        }
+
         // ✅ Save picture
         user.ProfileImagePath = NewProfileImageUrl;
         await _context.SaveChangesAsync();
@@ -233,6 +241,32 @@ public class UserPageModel : PageModel
             .Include(ug => ug.Group)
             .Select(ug => ug.Group)
             .ToListAsync();
+    }
+
+    /// <summary>
+    /// Checks if a given image URL is actually reachable and valid.
+    /// We don't want to just trust the file extension – it might be fake!
+    /// </summary>
+    /// <param name="url">The URL of the image the user submitted</param>
+    /// <returns>True if the URL exists and is an image; false otherwise</returns>
+    private async Task<bool> UrlExistsAsync(string url)
+    {
+        try
+        {
+            using var httpClient = new HttpClient();
+
+            // Send a lightweight "HEAD" request – we just want the headers, not the full image
+            using var response = await httpClient.SendAsync(new HttpRequestMessage(HttpMethod.Head, url));
+
+            // Return true if the URL exists AND it's actually an image
+            return response.IsSuccessStatusCode &&
+                   response.Content.Headers.ContentType?.MediaType?.StartsWith("image") == true;
+        }
+        catch
+        {
+            // If the request fails (404, timeout, bad URL, etc), just say nope
+            return false;
+        }
     }
 
     /// <summary>
