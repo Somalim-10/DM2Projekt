@@ -24,6 +24,8 @@ public class Booking
     [ValidateNever]
     public DateTime? EndTime { get; set; } // when booking ends
 
+    public bool ReminderSent { get; set; } = false; // for email reminder
+
     public bool UsesSmartboard { get; set; } // smartboard used?
 
     // navigation properties

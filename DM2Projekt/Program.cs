@@ -23,6 +23,12 @@ builder.Services.AddSession(options =>
 // so we can use httpcontext easily
 builder.Services.AddHttpContextAccessor();
 
+// background service that sends email reminders
+builder.Services.AddHostedService<DM2Projekt.Services.BookingReminderService>();
+
+// email service for sending mails
+builder.Services.AddTransient<DM2Projekt.Services.EmailService>();
+
 var app = builder.Build();
 
 // apply migrations and seed data
