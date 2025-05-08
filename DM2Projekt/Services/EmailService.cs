@@ -1,6 +1,4 @@
-﻿using DM2Projekt.Models;
-using Humanizer;
-using System.Net;
+﻿using System.Net;
 using System.Net.Mail;
 
 namespace DM2Projekt.Services;

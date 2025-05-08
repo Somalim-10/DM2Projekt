@@ -1,6 +1,5 @@
 ﻿using DM2Projekt.Services;
 using Microsoft.Extensions.Configuration;
-using Moq;
 using System.Net.Mail;
 
 namespace DM2Projekt.Tests.Email;
