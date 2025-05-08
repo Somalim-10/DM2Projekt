@@ -13,7 +13,7 @@ public class EmailService
     }
 
     // sends a reminder email before a booking
-    public async Task SendReminderEmailAsync(string toEmail, string firstName, string roomName, DateTime startTime)
+    public virtual async Task SendReminderEmailAsync(string toEmail, string firstName, string roomName, DateTime startTime)
     {
         // email setup from appsettings.json
         var smtpHost = _config["Email:SmtpHost"];
