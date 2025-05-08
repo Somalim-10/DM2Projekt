@@ -1,4 +1,6 @@
-﻿using System.Net;
+﻿using DM2Projekt.Models;
+using Humanizer;
+using System.Net;
 using System.Net.Mail;
 
 namespace DM2Projekt.Services;
@@ -15,7 +17,7 @@ public class EmailService
     // sends a reminder email before a booking
     public virtual async Task SendReminderEmailAsync(string toEmail, string firstName, string roomName, DateTime startTime)
     {
-        // email setup from appsettings.json
+        // grab SMTP settings from config
         var smtpHost = _config["Email:SmtpHost"];
         var smtpPort = int.Parse(_config["Email:SmtpPort"]);
         var smtpUser = _config["Email:SmtpUser"];
@@ -23,28 +25,30 @@ public class EmailService
         var fromEmail = _config["Email:FromEmail"];
         var fromName = _config["Email:FromName"];
 
-        // email content
+        // clean, no extra whitespace or weird Gmail clipping
         var subject = "📅 Heads up – you've got a booking soon!";
-        var body = $@"
-            Hey {firstName},
+        var body =
+$"""
+Hey {firstName},
 
-            Just a quick heads-up: you’ve got a room booking coming up tomorrow.
+Just a quick heads-up: you’ve got a room booking coming up tomorrow.
 
-            🧾 Room: {roomName}
-            🕒 Time: {startTime:dddd, MMMM d} at {startTime:HH:mm}
+📄 Room: {roomName}
+🕒 Time: {startTime:dddd, MMMM d} at {startTime:HH:mm}
 
-            Don’t be late 😄
+Don’t be late 😄
 
-            – Zealand Booking Bot";
+– Zealand Booking Bot 👍
+""";
 
-        // SMTP client setup
+        // set up the SMTP client
         using var client = new SmtpClient(smtpHost, smtpPort)
         {
             Credentials = new NetworkCredential(smtpUser, smtpPass),
             EnableSsl = true
         };
 
-        // build the email message
+        // build and send the email
         using var message = new MailMessage
         {
             From = new MailAddress(fromEmail, fromName),
@@ -54,8 +58,6 @@ public class EmailService
         };
 
         message.To.Add(toEmail);
-
-        // send it out
         await client.SendMailAsync(message);
     }
 }
