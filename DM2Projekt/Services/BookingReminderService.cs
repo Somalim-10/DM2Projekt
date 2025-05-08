@@ -3,8 +3,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace DM2Projekt.Services;
 
-// this service is always running in the background while the app is alive
-// it looks for upcoming bookings and emails all users in the group
+// runs in the background while app is running
 public class BookingReminderService : BackgroundService
 {
     private readonly IServiceProvider _services;
@@ -27,7 +26,7 @@ public class BookingReminderService : BackgroundService
             var now = DateTime.Now;
             var tomorrow = now.AddHours(24);
 
-            // grab bookings starting in next 24h that haven't been reminded yet
+            // get upcoming bookings that haven't been reminded
             var bookings = await context.Booking
                 .Include(b => b.Room)
                 .Include(b => b.Group)
@@ -43,16 +42,14 @@ public class BookingReminderService : BackgroundService
             {
                 try
                 {
-                    var groupUsers = booking.Group.UserGroups.Select(ug => ug.User).ToList();
+                    var users = booking.Group.UserGroups.Select(ug => ug.User).ToList();
 
-                    foreach (var user in groupUsers)
+                    foreach (var user in users)
                     {
-                        var firstName = user.FirstName;
-
-                        // fire off the email to this user
+                        // send email to each user
                         await emailService.SendReminderEmailAsync(
                             toEmail: user.Email,
-                            firstName: firstName,
+                            firstName: user.FirstName,
                             roomName: booking.Room.RoomName,
                             startTime: booking.StartTime!.Value
                         );
@@ -60,7 +57,7 @@ public class BookingReminderService : BackgroundService
                         _logger.LogInformation($"✅ Reminder sent to {user.Email} for booking {booking.BookingId}");
                     }
 
-                    // only mark as reminded once *everyone* has been emailed
+                    // mark booking as reminded
                     booking.ReminderSent = true;
                 }
                 catch (Exception ex)
@@ -71,7 +68,7 @@ public class BookingReminderService : BackgroundService
 
             await context.SaveChangesAsync();
 
-            // wait 30 min before doing this all over again
+            // check again in 30 mins
             await Task.Delay(TimeSpan.FromMinutes(30), stoppingToken);
         }
     }
