@@ -8,7 +8,7 @@ using System.ComponentModel.DataAnnotations;
 namespace DM2Projekt.Pages.Account;
 
 /// <summary>
-/// Handles "forgot password" page logic. User types in email, we send them their password (step 2).
+/// Handles "forgot password" page logic. User types in email, we send them their password.
 /// </summary>
 public class ForgotPasswordModel : PageModel
 {
@@ -47,11 +47,11 @@ public class ForgotPasswordModel : PageModel
 
         if (user != null)
         {
-            // send them their password by email (casual, like we said we would)
+            // send them their password by email
             await _emailService.SendPasswordRecoveryEmailAsync(
                 toEmail: user.Email,
                 firstName: user.FirstName,
-                password: user.Password // yeah, we’re sending the real one here (plaintext ftw, in this case)
+                password: user.Password
             );
         }
 
