@@ -55,4 +55,23 @@ public class CreateModel : PageModel
 
         return RedirectToPage("./Index");
     }
+    private async Task<bool> UrlExistsAsync(string url)
+    {
+        try
+        {
+            using var httpClient = new HttpClient();
+
+          
+            using var response = await httpClient.SendAsync(new HttpRequestMessage(HttpMethod.Head, url));
+
+          
+            return response.IsSuccessStatusCode &&
+                   response.Content.Headers.ContentType?.MediaType?.StartsWith("image") == true;
+        }
+        catch
+        {
+        
+            return false;
+        }
+    }
 }
