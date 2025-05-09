@@ -4,6 +4,7 @@ using DM2Projekt.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DM2Projekt.Migrations
 {
     [DbContext(typeof(DM2ProjektContext))]
-    partial class DM2ProjektContextModelSnapshot : ModelSnapshot
+    [Migration("20250509102117_FloorAndBuildingEnums")]
+    partial class FloorAndBuildingEnums
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -125,14 +128,8 @@ namespace DM2Projekt.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("BuildingName")
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<string>("Floor")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("FloorName")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("ImageUrl")
