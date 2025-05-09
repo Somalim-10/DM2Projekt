@@ -23,7 +23,7 @@ public class DeleteModel : PageModel
         if (id == null)
             return NotFound();
 
-        // get the group (with creator info)
+        // grab the group with its creator for display
         var group = await _context.Group
             .Include(g => g.CreatedByUser)
             .FirstOrDefaultAsync(g => g.GroupId == id);
@@ -54,13 +54,52 @@ public class DeleteModel : PageModel
         var userId = HttpContext.Session.GetInt32("UserId");
         var userRole = HttpContext.Session.GetString("UserRole");
 
-        // Check again before deleting
+        // check again just to be safe
         if (userRole != "Admin" && group.CreatedByUserId != userId)
             return RedirectToPage("/Groups/Index");
 
-        _context.Group.Remove(group);
-        await _context.SaveChangesAsync();
+        // ✅ Cleanly delete everything related to this group
+        await DeleteGroupAndChildren(group.GroupId);
 
         return RedirectToPage("./Index");
+    }
+
+    /// <summary>
+    /// 🔨 Deletes a group and all its attached data:
+    /// - bookings
+    /// - user memberships
+    /// - invitations
+    /// </summary>
+    private async Task DeleteGroupAndChildren(int groupId)
+    {
+        // get the group and all its related stuff
+        var group = await _context.Group
+            .Include(g => g.Bookings)
+            .Include(g => g.UserGroups)
+            .FirstOrDefaultAsync(g => g.GroupId == groupId);
+
+        if (group == null)
+            return;
+
+        // 🚫 Delete bookings first (otherwise they'll block the group from being deleted)
+        if (group.Bookings.Any())
+            _context.Booking.RemoveRange(group.Bookings);
+
+        // 🚫 Then user-group links (memberships)
+        if (group.UserGroups.Any())
+            _context.UserGroup.RemoveRange(group.UserGroups);
+
+        // 🚫 Then any pending invitations
+        var invites = await _context.GroupInvitation
+            .Where(i => i.GroupId == groupId)
+            .ToListAsync();
+
+        if (invites.Any())
+            _context.GroupInvitation.RemoveRange(invites);
+
+        // 🎯 Finally, remove the group itself
+        _context.Group.Remove(group);
+
+        await _context.SaveChangesAsync();
     }
 }
