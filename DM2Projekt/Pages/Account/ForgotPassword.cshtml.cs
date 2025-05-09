@@ -1,7 +1,8 @@
-using DM2Projekt.Data;
+ï»¿using DM2Projekt.Data;
 using DM2Projekt.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations;
 
 namespace DM2Projekt.Pages.Account;
@@ -20,7 +21,7 @@ public class ForgotPasswordModel : PageModel
         _emailService = emailService;
     }
 
-    // user input — just the email, nothing fancy
+    // user input â€” just the email, nothing fancy
     [BindProperty]
     public ForgotPasswordInputModel Input { get; set; } = new();
 
@@ -31,19 +32,33 @@ public class ForgotPasswordModel : PageModel
     public class ForgotPasswordInputModel
     {
         [Required(ErrorMessage = "You gotta type something here.")]
-        [EmailAddress(ErrorMessage = "That doesn’t look like a real email.")]
+        [EmailAddress(ErrorMessage = "That doesnâ€™t look like a real email.")]
         public string Email { get; set; }
     }
 
     // this runs when they click the button
     public async Task<IActionResult> OnPostAsync()
     {
-        // if they somehow bypass the frontend validation — double check
         if (!ModelState.IsValid)
-            return Page();
+            return Page(); // something's wrong with the input â€” don't continue
 
-        // we're not doing anything just yet, that’s next step
-        Message = "Hang tight — sending feature coming in the next step.";
-        return Page();
+        // see if we have a user with this email
+        var user = await _context.User.FirstOrDefaultAsync(u => u.Email == Input.Email);
+
+        if (user != null)
+        {
+            // send them their password by email (casual, like we said we would)
+            await _emailService.SendPasswordRecoveryEmailAsync(
+                toEmail: user.Email,
+                firstName: user.FirstName,
+                password: user.Password // yeah, weâ€™re sending the real one here (plaintext ftw, in this case)
+            );
+        }
+
+        // always show a friendly message â€” even if the email wasnâ€™t in the system
+        Message = "If that email exists in our system, we just sent the password your way. ðŸ“¬";
+
+        return Page(); // stay on the same page so we can show the message
     }
+
 }

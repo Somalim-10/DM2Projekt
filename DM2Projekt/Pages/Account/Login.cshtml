@@ -4,6 +4,7 @@
     ViewData["Title"] = "Login";
 }
 
+<!-- 🏠 Main login box -->
 <div class="container mt-5">
     <div class="row justify-content-center">
         <div class="col-md-6">
@@ -11,18 +12,21 @@
                 <div class="card-body">
                     <h2 class="text-center mb-4">Login</h2>
 
+                    <!-- 📥 Login form -->
                     <form method="post">
+                        <!-- 📧 Email input -->
                         <div class="mb-3">
                             <label asp-for="Input.Email" class="form-label">Email</label>
                             <input asp-for="Input.Email" class="form-control" placeholder="your email" />
                         </div>
 
+                        <!-- 🔒 Password input -->
                         <div class="mb-3">
                             <label asp-for="Input.Password" class="form-label">Password</label>
                             <input asp-for="Input.Password" type="password" class="form-control" placeholder="your password" />
                         </div>
 
-                        @* Show error if login fails *@
+                        <!-- 🚨 Show login error -->
                         @if (!string.IsNullOrEmpty(Model.ErrorMessage))
                         {
                             <div class="alert alert-danger" role="alert">
@@ -30,10 +34,16 @@
                             </div>
                         }
 
+                        <!-- 🔘 Submit button -->
                         <div class="d-grid">
                             <button type="submit" class="btn btn-primary">Login</button>
                         </div>
                     </form>
+
+                    <!-- 🧠 Forgot password link (added here, below form) -->
+                    <div class="text-center mt-3">
+                        <a asp-page="/Account/ForgotPassword">Forgot your password?</a>
+                    </div>
                 </div>
             </div>
         </div>
