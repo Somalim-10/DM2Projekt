@@ -7,35 +7,48 @@
 <div class="container mt-5">
     <div class="row justify-content-center">
         <div class="col-md-6">
-            <div class="card shadow-sm">
-                <div class="card-body">
-                    <h2 class="text-center mb-4">Login</h2>
+            <div class="card shadow">
+                <div class="card-body p-4">
+                    <h2 class="text-center mb-4">Welcome Back 👋</h2>
 
-                    <form method="post">
+                    <!-- 🚪 Login form -->
+                    <form method="post" novalidate>
+                        <!-- 📧 Email -->
                         <div class="mb-3">
                             <label asp-for="Input.Email" class="form-label">Email</label>
-                            <input asp-for="Input.Email" class="form-control" placeholder="your email" />
+                            <input asp-for="Input.Email" class="form-control" placeholder="you@example.com" />
+                            <span asp-validation-for="Input.Email" class="text-danger"></span>
                         </div>
 
+                        <!-- 🔐 Password -->
                         <div class="mb-3">
                             <label asp-for="Input.Password" class="form-label">Password</label>
                             <input asp-for="Input.Password" type="password" class="form-control" placeholder="your password" />
+                            <span asp-validation-for="Input.Password" class="text-danger"></span>
                         </div>
 
-                        @* Show error if login fails *@
+                        <!-- 🚨 Error if login fails -->
                         @if (!string.IsNullOrEmpty(Model.ErrorMessage))
                         {
-                            <div class="alert alert-danger" role="alert">
-                                @Model.ErrorMessage
-                            </div>
+                            <div class="alert alert-danger mt-2">@Model.ErrorMessage</div>
                         }
 
-                        <div class="d-grid">
-                            <button type="submit" class="btn btn-primary">Login</button>
+                        <!-- 🟦 Login button -->
+                        <div class="d-grid mt-3">
+                            <button type="submit" class="btn btn-primary">Log In</button>
                         </div>
                     </form>
+
+                    <!-- 🔗 Extra links -->
+                    <div class="text-center mt-4">
+                        <a asp-page="/Account/ForgotPassword" class="link-secondary">Forgot your password?</a>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
