@@ -15,21 +15,31 @@ public class DetailsModel : PageModel
         _context = context;
     }
 
-    public UserGroup UserGroup { get; set; } = default!;
+    public UserGroup UserGroup { get; set; } = new();
+
+    public int GroupMemberCount { get; set; }
+    public string GroupCreatorEmail { get; set; } = "";
 
     public async Task<IActionResult> OnGetAsync(int? userId, int? groupId)
     {
         if (userId == null || groupId == null)
             return NotFound();
 
-        // find the usergroup
+        // get user + group data
         UserGroup = await _context.UserGroup
             .Include(ug => ug.User)
             .Include(ug => ug.Group)
+                .ThenInclude(g => g.CreatedByUser)
             .FirstOrDefaultAsync(m => m.UserId == userId && m.GroupId == groupId);
 
         if (UserGroup == null)
             return NotFound();
+
+        // get member count
+        GroupMemberCount = await _context.UserGroup.CountAsync(ug => ug.GroupId == groupId);
+
+        // get creator email
+        GroupCreatorEmail = UserGroup.Group.CreatedByUser.Email;
 
         return Page();
     }

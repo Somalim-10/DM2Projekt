@@ -23,11 +23,11 @@ public class DeleteModel : PageModel
         if (userId == null || groupId == null)
             return NotFound();
 
-        // find the user group
+        // find the user-group pair (with related info)
         UserGroup = await _context.UserGroup
             .Include(ug => ug.User)
             .Include(ug => ug.Group)
-            .FirstOrDefaultAsync(m => m.UserId == userId && m.GroupId == groupId);
+            .FirstOrDefaultAsync(ug => ug.UserId == userId && ug.GroupId == groupId);
 
         if (UserGroup == null)
             return NotFound();
@@ -40,13 +40,9 @@ public class DeleteModel : PageModel
         if (userId == null || groupId == null)
             return NotFound();
 
-        var userRole = HttpContext.Session.GetString("UserRole");
-
-        // only Admins can actually delete
-        if (userRole != "Admin")
-        {
+        var role = HttpContext.Session.GetString("UserRole");
+        if (role != "Admin")
             return RedirectToPage("./Index");
-        }
 
         var userGroup = await _context.UserGroup.FindAsync(userId, groupId);
 
@@ -54,6 +50,8 @@ public class DeleteModel : PageModel
         {
             _context.UserGroup.Remove(userGroup);
             await _context.SaveChangesAsync();
+
+            TempData["Success"] = "User group was successfully deleted.";
         }
 
         return RedirectToPage("./Index");

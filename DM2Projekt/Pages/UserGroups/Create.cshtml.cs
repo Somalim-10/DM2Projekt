@@ -18,60 +18,48 @@ public class CreateModel : PageModel
     [BindProperty]
     public UserGroup UserGroup { get; set; } = default!;
 
+    public SelectList Users { get; set; } = default!;
+    public SelectList Groups { get; set; } = default!;
+
     public IActionResult OnGet()
     {
-        var userRole = HttpContext.Session.GetString("UserRole");
+        var role = HttpContext.Session.GetString("UserRole");
 
-        // only Admins can access create
-        if (userRole != "Admin")
-        {
+        // only admins can get in here
+        if (role != "Admin")
             return RedirectToPage("./Index");
-        }
 
-        ViewData["GroupId"] = new SelectList(_context.Group, "GroupId", "GroupName");
-        ViewData["UserId"] = new SelectList(_context.User, "UserId", "Email");
-
+        LoadDropdowns();
         return Page();
     }
 
     public async Task<IActionResult> OnPostAsync()
     {
-        var userRole = HttpContext.Session.GetString("UserRole");
+        var role = HttpContext.Session.GetString("UserRole");
 
-        // only Admins can submit create
-        if (userRole != "Admin")
-        {
+        if (role != "Admin")
             return RedirectToPage("./Index");
-        }
 
         if (!ModelState.IsValid)
         {
+            LoadDropdowns();
             return Page();
         }
 
-        // add and save new UserGroup
         _context.UserGroup.Add(UserGroup);
         await _context.SaveChangesAsync();
 
+        TempData["Success"] = "User group was successfully created.";
         return RedirectToPage("./Index");
     }
-    private async Task<bool> UrlExistsAsync(string url)
+
+    private void LoadDropdowns()
     {
-        try
-        {
-            using var httpClient = new HttpClient();
+        // sorted by name for easier admin selection
+        Users = new SelectList(_context.User.OrderBy(u => u.Email), "UserId", "Email");
+        Groups = new SelectList(_context.Group.OrderBy(g => g.GroupName), "GroupId", "GroupName");
 
-          
-            using var response = await httpClient.SendAsync(new HttpRequestMessage(HttpMethod.Head, url));
-
-          
-            return response.IsSuccessStatusCode &&
-                   response.Content.Headers.ContentType?.MediaType?.StartsWith("image") == true;
-        }
-        catch
-        {
-        
-            return false;
-        }
+        ViewData["UserId"] = Users;
+        ViewData["GroupId"] = Groups;
     }
 }

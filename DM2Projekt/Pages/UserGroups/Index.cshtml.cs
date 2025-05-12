@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using DM2Projekt.Data;
 using DM2Projekt.Models;
+using Microsoft.AspNetCore.Mvc;
 
 namespace DM2Projekt.Pages.UserGroups;
 
@@ -14,14 +15,27 @@ public class IndexModel : PageModel
         _context = context;
     }
 
-    public IList<UserGroup> UserGroup { get; set; } = default!;
+    // yo, this list holds all our user-group links
+    public IList<UserGroup> UserGroup { get; set; } = new List<UserGroup>();
+
+    [BindProperty(SupportsGet = true)]
+    public string? Search { get; set; }
 
     public async Task OnGetAsync()
     {
-        // load UserGroups including related User and Group info
-        UserGroup = await _context.UserGroup
-            .Include(u => u.Group)
-            .Include(u => u.User)
-            .ToListAsync();
+        // grab all the user-group pairs, filter if searching
+        var query = _context.UserGroup
+            .Include(ug => ug.User)
+            .Include(ug => ug.Group)
+            .AsQueryable();
+
+        if (!string.IsNullOrWhiteSpace(Search))
+        {
+            query = query.Where(ug =>
+                ug.User.Email.Contains(Search) ||
+                ug.Group.GroupName.Contains(Search));
+        }
+
+        UserGroup = await query.ToListAsync();
     }
 }

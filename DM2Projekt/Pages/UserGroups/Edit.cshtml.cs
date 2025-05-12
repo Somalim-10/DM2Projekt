@@ -19,16 +19,20 @@ public class EditModel : PageModel
     [BindProperty]
     public UserGroup UserGroup { get; set; } = default!;
 
+    public SelectList GroupOptions { get; set; } = default!;
+    public User CurrentUser { get; set; } = default!;
+    public Group CurrentGroup { get; set; } = default!;
+
     public async Task<IActionResult> OnGetAsync(int? userId, int? groupId)
     {
         if (userId == null || groupId == null)
             return NotFound();
 
-        var userRole = HttpContext.Session.GetString("UserRole");
-        if (userRole != "Admin") // only Admins allowed
+        var role = HttpContext.Session.GetString("UserRole");
+        if (role != "Admin")
             return RedirectToPage("/UserGroups/Index");
 
-        // load UserGroup
+        // fetch the user-group link
         UserGroup = await _context.UserGroup
             .Include(ug => ug.User)
             .Include(ug => ug.Group)
@@ -37,38 +41,40 @@ public class EditModel : PageModel
         if (UserGroup == null)
             return NotFound();
 
-        // setup dropdowns
-        ViewData["UserId"] = new SelectList(_context.User, "UserId", "Email", UserGroup.UserId);
-        ViewData["GroupId"] = new SelectList(_context.Group, "GroupId", "GroupName", UserGroup.GroupId);
+        // fetch user + group separately for display
+        CurrentUser = UserGroup.User;
+        CurrentGroup = UserGroup.Group;
+
+        // list all groups except the current one
+        GroupOptions = new SelectList(_context.Group
+            .OrderBy(g => g.GroupName), "GroupId", "GroupName", UserGroup.GroupId);
 
         return Page();
     }
 
     public async Task<IActionResult> OnPostAsync()
     {
-        var userRole = HttpContext.Session.GetString("UserRole");
-        if (userRole != "Admin")
+        var role = HttpContext.Session.GetString("UserRole");
+        if (role != "Admin")
             return RedirectToPage("/UserGroups/Index");
 
         if (!ModelState.IsValid)
+        {
+            // reload dropdown in case of error
+            GroupOptions = new SelectList(_context.Group.OrderBy(g => g.GroupName), "GroupId", "GroupName", UserGroup.GroupId);
             return Page();
-
-        try
-        {
-            _context.Update(UserGroup);
-            await _context.SaveChangesAsync();
-        }
-        catch (DbUpdateConcurrencyException)
-        {
-            bool exists = _context.UserGroup.Any(e =>
-                e.UserId == UserGroup.UserId && e.GroupId == UserGroup.GroupId);
-
-            if (!exists)
-                return NotFound();
-
-            throw;
         }
 
+        // delete old entry
+        var old = await _context.UserGroup.FindAsync(UserGroup.UserId, UserGroup.GroupId);
+        if (old != null)
+            _context.UserGroup.Remove(old);
+
+        // add new link
+        _context.UserGroup.Add(UserGroup);
+        await _context.SaveChangesAsync();
+
+        TempData["Success"] = "User was successfully moved to a new group.";
         return RedirectToPage("./Index");
     }
 }
