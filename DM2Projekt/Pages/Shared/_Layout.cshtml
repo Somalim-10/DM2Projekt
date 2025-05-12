@@ -8,31 +8,25 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - DM2Projekt</title>
 
-    <!-- Bootstrap & icons -->
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/DM2Projekt.styles.css" asp-append-version="true" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" />
 </head>
-<body>
+<body class="d-flex flex-column min-vh-100">
     <header>
-        <nav class="navbar navbar-expand-sm navbar-light bg-light border-bottom shadow-sm mb-3">
+        <nav class="navbar navbar-expand-sm navbar-light bg-light border-bottom shadow-sm">
             <div class="container">
-                <!-- Brand / logo -->
                 <a class="navbar-brand fw-bold text-primary" asp-page="/Index">
                     <i class="bi bi-house-door-fill me-1"></i> DM2Projekt
                 </a>
 
-                <!-- Mobile menu toggle -->
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse">
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavbar">
                     <span class="navbar-toggler-icon"></span>
                 </button>
 
-                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                    <!-- Left-side nav links -->
-                    <ul class="navbar-nav flex-grow-1">
-                        @* Home link removed to avoid duplicate functionality *@
-
+                <div class="collapse navbar-collapse" id="mainNavbar">
+                    <ul class="navbar-nav flex-grow-1 me-auto">
                         @{
                             var fullName = HttpContextAccessor.HttpContext?.Session.GetString("UserName");
                             var userRole = HttpContextAccessor.HttpContext?.Session.GetString("UserRole");
@@ -63,33 +57,27 @@
                                 <a class="nav-link text-dark" asp-page="/Groups/Index"><i class="bi bi-people me-1"></i>Groups</a>
                             </li>
 
-                            @* Admin-only links *@
                             if (userRole == "Admin")
                             {
                                 <li class="nav-item">
                                     <a class="nav-link text-dark" asp-page="/Users/Index"><i class="bi bi-person-gear me-1"></i>Manage Users</a>
                                 </li>
                                 <li class="nav-item">
-                                    <a class="nav-link text-dark" asp-page="/UserGroups/Index" title="Assign users to groups">
-                                        <i class="bi bi-link-45deg me-1"></i>Assign Groups
-                                    </a>
+                                    <a class="nav-link text-dark" asp-page="/UserGroups/Index"><i class="bi bi-link-45deg me-1"></i>Assign Groups</a>
                                 </li>
                             }
                         }
                     </ul>
 
-                    <!-- Right-side: invites, profile, logout/login -->
                     <ul class="navbar-nav">
                         @{
                             var pendingInvites = 0;
-
                             if (userRole == "Student" && userId.HasValue)
                             {
                                 var context = Context.RequestServices.GetService(typeof(DM2Projekt.Data.DM2ProjektContext)) as DM2Projekt.Data.DM2ProjektContext;
                                 if (context != null)
                                 {
-                                    pendingInvites = context.GroupInvitation
-                                    .Count(i => i.InvitedUserId == userId && i.IsAccepted == null);
+                                    pendingInvites = context.GroupInvitation.Count(i => i.InvitedUserId == userId && i.IsAccepted == null);
                                 }
 
                                 <li class="nav-item position-relative">
@@ -123,9 +111,7 @@
                                     <a class="btn btn-outline-secondary btn-sm d-flex align-items-center" asp-page="/Account/UserPage">
                                         @if (!string.IsNullOrEmpty(profileUrl))
                                         {
-                                            <img src="@profileUrl"
-                                                 alt="Profile" class="rounded-circle me-2"
-                                                 style="width: 28px; height: 28px; object-fit: cover;" />
+                                            <img src="@profileUrl" alt="Profile" class="rounded-circle me-2" style="width: 28px; height: 28px; object-fit: cover;" />
                                         }
                                         else
                                         {
@@ -151,17 +137,17 @@
     </header>
 
     <!-- Main content -->
-    <div class="container">
+    <div class="container flex-grow-1 my-4">
         <main role="main" class="pb-3">
             @RenderBody()
         </main>
     </div>
 
     <!-- Footer -->
-    <footer class="border-top footer text-muted mt-5 small">
+    <footer class="footer border-top small mt-auto text-muted">
         <div class="container d-flex justify-content-between align-items-center py-2">
             <span>&copy; 2025 DM2Projekt</span>
-            <span>Built for educational use. No personal data is stored.</span>
+            <span class="text-end">Built for educational use. No personal data is stored.</span>
         </div>
     </footer>
 
@@ -169,7 +155,6 @@
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
-
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>
