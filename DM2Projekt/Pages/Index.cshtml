@@ -75,7 +75,7 @@
         </div>
     }
 
-    @* 👑 ADMIN (dashboard style) *@
+    @* 👑 ADMIN (dashboard view) *@
     else if (userRole == "Admin" && !string.IsNullOrEmpty(firstName))
     {
         <div class="mx-auto" style="max-width: 900px;">
@@ -83,42 +83,43 @@
                 <h1 class="display-6 mb-4">Welcome back 👑 @firstName</h1>
 
                 <div class="row text-center">
-                    @* Users section *@
+                    @* Users *@
                     <div class="col-md-4 mb-3">
                         <div class="bg-white rounded shadow-sm py-3">
                             <i class="bi bi-people-fill text-primary fs-3"></i>
                             <div class="fw-bold fs-4 mt-2">@Model.UserCount</div>
-                            <div class="text-muted small">Total users</div>
-                            <div class="text-muted small">👩‍🎓 @Model.StudentCount student@(Model.StudentCount == 1 ? "" : "s")</div>
-                            <div class="text-muted small">👨‍🏫 @Model.TeacherCount teacher@(Model.TeacherCount == 1 ? "" : "s")</div>
-                            <div class="text-muted small">👑 @Model.AdminCount admin@(Model.AdminCount == 1 ? "" : "s")</div>
+                            <div class="text-muted small">Users</div>
+                            <div class="text-muted small">👩‍🎓 @Model.StudentCount students</div>
+                            <div class="text-muted small">👨‍🏫 @Model.TeacherCount teachers</div>
+                            <div class="text-muted small">👑 @Model.AdminCount admins</div>
                         </div>
                     </div>
 
-                    @* Rooms section *@
+                    @* Rooms *@
                     <div class="col-md-4 mb-3">
                         <div class="bg-white rounded shadow-sm py-3">
                             <i class="bi bi-door-open text-success fs-3"></i>
                             <div class="fw-bold fs-4 mt-2">@Model.RoomCount</div>
-                            <div class="text-muted small">Total rooms</div>
-                            <div class="text-muted small">🏫 @Model.ClassroomCount classroom@(Model.ClassroomCount == 1 ? "" : "s")</div>
-                            <div class="text-muted small">📋 @Model.MeetingRoomCount meeting room@(Model.MeetingRoomCount == 1 ? "" : "s")</div>
+                            <div class="text-muted small">Rooms</div>
+                            <div class="text-muted small">🏫 @Model.ClassroomCount classrooms</div>
+                            <div class="text-muted small">📋 @Model.MeetingRoomCount meeting rooms</div>
                         </div>
                     </div>
 
-                    @* Bookings section *@
+                    @* Bookings *@
                     <div class="col-md-4 mb-3">
                         <div class="bg-white rounded shadow-sm py-3">
                             <i class="bi bi-calendar3 text-danger fs-3"></i>
                             <div class="fw-bold fs-4 mt-2">@Model.BookingCount</div>
-                            <div class="text-muted small">Total bookings</div>
+                            <div class="text-muted small">Bookings</div>
                             <div class="text-muted small">📅 @Model.UpcomingBookingCount upcoming</div>
                             <div class="text-muted small">📁 @Model.PastBookingCount past</div>
+                            <div class="text-muted small">⏳ @Model.OngoingBookingCount ongoing</div>
                         </div>
                     </div>
                 </div>
 
-                @* Groups card below *@
+                @* Groups section *@
                 <div class="row mt-3 justify-content-center">
                     <div class="col-sm-6 col-md-4">
                         <div class="bg-white rounded shadow-sm py-3">

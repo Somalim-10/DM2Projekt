@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 using DM2Projekt.Data;
 using DM2Projekt.Models;
-using DM2Projekt.Models.Enums; // <- needed for Role and RoomType enums
+using DM2Projekt.Models.Enums; // for Role and RoomType enums
 
 namespace DM2Projekt.Pages;
 
@@ -18,30 +18,31 @@ public class IndexModel : PageModel
     // Student: their next booking
     public Booking? NextBooking { get; set; }
 
-    // Teacher: how many bookings they can cancel
+    // Teacher: number of bookings they can cancel
     public int CancellableBookingCount { get; set; }
 
-    // Teacher: profile image
+    // Teacher: profile image (if they uploaded one)
     public string? TeacherProfileImagePath { get; set; }
 
-    // Admin: user breakdown
+    // Admin: user stats
     public int UserCount { get; set; }
     public int StudentCount { get; set; }
     public int TeacherCount { get; set; }
     public int AdminCount { get; set; }
 
-    // Admin: room breakdown
+    // Admin: room stats
     public int RoomCount { get; set; }
     public int ClassroomCount { get; set; }
     public int MeetingRoomCount { get; set; }
 
-    // Admin: group total
+    // Admin: group stats
     public int GroupCount { get; set; }
 
-    // Admin: booking breakdown
+    // Admin: booking stats
     public int BookingCount { get; set; }
     public int UpcomingBookingCount { get; set; }
     public int PastBookingCount { get; set; }
+    public int OngoingBookingCount { get; set; }
 
     public async Task OnGetAsync()
     {
@@ -49,7 +50,7 @@ public class IndexModel : PageModel
         var role = HttpContext.Session.GetString("UserRole");
         var now = DateTime.Now;
 
-        // student: get next upcoming booking
+        // STUDENT: get their next booking
         if (role == "Student" && userId != null)
         {
             var groupIds = await _context.UserGroup
@@ -64,12 +65,11 @@ public class IndexModel : PageModel
                 .OrderBy(b => b.StartTime)
                 .ToListAsync();
 
-            NextBooking = upcoming
-                .FirstOrDefault(b =>
-                    b.CreatedByUserId == userId || groupIds.Contains(b.GroupId));
+            NextBooking = upcoming.FirstOrDefault(b =>
+                b.CreatedByUserId == userId || groupIds.Contains(b.GroupId));
         }
 
-        // teacher: get how many future bookings they can cancel
+        // TEACHER: get how many bookings they can cancel (>= 3 days away)
         if (role == "Teacher" && userId != null)
         {
             var cutoff = now.AddDays(3);
@@ -80,29 +80,32 @@ public class IndexModel : PageModel
             TeacherProfileImagePath = teacher?.ProfileImagePath;
         }
 
-        // admin: full dashboard data
+        // ADMIN: dashboard overview
         if (role == "Admin")
         {
-            // users by role
+            // User breakdown
             UserCount = await _context.User.CountAsync();
             StudentCount = await _context.User.CountAsync(u => u.Role == Role.Student);
             TeacherCount = await _context.User.CountAsync(u => u.Role == Role.Teacher);
             AdminCount = await _context.User.CountAsync(u => u.Role == Role.Admin);
 
-            // rooms by type
+            // Room breakdown
             RoomCount = await _context.Room.CountAsync();
             ClassroomCount = await _context.Room.CountAsync(r => r.RoomType == RoomType.Classroom);
             MeetingRoomCount = await _context.Room.CountAsync(r => r.RoomType == RoomType.MeetingRoom);
 
-            // groups and bookings
+            // Groups
             GroupCount = await _context.Group.CountAsync();
+
+            // Booking stats
             BookingCount = await _context.Booking.CountAsync();
             UpcomingBookingCount = await _context.Booking.CountAsync(b => b.StartTime > now);
             PastBookingCount = await _context.Booking.CountAsync(b => b.EndTime < now);
+            OngoingBookingCount = await _context.Booking.CountAsync(b => b.StartTime <= now && b.EndTime >= now);
         }
     }
 
-    // turns a datetime into something like "Starts in 1 hour and 20 minutes"
+    // Utility: "Starts in 1 hour and 20 minutes"
     public static string GetRelativeTime(DateTime target)
     {
         var now = DateTime.Now;
