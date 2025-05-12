@@ -35,6 +35,7 @@ public class IndexModel : PageModel
         if (!IsStudent(userId, role))
             return RedirectToPage("/Index");
 
+        // load their pending invites
         GroupInvitation = await GetPendingInvitesAsync(userId.Value);
         return Page();
     }
@@ -53,6 +54,7 @@ public class IndexModel : PageModel
             return Page();
         }
 
+        // find that invite
         var invite = await GetInviteAsync(userId.Value);
         if (invite == null)
             return RedirectToPage();
@@ -67,6 +69,7 @@ public class IndexModel : PageModel
 
         await _context.SaveChangesAsync();
 
+        // success feedback
         SuccessMessage = $"You joined the group \"{invite.Group.GroupName}\"!";
         return RedirectToPage();
     }
@@ -99,8 +102,9 @@ public class IndexModel : PageModel
     {
         return await _context.GroupInvitation
             .Include(i => i.Group)
-            .ThenInclude(g => g.CreatedByUser)
+                .ThenInclude(g => g.CreatedByUser)
             .Where(i => i.InvitedUserId == userId && i.IsAccepted == null)
+            .OrderByDescending(i => i.SentAt) // show newest invites first
             .ToListAsync();
     }
 
@@ -116,7 +120,7 @@ public class IndexModel : PageModel
     {
         return await _context.GroupInvitation
             .Include(i => i.Group)
-            .ThenInclude(g => g.CreatedByUser)
+                .ThenInclude(g => g.CreatedByUser)
             .FirstOrDefaultAsync(i =>
                 i.InvitationId == ActionInvitationId &&
                 i.InvitedUserId == userId &&

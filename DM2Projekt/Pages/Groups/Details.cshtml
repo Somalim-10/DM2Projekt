@@ -1,5 +1,6 @@
 ﻿@page
 @model DM2Projekt.Pages.Groups.DetailsModel
+@using Humanizer
 
 @{
     ViewData["Title"] = "Group Details";
@@ -22,7 +23,7 @@
         </div>
     }
 
-    <!-- Group info -->
+    <!-- group info box -->
     <div class="card shadow-sm mb-4">
         <div class="card-body">
             <h5 class="card-title mb-3">📘 Group Info</h5>
@@ -36,7 +37,7 @@
         </div>
     </div>
 
-    <!-- Group members -->
+    <!-- members list -->
     <div class="card shadow-sm mb-4">
         <div class="card-body">
             <h5 class="card-title mb-3">👥 Group Members</h5>
@@ -93,6 +94,35 @@
             }
         </div>
     </div>
+
+    <!-- pending invites list (only if you're creator) -->
+    @if (isCreator && Model.PendingInvites.Any())
+    {
+        <div class="card shadow-sm mb-4">
+            <div class="card-body">
+                <h5 class="card-title mb-3">📨 Pending Invitations</h5>
+
+                <ul class="list-group">
+                    @foreach (var invite in Model.PendingInvites)
+                    {
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <span>
+                                @invite.InvitedUser?.FirstName @invite.InvitedUser?.LastName
+                                <span class="text-muted">(@invite.InvitedUser?.Email)</span>
+                                • <small class="text-muted">@invite.SentAt.Humanize(false)</small>
+                            </span>
+                            <form method="post" asp-page-handler="CancelInvite" class="d-inline">
+                                <input type="hidden" name="CancelInviteId" value="@invite.InvitationId" />
+                                <button type="submit" class="btn btn-sm btn-outline-danger">
+                                    <i class="bi bi-x-circle"></i> Cancel
+                                </button>
+                            </form>
+                        </li>
+                    }
+                </ul>
+            </div>
+        </div>
+    }
 
     <!-- back + edit -->
     <div class="d-flex justify-content-between">
