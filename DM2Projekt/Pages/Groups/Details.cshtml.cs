@@ -27,6 +27,9 @@ public class DetailsModel : PageModel
     [BindProperty]
     public int KickGroupId { get; set; }
 
+    [TempData]
+    public string? SuccessMessage { get; set; }
+
     public async Task<IActionResult> OnGetAsync(int? id)
     {
         if (id == null)

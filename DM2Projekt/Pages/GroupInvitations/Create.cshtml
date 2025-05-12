@@ -9,45 +9,52 @@
 
     <div class="row">
         <div class="col-md-6">
-
             <div class="card shadow-sm">
                 <div class="card-body">
 
-                    <!-- show validation errors (e.g. duplicate invite) -->
+                    <!-- errors like duplicate invite -->
                     <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
 
-                    <form method="post">
-                        <!-- hidden data for the form -->
-                        <input type="hidden" asp-for="GroupInvitation.GroupId" />
-                        <input type="hidden" asp-for="GroupInvitation.SentAt" />
-                        <input type="hidden" asp-for="GroupInvitation.IsAccepted" />
-
-                        <!-- student dropdown -->
-                        <div class="mb-3">
-                            <label asp-for="GroupInvitation.InvitedUserId" class="form-label">Invite Student</label>
-                            <select asp-for="GroupInvitation.InvitedUserId"
-                                    class="form-select"
-                                    asp-items="Model.EligibleUsers">
-                                <option value="">-- Select student email --</option>
-                            </select>
-                            <span asp-validation-for="GroupInvitation.InvitedUserId" class="text-danger"></span>
+                    @if (!Model.EligibleUsers.Any())
+                    {
+                        <div class="alert alert-info">
+                            Everyone is already in the group or invited. 🎉
                         </div>
+                    }
+                    else
+                    {
+                        <form method="post">
+                            <!-- hidden fields -->
+                            <input type="hidden" asp-for="GroupInvitation.GroupId" />
+                            <input type="hidden" asp-for="GroupInvitation.SentAt" />
+                            <input type="hidden" asp-for="GroupInvitation.IsAccepted" />
 
-                        <!-- form buttons -->
-                        <div class="d-flex justify-content-between mt-4">
-                            <a asp-page="/Groups/Details"
-                               asp-route-id="@Model.Group?.GroupId"
-                               class="btn btn-secondary">
-                                Cancel
-                            </a>
-                            <button type="submit" class="btn btn-primary">
-                                <i class="bi bi-send-fill me-1"></i> Send Invitation
-                            </button>
-                        </div>
-                    </form>
+                            <!-- invite dropdown -->
+                            <div class="mb-3">
+                                <label asp-for="GroupInvitation.InvitedUserId" class="form-label">Invite Student</label>
+                                <select asp-for="GroupInvitation.InvitedUserId"
+                                        class="form-select"
+                                        asp-items="Model.EligibleUsers">
+                                    <option value="">-- Select a student --</option>
+                                </select>
+                                <span asp-validation-for="GroupInvitation.InvitedUserId" class="text-danger"></span>
+                            </div>
+
+                            <!-- buttons -->
+                            <div class="d-flex justify-content-between mt-4">
+                                <a asp-page="/Groups/Details"
+                                   asp-route-id="@Model.Group?.GroupId"
+                                   class="btn btn-secondary">
+                                    Cancel
+                                </a>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="bi bi-send-fill me-1"></i> Send Invitation
+                                </button>
+                            </div>
+                        </form>
+                    }
                 </div>
             </div>
-
         </div>
     </div>
 </div>
