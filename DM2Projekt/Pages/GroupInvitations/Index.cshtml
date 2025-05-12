@@ -1,6 +1,6 @@
 ﻿@page
 @model DM2Projekt.Pages.GroupInvitations.IndexModel
-
+@using Humanizer
 @{
     ViewData["Title"] = "My Invitations";
 }
@@ -47,8 +47,12 @@
                                 <p class="card-text text-muted mb-1">
                                     Invited by: <strong>@invite.Group.CreatedByUser.Email</strong>
                                 </p>
-                                <p class="card-text">
-                                    Sent: <span class="fw-semibold">@invite.SentAt.ToLocalTime().ToString("f")</span>
+                                <p class="card-text text-muted">
+                                    Sent:
+                                    <span class="fw-semibold"
+                                          title="@invite.SentAt.ToLocalTime().ToString("f")">
+                                        @invite.SentAt.Humanize(false)
+                                    </span>
                                 </p>
                             </div>
 
