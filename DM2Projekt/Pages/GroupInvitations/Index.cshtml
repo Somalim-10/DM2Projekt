@@ -8,12 +8,22 @@
 <div class="container mt-4">
     <h1 class="mb-4">My Pending Group Invitations</h1>
 
-    <!-- show errors like too many groups -->
+    <!-- flash message after action -->
+    @if (!string.IsNullOrWhiteSpace(Model.SuccessMessage))
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            @Model.SuccessMessage
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <!-- model errors (like too many groups) -->
     @if (!ViewData.ModelState.IsValid)
     {
         <div asp-validation-summary="All" class="alert alert-danger"></div>
     }
 
+    <!-- no invites = chill -->
     @if (!Model.GroupInvitation.Any())
     {
         <div class="alert alert-info">
@@ -22,6 +32,7 @@
     }
     else
     {
+        <!-- show each invite in a card -->
         <div class="row row-cols-1 row-cols-md-2 g-4">
             @foreach (var invite in Model.GroupInvitation)
             {
@@ -33,12 +44,15 @@
                                     <i class="bi bi-people-fill text-primary me-2"></i>
                                     @invite.Group.GroupName
                                 </h5>
-                                <p class="card-text text-muted">
-                                    Sent: <span class="fw-semibold">@invite.SentAt.ToString("g")</span>
+                                <p class="card-text text-muted mb-1">
+                                    Invited by: <strong>@invite.Group.CreatedByUser.Email</strong>
+                                </p>
+                                <p class="card-text">
+                                    Sent: <span class="fw-semibold">@invite.SentAt.ToLocalTime().ToString("f")</span>
                                 </p>
                             </div>
 
-                            <!-- accept/decline buttons -->
+                            <!-- accept / decline buttons -->
                             <div class="mt-3">
                                 <form method="post" asp-page-handler="Accept" class="d-inline">
                                     <input type="hidden" name="ActionInvitationId" value="@invite.InvitationId" />

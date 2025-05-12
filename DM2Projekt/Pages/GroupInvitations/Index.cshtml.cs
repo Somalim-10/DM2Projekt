@@ -15,18 +15,23 @@ public class IndexModel : PageModel
         _context = context;
     }
 
-    // List of pending invites for this student
+    // all pending invites for this student
     public IList<GroupInvitation> GroupInvitation { get; set; } = [];
 
-    // Used for Accept/Decline actions
+    // id of invite being accepted/declined
     [BindProperty]
     public int ActionInvitationId { get; set; }
+
+    // flash message (after accept/decline)
+    [TempData]
+    public string? SuccessMessage { get; set; }
 
     public async Task<IActionResult> OnGetAsync()
     {
         var userId = HttpContext.Session.GetInt32("UserId");
         var role = HttpContext.Session.GetString("UserRole");
 
+        // only students can view invites
         if (!IsStudent(userId, role))
             return RedirectToPage("/Index");
 
@@ -40,6 +45,7 @@ public class IndexModel : PageModel
         if (userId == null)
             return RedirectToPage("/Login");
 
+        // too many groups? stop right there
         if (await UserIsInTooManyGroups(userId.Value))
         {
             ModelState.AddModelError(string.Empty, "You cannot join more than 3 groups.");
@@ -51,7 +57,7 @@ public class IndexModel : PageModel
         if (invite == null)
             return RedirectToPage();
 
-        // accept the invite and add to UserGroup
+        // cool, accept it + link user to group
         invite.IsAccepted = true;
         _context.UserGroup.Add(new UserGroup
         {
@@ -60,6 +66,8 @@ public class IndexModel : PageModel
         });
 
         await _context.SaveChangesAsync();
+
+        SuccessMessage = $"You joined the group \"{invite.Group.GroupName}\"!";
         return RedirectToPage();
     }
 
@@ -73,36 +81,42 @@ public class IndexModel : PageModel
         if (invite == null)
             return RedirectToPage();
 
-        // just mark as declined
+        // just mark it as declined
         invite.IsAccepted = false;
         await _context.SaveChangesAsync();
 
+        SuccessMessage = $"You declined the invite to \"{invite.Group.GroupName}\".";
         return RedirectToPage();
     }
 
-    // === Private helpers ===
+    // === helpers below ===
 
     private bool IsStudent(int? userId, string? role) =>
         userId != null && role == "Student";
 
+    // get all invites for the user that haven't been accepted/declined
     private async Task<IList<GroupInvitation>> GetPendingInvitesAsync(int userId)
     {
         return await _context.GroupInvitation
             .Include(i => i.Group)
+            .ThenInclude(g => g.CreatedByUser)
             .Where(i => i.InvitedUserId == userId && i.IsAccepted == null)
             .ToListAsync();
     }
 
+    // check if user is already in 3 groups
     private async Task<bool> UserIsInTooManyGroups(int userId)
     {
         int count = await _context.UserGroup.CountAsync(ug => ug.UserId == userId);
         return count >= 3;
     }
 
+    // get the specific invite that matches the button click
     private async Task<GroupInvitation?> GetInviteAsync(int userId)
     {
         return await _context.GroupInvitation
             .Include(i => i.Group)
+            .ThenInclude(g => g.CreatedByUser)
             .FirstOrDefaultAsync(i =>
                 i.InvitationId == ActionInvitationId &&
                 i.InvitedUserId == userId &&
