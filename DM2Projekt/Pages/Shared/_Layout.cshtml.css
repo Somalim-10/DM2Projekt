@@ -9,6 +9,18 @@
     color: #6c757d;
 }
 
+    /* Footer links – subtle but accessible */
+    .footer a {
+        color: #6c757d;
+        text-decoration: none;
+    }
+
+        .footer a:hover,
+        .footer a:focus {
+            color: #0056b3;
+            text-decoration: underline;
+        }
+
 /* Remove unnecessary body padding */
 body {
     padding-bottom: 0;
