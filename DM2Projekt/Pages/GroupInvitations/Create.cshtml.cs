@@ -23,40 +23,52 @@ public class CreateModel : PageModel
     public Group? Group { get; set; }
     public SelectList EligibleUsers { get; set; } = default!;
 
+    [TempData]
+    public string? SuccessMessage { get; set; }
+
     public async Task<IActionResult> OnGetAsync(int? groupId)
     {
         var userId = HttpContext.Session.GetInt32("UserId");
         if (userId == null || groupId == null)
             return RedirectToPage("/Login");
 
-        // Load group and its members
+        // load group + members
         Group = await _context.Group
             .Include(g => g.UserGroups)
             .FirstOrDefaultAsync(g => g.GroupId == groupId);
 
-        // Only the creator can invite
+        // only group creator can invite
         if (Group == null || Group.CreatedByUserId != userId)
             return RedirectToPage("/Groups/Index");
 
-        // Get member + pending invite IDs
+        // get current members
         var memberIds = Group.UserGroups.Select(ug => ug.UserId).ToList();
+
+        // get pending invitees
         var pendingIds = await _context.GroupInvitation
             .Where(i => i.GroupId == groupId && i.IsAccepted == null)
             .Select(i => i.InvitedUserId)
             .ToListAsync();
 
-        // Get all students, filter out members + pending
+        // get all students and filter out those already in or invited
         var eligible = await _context.User
             .Where(u => u.Role == Role.Student)
             .ToListAsync();
 
         var filtered = eligible
             .Where(u => !memberIds.Contains(u.UserId) && !pendingIds.Contains(u.UserId))
+            .OrderBy(u => u.FirstName)
+            .ThenBy(u => u.LastName)
+            .Select(u => new
+            {
+                u.UserId,
+                Display = $"{u.FirstName} {u.LastName} ({u.Email})"
+            })
             .ToList();
 
-        EligibleUsers = new SelectList(filtered, "UserId", "Email");
+        EligibleUsers = new SelectList(filtered, "UserId", "Display");
 
-        // Pre-fill form
+        // setup default model values
         GroupInvitation = new GroupInvitation
         {
             GroupId = Group.GroupId,
@@ -77,7 +89,7 @@ public class CreateModel : PageModel
         if (group == null || group.CreatedByUserId != userId)
             return RedirectToPage("/Groups/Index");
 
-        // Don’t send duplicate invite
+        // don’t send same invite twice
         bool alreadyExists = await _context.GroupInvitation.AnyAsync(i =>
             i.GroupId == GroupInvitation.GroupId &&
             i.InvitedUserId == GroupInvitation.InvitedUserId &&
@@ -86,7 +98,7 @@ public class CreateModel : PageModel
         if (alreadyExists)
         {
             ModelState.AddModelError(string.Empty, "This user already has a pending invitation.");
-            return await OnGetAsync(GroupInvitation.GroupId); // just re-render the form
+            return await OnGetAsync(GroupInvitation.GroupId);
         }
 
         GroupInvitation.SentAt = DateTime.Now;
@@ -95,6 +107,7 @@ public class CreateModel : PageModel
         _context.GroupInvitation.Add(GroupInvitation);
         await _context.SaveChangesAsync();
 
+        SuccessMessage = "Invitation sent successfully!";
         return RedirectToPage("/Groups/Details", new { id = GroupInvitation.GroupId });
     }
 }

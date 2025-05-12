@@ -1,6 +1,6 @@
 ﻿@page
 @model DM2Projekt.Pages.GroupInvitations.IndexModel
-
+@using Humanizer
 @{
     ViewData["Title"] = "My Invitations";
 }
@@ -8,12 +8,22 @@
 <div class="container mt-4">
     <h1 class="mb-4">My Pending Group Invitations</h1>
 
-    <!-- show errors like too many groups -->
+    <!-- flash success -->
+    @if (!string.IsNullOrWhiteSpace(Model.SuccessMessage))
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            @Model.SuccessMessage
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <!-- any errors (e.g. max group limit) -->
     @if (!ViewData.ModelState.IsValid)
     {
         <div asp-validation-summary="All" class="alert alert-danger"></div>
     }
 
+    <!-- empty state -->
     @if (!Model.GroupInvitation.Any())
     {
         <div class="alert alert-info">
@@ -22,6 +32,7 @@
     }
     else
     {
+        <!-- invitation list -->
         <div class="row row-cols-1 row-cols-md-2 g-4">
             @foreach (var invite in Model.GroupInvitation)
             {
@@ -33,12 +44,24 @@
                                     <i class="bi bi-people-fill text-primary me-2"></i>
                                     @invite.Group.GroupName
                                 </h5>
+                                <p class="card-text text-muted mb-1">
+                                    Invited by:
+                                    <strong>
+                                        @(string.IsNullOrWhiteSpace(invite.Group.CreatedByUser.FirstName)
+                                            ? invite.Group.CreatedByUser.Email
+                                            : $"{invite.Group.CreatedByUser.FirstName} {invite.Group.CreatedByUser.LastName}")
+                                    </strong>
+                                </p>
                                 <p class="card-text text-muted">
-                                    Sent: <span class="fw-semibold">@invite.SentAt.ToString("g")</span>
+                                    Sent:
+                                    <span class="fw-semibold"
+                                          title="@invite.SentAt.ToLocalTime().ToString("f")">
+                                        @invite.SentAt.Humanize(false)
+                                    </span>
                                 </p>
                             </div>
 
-                            <!-- accept/decline buttons -->
+                            <!-- buttons -->
                             <div class="mt-3">
                                 <form method="post" asp-page-handler="Accept" class="d-inline">
                                     <input type="hidden" name="ActionInvitationId" value="@invite.InvitationId" />
