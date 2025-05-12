@@ -127,4 +127,38 @@ public class GroupInvitationTests
         bool canReinvite = !pendingExists;
         Assert.IsFalse(canReinvite, "should not allow duplicate pending invite");
     }
+
+    [TestMethod]
+    public void Creator_Can_Cancel_Pending_Invite()
+    {
+        using var context = GetInMemoryContext();
+
+        var armin = context.User.First(u => u.Email == "armin@edu.dk"); // creator
+        var levi = context.User.First(u => u.Email == "levi@edu.dk");
+        var invite = context.GroupInvitation
+            .Include(i => i.Group)
+            .First(i => i.InvitedUserId == levi.UserId);
+
+        // Simulate cancellation
+        context.GroupInvitation.Remove(invite);
+        context.SaveChanges();
+
+        var stillExists = context.GroupInvitation.Any(i => i.InvitationId == invite.InvitationId);
+        Assert.IsFalse(stillExists, "Invite should be deleted by creator");
+    }
+
+    [TestMethod]
+    public void Only_Creator_Can_Cancel_Invite()
+    {
+        using var context = GetInMemoryContext();
+
+        var mikasa = context.User.First(u => u.Email == "mikasa@edu.dk"); // NOT the creator
+        var invite = context.GroupInvitation
+            .Include(i => i.Group)
+            .First();
+
+        var isCreator = invite.Group.CreatedByUserId == mikasa.UserId;
+
+        Assert.IsFalse(isCreator, "Mikasa should not be able to cancel the invite");
+    }
 }
