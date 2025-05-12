@@ -2,48 +2,88 @@
 @model DM2Projekt.Pages.UserGroups.IndexModel
 
 @{
-    ViewData["Title"] = "UserGroups";
+    ViewData["Title"] = "User Groups";
     var userRole = HttpContext.Session.GetString("UserRole");
 }
 
-<h1>UserGroups</h1>
+<div class="container mt-4">
+    <!-- Flash alert for success feedback -->
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            @TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
 
-<!-- Only Admins can create new usergroups -->
-@if (userRole == "Admin")
-{
-    <p>
-        <a asp-page="Create" class="btn btn-primary">Create New</a>
-    </p>
-}
+    <div class="mb-4">
+        <h1 class="mb-1">User Groups</h1>
+        <p class="text-muted">Manage which users are assigned to which groups.</p>
+    </div>
 
-<table class="table">
-    <thead>
-        <tr>
-            <th>@Html.DisplayNameFor(model => model.UserGroup[0].User)</th>
-            <th>@Html.DisplayNameFor(model => model.UserGroup[0].Group)</th>
-            <th class="text-center">Actions</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var item in Model.UserGroup)
-        {
-            <tr>
-                <td>@Html.DisplayFor(modelItem => item.User.Email)</td>
-                <td>@Html.DisplayFor(modelItem => item.Group.GroupName)</td>
-                <td class="text-center">
-                    <!-- Everyone can view Details -->
-                    <a asp-page="./Details" asp-route-userId="@item.UserId" asp-route-groupId="@item.GroupId">Details</a>
+    <!-- Search bar -->
+    <form method="get" class="row g-2 mb-3">
+        <div class="col-md-4">
+            <input type="text" name="search" class="form-control" placeholder="Search by email or group..." value="@Model.Search" />
+        </div>
+        <div class="col-auto">
+            <button type="submit" class="btn btn-outline-primary">
+                <i class="bi bi-search"></i> Search
+            </button>
+        </div>
+        <div class="col-auto">
+            <a asp-page="Index" class="btn btn-outline-secondary">
+                <i class="bi bi-x-circle"></i> Clear
+            </a>
+        </div>
+    </form>
 
-                    <!-- Only Admins can Edit and Delete -->
-                    @if (userRole == "Admin")
-                    {
-                        <span> | </span>
-                        <a asp-page="./Edit" asp-route-userId="@item.UserId" asp-route-groupId="@item.GroupId">Edit</a>
-                        <span> | </span>
-                        <a asp-page="./Delete" asp-route-userId="@item.UserId" asp-route-groupId="@item.GroupId">Delete</a>
-                    }
-                </td>
-            </tr>
-        }
-    </tbody>
-</table>
+    <div class="card shadow-sm">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <span><i class="bi bi-people-fill"></i> User Group List</span>
+            <a asp-page="Create" class="btn btn-sm btn-outline-success">
+                <i class="bi bi-plus-circle"></i> Add User Group
+            </a>
+        </div>
+
+        <div class="card-body p-0">
+            @if (!Model.UserGroup.Any())
+            {
+                <div class="text-center text-muted py-4">No user groups found.</div>
+            }
+            else
+            {
+                <table class="table table-striped table-hover m-0 align-middle">
+                    <caption class="visually-hidden">List of users and their assigned groups</caption>
+                    <thead class="table-light">
+                        <tr>
+                            <th>User Email</th>
+                            <th>Group Name</th>
+                            <th class="text-center" style="width: 200px;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model.UserGroup)
+                        {
+                            <tr>
+                                <td>@item.User.Email</td>
+                                <td>@item.Group.GroupName</td>
+                                <td class="text-center">
+                                    <a asp-page="./Details" asp-route-userId="@item.UserId" asp-route-groupId="@item.GroupId" class="btn btn-sm btn-outline-primary" title="View Details">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                    <a asp-page="./Edit" asp-route-userId="@item.UserId" asp-route-groupId="@item.GroupId" class="btn btn-sm btn-outline-secondary mx-1" title="Edit">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                    <a asp-page="./Delete" asp-route-userId="@item.UserId" asp-route-groupId="@item.GroupId" class="btn btn-sm btn-outline-danger" title="Delete">
+                                        <i class="bi bi-trash"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+        </div>
+    </div>
+</div>
