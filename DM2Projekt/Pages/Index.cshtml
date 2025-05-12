@@ -9,33 +9,33 @@
     var userRole = HttpContextAccessor.HttpContext?.Session.GetString("UserRole");
     var firstName = fullName?.Split(' ').FirstOrDefault();
     var next = Model.NextBooking;
-    var todayCount = Model.TodayBookingCount;
     var totalUsers = Model.UserCount;
+    var cancellable = Model.CancellableBookingCount;
+    var profileImage = Model.TeacherProfileImagePath;
     var logo = "https://dkea.dk/files/styles/common_04/public/media/image/Zealand_logo_black_RGB_1600px_72dpi.png?itok=vUBCtnBv";
 }
 
 <div class="container mt-5">
-
     @* 🧑‍🎓 STUDENT *@
     @if (userRole == "Student" && !string.IsNullOrEmpty(firstName))
     {
         <div class="mx-auto" style="max-width: 700px;">
-            <div class="bg-light rounded p-4 shadow-sm text-center mb-4">
+            <div class="bg-light rounded shadow-sm p-4 mb-4">
                 <h1 class="display-5 mb-3">Hey @firstName</h1>
 
                 @if (next != null)
                 {
-                    <p class="text-muted mb-1">
-                        Your next booking is <strong>@next.Room.RoomName</strong> with <strong>@next.Group.GroupName</strong>.
+                    <p class="text-muted mb-2">
+                        Your next booking is in <strong>@next.Room.RoomName</strong> with <strong>@next.Group.GroupName</strong>.
                     </p>
-                    <p class="text-muted small fw-semibold">
+                    <p class="text-muted small fw-semibold mb-0">
                         @next.StartTime?.ToString("dddd, MMM d • HH:mm")<br />
                         <span class="text-primary">@IndexModel.GetRelativeTime(next.StartTime.Value)</span>
                     </p>
                 }
                 else
                 {
-                    <p class="text-muted">You don’t have any upcoming bookings.</p>
+                    <p class="text-muted">You don’t have any bookings coming up.</p>
                 }
             </div>
 
@@ -46,19 +46,25 @@
     }
 
     @* 👩‍🏫 TEACHER *@
-    else if (userRole == "Teacher" && !string.IsNullOrEmpty(fullName))
+    else if (userRole == "Teacher" && !string.IsNullOrEmpty(firstName))
     {
         <div class="mx-auto" style="max-width: 700px;">
-            <div class="bg-light rounded p-4 shadow-sm mb-4">
-                <h1 class="display-6 mb-2">Hello @fullName</h1>
-                <p class="text-muted mb-2">You're logged in as a teacher.</p>
-                <p class="text-muted small mb-3">
-                    You can view everything and delete bookings with at least 3 days' notice.
-                </p>
-                <hr />
-                <p class="text-muted mb-0">
-                    <i class="bi bi-calendar-event me-1"></i>
-                    <strong>@todayCount</strong> booking@(todayCount == 1 ? "" : "s") scheduled today.
+            <div class="bg-light rounded shadow-sm p-4 mb-4 text-center">
+                <div class="d-flex justify-content-center align-items-center mb-3">
+                    @if (!string.IsNullOrEmpty(profileImage))
+                    {
+                        <img src="@profileImage" alt="Profile photo" class="rounded-circle me-2" style="width: 48px; height: 48px; object-fit: cover;" />
+                    }
+                    else
+                    {
+                        <i class="bi bi-person-circle text-secondary me-2" style="font-size: 2rem;"></i>
+                    }
+
+                    <h1 class="display-6 mb-0">Hey @firstName</h1>
+                </div>
+
+                <p class="text-muted">
+                    You can cancel <strong>@cancellable</strong> upcoming booking@(cancellable == 1 ? "" : "s").
                 </p>
             </div>
 
@@ -69,16 +75,14 @@
     }
 
     @* 👑 ADMIN *@
-    else if (userRole == "Admin" && !string.IsNullOrEmpty(fullName))
+    else if (userRole == "Admin" && !string.IsNullOrEmpty(firstName))
     {
         <div class="mx-auto" style="max-width: 700px;">
-            <div class="bg-light rounded p-4 shadow-sm mb-4 text-start">
-                <h1 class="display-6 mb-2">Welcome back, @fullName</h1>
-                <p class="text-muted mb-2">You're an admin. Use the navigation above to manage everything.</p>
-                <hr />
-                <p class="text-muted mb-0">
-                    <i class="bi bi-people-fill me-1"></i>
-                    You are currently managing <strong>@(totalUsers - 1)</strong> user@(totalUsers - 1 == 1 ? "" : "s").
+            <div class="bg-light rounded shadow-sm p-4 mb-4 text-center">
+                <h1 class="display-6 mb-3">Welcome back 👑 @firstName</h1>
+
+                <p class="text-muted">
+                    System has <strong>@(totalUsers - 1)</strong> user@(totalUsers - 1 == 1 ? "" : "s").
                 </p>
             </div>
 
@@ -92,10 +96,10 @@
     else
     {
         <div class="mx-auto" style="max-width: 700px;">
-            <div class="bg-light rounded p-4 shadow-sm text-center mb-4">
-                <h1 class="display-5 mb-3">Room booking made simple</h1>
-                <p class="lead text-muted mb-1"><i class="bi bi-building me-1"></i> For students and staff at Zealand</p>
-                <p class="text-muted">Students can book rooms. Staff manage and supervise. Use the login button above to get started.</p>
+            <div class="bg-light rounded shadow-sm p-4 mb-4 text-center">
+                <h1 class="display-5 mb-3">Welcome</h1>
+                <p class="text-muted mb-1">Book rooms. Join groups. Simple as that.</p>
+                <p class="text-muted small">Use the <a asp-page="/Account/Login">login button</a> to get started.</p>
             </div>
 
             <div class="text-center">

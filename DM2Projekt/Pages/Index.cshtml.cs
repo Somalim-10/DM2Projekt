@@ -14,9 +14,17 @@ public class IndexModel : PageModel
         _context = context;
     }
 
+    // Student: show their next upcoming booking
     public Booking? NextBooking { get; set; }
-    public int TodayBookingCount { get; set; }
+
+    // Admin: total user count
     public int UserCount { get; set; }
+
+    // Teacher: number of bookings they can cancel
+    public int CancellableBookingCount { get; set; }
+
+    // Teacher: profile image path
+    public string? TeacherProfileImagePath { get; set; }
 
     public async Task OnGetAsync()
     {
@@ -26,11 +34,13 @@ public class IndexModel : PageModel
 
         if (role == "Student" && userId != null)
         {
+            // get all group IDs the student belongs to
             var groupIds = await _context.UserGroup
                 .Where(ug => ug.UserId == userId)
                 .Select(ug => ug.GroupId)
                 .ToListAsync();
 
+            // find the earliest upcoming booking they created or are part of
             var upcoming = await _context.Booking
                 .Include(b => b.Room)
                 .Include(b => b.Group)
@@ -43,10 +53,16 @@ public class IndexModel : PageModel
                     b.CreatedByUserId == userId || groupIds.Contains(b.GroupId));
         }
 
-        if (role == "Teacher")
+        if (role == "Teacher" && userId != null)
         {
-            TodayBookingCount = await _context.Booking
-                .CountAsync(b => b.StartTime.HasValue && b.StartTime.Value.Date == now.Date);
+            // bookings that start at least 3 days from now
+            var cutoff = now.AddDays(3);
+            CancellableBookingCount = await _context.Booking
+                .CountAsync(b => b.StartTime > cutoff);
+
+            // teacher's profile photo
+            var teacher = await _context.User.FirstOrDefaultAsync(u => u.UserId == userId);
+            TeacherProfileImagePath = teacher?.ProfileImagePath;
         }
 
         if (role == "Admin")
@@ -55,6 +71,7 @@ public class IndexModel : PageModel
         }
     }
 
+    // Utility for "Starts in X minutes/hours"
     public static string GetRelativeTime(DateTime target)
     {
         var now = DateTime.Now;
