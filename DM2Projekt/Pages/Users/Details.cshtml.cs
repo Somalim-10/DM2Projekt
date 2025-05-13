@@ -6,6 +6,7 @@ using DM2Projekt.Models;
 
 namespace DM2Projekt.Pages.Users;
 
+// shows full profile info for one user (admin only)
 public class DetailsModel : PageModel
 {
     private readonly DM2ProjektContext _context;
@@ -24,19 +25,21 @@ public class DetailsModel : PageModel
         var userId = HttpContext.Session.GetInt32("UserId");
         var userRole = HttpContext.Session.GetString("UserRole");
 
-        if (userId == null) // not logged in
-            return RedirectToPage("/Login");
+        // bounce if not logged in or not admin
+        if (userId == null) return RedirectToPage("/Login");
+        if (userRole != "Admin") return RedirectToPage("/Index");
 
-        if (userRole != "Admin") // only Admin can see user details
-            return RedirectToPage("/Index");
+        // load user + their groups + their bookings (including rooms)
+        var user = await _context.User
+            .Include(u => u.UserGroups)
+                .ThenInclude(ug => ug.Group)
+            .Include(u => u.Bookings)
+                .ThenInclude(b => b.Room)
+            .FirstOrDefaultAsync(u => u.UserId == id);
 
-        var user = await _context.User.FirstOrDefaultAsync(m => m.UserId == id);
-        if (user != null)
-        {
-            User = user;
-            return Page();
-        }
+        if (user == null) return NotFound();
 
-        return NotFound();
+        User = user;
+        return Page();
     }
 }

@@ -6,6 +6,7 @@ using DM2Projekt.Models;
 
 namespace DM2Projekt.Pages.Users;
 
+// admin-only: confirm deletion of a user
 public class DeleteModel : PageModel
 {
     private readonly DM2ProjektContext _context;
@@ -25,21 +26,14 @@ public class DeleteModel : PageModel
         var userId = HttpContext.Session.GetInt32("UserId");
         var userRole = HttpContext.Session.GetString("UserRole");
 
-        if (userId == null) // not logged in
+        if (userId == null || userRole != "Admin")
             return RedirectToPage("/Login");
 
-        if (userRole != "Admin") // only Admin can delete users
-            return RedirectToPage("/Index");
+        var user = await _context.User.FirstOrDefaultAsync(u => u.UserId == id);
+        if (user == null) return NotFound();
 
-        var user = await _context.User.FirstOrDefaultAsync(m => m.UserId == id);
-
-        if (user is not null)
-        {
-            User = user;
-            return Page();
-        }
-
-        return NotFound();
+        User = user;
+        return Page();
     }
 
     public async Task<IActionResult> OnPostAsync(int? id)
@@ -49,17 +43,13 @@ public class DeleteModel : PageModel
         var userId = HttpContext.Session.GetInt32("UserId");
         var userRole = HttpContext.Session.GetString("UserRole");
 
-        if (userId == null) // not logged in
+        if (userId == null || userRole != "Admin")
             return RedirectToPage("/Login");
-
-        if (userRole != "Admin") // only Admin can delete users
-            return RedirectToPage("/Index");
 
         var user = await _context.User.FindAsync(id);
         if (user != null)
         {
-            User = user;
-            _context.User.Remove(User);
+            _context.User.Remove(user);
             await _context.SaveChangesAsync();
         }
 

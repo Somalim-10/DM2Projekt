@@ -1,62 +1,78 @@
 ﻿@page
 @model DM2Projekt.Pages.Users.EditModel
-
 @{
-    ViewData["Title"] = "Edit";
+    ViewData["Title"] = "Edit User";
 }
 
-<h1>Edit</h1>
+<div class="container mt-4">
+    <!-- Page heading -->
+    <h2 class="mb-1">Editing @Model.User.FirstName @Model.User.LastName</h2>
+    <p class="text-muted mb-4">Make changes to this user’s info below.</p>
 
-<h4>User</h4>
-<hr />
-<div class="row">
-    <div class="col-md-4">
-        <form method="post">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-
-            <input type="hidden" asp-for="User.UserId" />
-
-            <div class="form-group">
-                <label asp-for="User.FirstName" class="control-label"></label>
-                <input asp-for="User.FirstName" class="form-control" />
-                <span asp-validation-for="User.FirstName" class="text-danger"></span>
+    <!-- Profile edit card -->
+    <div class="card shadow-sm p-4">
+        <div class="row g-4 align-items-center">
+            <!-- Left: profile image -->
+            <div class="col-md-3 d-flex justify-content-center">
+                @if (!string.IsNullOrEmpty(Model.User.ProfileImagePath))
+                {
+                    <div style="width: 150px; height: 150px;">
+                        <img src="@Model.User.ProfileImagePath" alt="Profile Image"
+                             class="img-fluid rounded-circle w-100 h-100 border"
+                             style="object-fit: cover;" />
+                    </div>
+                }
+                else
+                {
+                    <div class="text-muted text-center">No photo</div>
+                }
             </div>
 
-            <div class="form-group">
-                <label asp-for="User.LastName" class="control-label"></label>
-                <input asp-for="User.LastName" class="form-control" />
-                <span asp-validation-for="User.LastName" class="text-danger"></span>
-            </div>
+            <!-- Right: form fields -->
+            <div class="col-md-9">
+                <form method="post">
+                    <input type="hidden" asp-for="User.UserId" />
+                    <div asp-validation-summary="All" class="text-danger mb-3"></div>
 
-            <div class="form-group">
-                <label asp-for="User.Email" class="control-label"></label>
-                <input asp-for="User.Email" class="form-control" />
-                <span asp-validation-for="User.Email" class="text-danger"></span>
-            </div>
+                    <div class="mb-4">
+                        <label asp-for="User.FirstName" class="form-label">First Name</label>
+                        <input asp-for="User.FirstName" class="form-control" placeholder="Enter first name" />
+                        <span asp-validation-for="User.FirstName" class="text-danger"></span>
+                    </div>
 
-            <div class="form-group">
-                <label asp-for="User.Password" class="control-label"></label>
-                <input asp-for="User.Password" class="form-control" type="password" />
-                <span asp-validation-for="User.Password" class="text-danger"></span>
-            </div>
+                    <div class="mb-4">
+                        <label asp-for="User.LastName" class="form-label">Last Name</label>
+                        <input asp-for="User.LastName" class="form-control" placeholder="Enter last name" />
+                        <span asp-validation-for="User.LastName" class="text-danger"></span>
+                    </div>
 
-            <div class="form-group">
-                <label asp-for="User.Role" class="control-label"></label>
-                <select asp-for="User.Role" class="form-control"
-                        asp-items="Html.GetEnumSelectList<DM2Projekt.Models.Enums.Role>()">
-                </select>
-                <span asp-validation-for="User.Role" class="text-danger"></span>
-            </div>
+                    <div class="mb-4">
+                        <label asp-for="User.Email" class="form-label">Email</label>
+                        <input asp-for="User.Email" class="form-control" placeholder="user@example.com" />
+                        <span asp-validation-for="User.Email" class="text-danger"></span>
+                    </div>
 
-            <div class="form-group">
-                <input type="submit" value="Save" class="btn btn-primary" />
+                    <div class="mb-4">
+                        <label asp-for="User.Role" class="form-label">Role</label>
+                        <select asp-for="User.Role" class="form-select"
+                                asp-items="Html.GetEnumSelectList<DM2Projekt.Models.Enums.Role>()">
+                        </select>
+                        <span asp-validation-for="User.Role" class="text-danger"></span>
+                    </div>
+
+                    <!-- Buttons -->
+                    <div class="border-top pt-3 mt-4 d-flex gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-save me-1"></i> Save Changes
+                        </button>
+                        <a asp-page="./Index" class="btn btn-outline-secondary">
+                            <i class="bi bi-arrow-left me-1"></i> Back
+                        </a>
+                    </div>
+                </form>
             </div>
-        </form>
+        </div>
     </div>
-</div>
-
-<div>
-    <a asp-page="./Index">Back to List</a>
 </div>
 
 @section Scripts {

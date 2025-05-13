@@ -6,6 +6,7 @@ using DM2Projekt.Models;
 
 namespace DM2Projekt.Pages.Users;
 
+// admin-only page for editing a user's info
 public class EditModel : PageModel
 {
     private readonly DM2ProjektContext _context;
@@ -25,11 +26,9 @@ public class EditModel : PageModel
         var userId = HttpContext.Session.GetInt32("UserId");
         var userRole = HttpContext.Session.GetString("UserRole");
 
-        if (userId == null) // not logged in
-            return RedirectToPage("/Login");
-
-        if (userRole != "Admin") // only Admin can edit users
-            return RedirectToPage("/Index");
+        // only logged-in admins can edit users
+        if (userId == null) return RedirectToPage("/Login");
+        if (userRole != "Admin") return RedirectToPage("/Index");
 
         var user = await _context.User.FirstOrDefaultAsync(m => m.UserId == id);
         if (user == null) return NotFound();
@@ -40,34 +39,28 @@ public class EditModel : PageModel
 
     public async Task<IActionResult> OnPostAsync()
     {
+        // we're not editing the password, so skip its validation
+        ModelState.Remove("User.Password");
+
         if (!ModelState.IsValid) return Page();
 
         var userId = HttpContext.Session.GetInt32("UserId");
         var userRole = HttpContext.Session.GetString("UserRole");
 
-        if (userId == null) // not logged in
-            return RedirectToPage("/Login");
+        if (userId == null) return RedirectToPage("/Login");
+        if (userRole != "Admin") return RedirectToPage("/Index");
 
-        if (userRole != "Admin") // only Admin can edit users
-            return RedirectToPage("/Index");
+        // load existing user from DB
+        var existingUser = await _context.User.FirstOrDefaultAsync(u => u.UserId == User.UserId);
+        if (existingUser == null) return NotFound();
 
-        _context.Attach(User).State = EntityState.Modified;
+        // update only allowed fields
+        existingUser.FirstName = User.FirstName;
+        existingUser.LastName = User.LastName;
+        existingUser.Email = User.Email;
+        existingUser.Role = User.Role;
 
-        try
-        {
-            await _context.SaveChangesAsync();
-        }
-        catch (DbUpdateConcurrencyException)
-        {
-            if (!UserExists(User.UserId)) return NotFound();
-            else throw;
-        }
-
+        await _context.SaveChangesAsync();
         return RedirectToPage("./Index");
-    }
-
-    private bool UserExists(int id)
-    {
-        return _context.User.Any(e => e.UserId == id);
     }
 }
