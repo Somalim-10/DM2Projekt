@@ -23,13 +23,10 @@ public class DM2ProjektContext : DbContext
     {
         base.OnModelCreating(modelBuilder);
 
-        // store enums as strings in DB
+        // --- store enums as strings in DB ---
         modelBuilder.Entity<Room>()
             .Property(r => r.RoomType)
             .HasConversion<string>();
-
-
-
 
         modelBuilder.Entity<Room>()
             .Property(r => r.Building)
@@ -43,58 +40,51 @@ public class DM2ProjektContext : DbContext
             .Property(u => u.Role)
             .HasConversion<string>();
 
-        // composite key for UserGroup (user + group)
+        // --- composite key for UserGroup (user + group) ---
         modelBuilder.Entity<UserGroup>()
             .HasKey(ug => new { ug.UserId, ug.GroupId });
 
-        // link user <-> usergroup
+        // user <-> usergroups
         modelBuilder.Entity<UserGroup>()
             .HasOne(ug => ug.User)
             .WithMany(u => u.UserGroups)
             .HasForeignKey(ug => ug.UserId);
 
-        // link group <-> usergroup
+        // group <-> usergroups
         modelBuilder.Entity<UserGroup>()
             .HasOne(ug => ug.Group)
             .WithMany(g => g.UserGroups)
             .HasForeignKey(ug => ug.GroupId);
 
-        // link booking to user who created it
+        // booking made by user
         modelBuilder.Entity<Booking>()
             .HasOne(b => b.CreatedByUser)
             .WithMany(u => u.Bookings)
             .HasForeignKey(b => b.CreatedByUserId)
             .OnDelete(DeleteBehavior.Restrict);
 
-        // link booking to group
+        // booking belongs to a group
         modelBuilder.Entity<Booking>()
             .HasOne(b => b.Group)
             .WithMany(g => g.Bookings)
             .HasForeignKey(b => b.GroupId)
             .OnDelete(DeleteBehavior.Restrict);
 
-        // link booking to room
+        // booking belongs to a room — if room is deleted, kill the bookings too
         modelBuilder.Entity<Booking>()
             .HasOne(b => b.Room)
             .WithMany(r => r.Bookings)
             .HasForeignKey(b => b.RoomId)
-            .OnDelete(DeleteBehavior.Restrict);
+            .OnDelete(DeleteBehavior.Cascade); // remove all active bookings attached to this room
 
-        modelBuilder.Entity<Booking>()
-    .HasOne(b => b.Room)
-    .WithMany()
-    .HasForeignKey(b => b.RoomId)
-    .OnDelete(DeleteBehavior.Cascade);
-
-
-        // group has a creator (the user who made it)
+        // group has a creator (user)
         modelBuilder.Entity<Group>()
             .HasOne(g => g.CreatedByUser)
             .WithMany()
             .HasForeignKey(g => g.CreatedByUserId)
             .OnDelete(DeleteBehavior.Restrict);
 
-        // invitation links
+        // group invitation stuff
         modelBuilder.Entity<GroupInvitation>()
             .HasOne(i => i.Group)
             .WithMany()
