@@ -1,15 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 using DM2Projekt.Data;
 using DM2Projekt.Models;
+using DM2Projekt.Models.Enums;
 
 namespace DM2Projekt.Pages.Users;
 
+// admin-only user overview with search + filter
 public class IndexModel : PageModel
 {
     private readonly DM2ProjektContext _context;
@@ -19,25 +17,45 @@ public class IndexModel : PageModel
         _context = context;
     }
 
-    public IList<User> User { get; set; } = default!;
+    public IList<User> Users { get; set; } = [];
+
+    // for search input (name/email)
+    [BindProperty(SupportsGet = true)]
+    public string? SearchTerm { get; set; }
+
+    // for role dropdown filter
+    [BindProperty(SupportsGet = true)]
+    public Role? RoleFilter { get; set; }
 
     public async Task<IActionResult> OnGetAsync()
     {
+        // redirect if not logged in or not admin
         var userId = HttpContext.Session.GetInt32("UserId");
         var userRole = HttpContext.Session.GetString("UserRole");
 
-        if (userId == null) // not logged in
+        if (userId == null) return RedirectToPage("/Login");
+        if (userRole != "Admin") return RedirectToPage("/Index");
+
+        // start building the query
+        var query = _context.User.AsQueryable();
+
+        // apply search (name or email)
+        if (!string.IsNullOrWhiteSpace(SearchTerm))
         {
-            return RedirectToPage("/Login");
+            query = query.Where(u =>
+                u.FirstName.Contains(SearchTerm) ||
+                u.LastName.Contains(SearchTerm) ||
+                u.Email.Contains(SearchTerm));
         }
 
-        if (userRole != "Admin") // only Admin can view
+        // apply role filter
+        if (RoleFilter != null)
         {
-            return RedirectToPage("/Index");
+            query = query.Where(u => u.Role == RoleFilter);
         }
 
-        // load all users
-        User = await _context.User.ToListAsync();
+        // get the final list
+        Users = await query.ToListAsync();
         return Page();
     }
 }
