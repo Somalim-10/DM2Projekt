@@ -28,6 +28,15 @@ public class DM2ProjektContext : DbContext
             .Property(r => r.RoomType)
             .HasConversion<string>();
 
+
+        modelBuilder.Entity<Room>()
+            .Property(r => r.Building)
+            .HasConversion<string>();
+
+        modelBuilder.Entity<Room>()
+            .Property(r => r.Floor)
+            .HasConversion<string>();
+
         modelBuilder.Entity<User>()
             .Property(u => u.Role)
             .HasConversion<string>();

@@ -8,6 +8,46 @@
 
 <div class="bg-light p-3 rounded mb-4">
     <form method="get" class="row g-3 align-items-end">
+        <!-- building filter dropdown -->
+        <div class="col-auto">
+            <label for="Building" class="form-label">Building</label>
+            <select id="Building" name="Building" class="form-select">
+                <option value="">-- All Buildings --</option>
+                @foreach (var b in Model.BuildingOptions)
+                {
+                    var selected = Model.Building.HasValue && Model.Building.Value.ToString() == b.Value ? "selected" : "";
+                    <option value="@b.Value" selected="@(Model.Building.HasValue && Model.Building.Value.ToString() == b.Value ? "selected" : null)">@b.Text</option>
+
+                }
+            </select>
+        </div>
+
+
+        <!-- floor filter dropdown -->
+        <div class="col-auto">
+            <label for="Floor" class="form-label">Floor</label>
+            <select id="Floor" name="Floor" class="form-select">
+                <option value="">-- All Floors --</option>
+                @foreach (var f in Model.FloorOptions)
+                {
+                    var selected = Model.Floor.HasValue && Model.Floor.Value.ToString() == f.Value ? "selected" : "";
+                    <option value="@f.Value" selected="@(Model.Floor.HasValue && Model.Floor.Value.ToString() == f.Value ? "selected" : null)">@f.Text</option>
+                }
+            </select>
+        </div>
+
+        <!-- RoomType filter dropdown -->
+        <div class="col-auto">
+            <label for="RoomType" class="form-label">RoomType</label>
+            <select id="RoomType" name="RoomType" class="form-select">
+                <option value="">-- All RoomTypes --</option>
+                @foreach (var rt in Model.RoomTypeOptions)
+                {
+                    var selected = Model.RoomType.HasValue && Model.RoomType.Value.ToString() == rt.Value ? "selected" : "";
+                    <option value="@rt.Value" selected="@(Model.RoomType.HasValue && Model.RoomType.Value.ToString() == rt.Value ? "selected" : null)">@rt.Text</option>
+                }
+            </select>
+        </div>
 
         <!-- room filter dropdown -->
         <div class="col-auto">
@@ -39,26 +79,26 @@
                 <i class="bi bi-x-circle"></i> Clear
             </a>
         </div>
-        </form>
+    </form>
 
-        <div class="container mt-4">
-            <h1 class="mb-4">Rooms</h1>
+    <div class="container mt-4">
+        <h1 class="mb-4">Rooms</h1>
 
-            <!-- only admins can see Create button -->
-            @if (userRole == "Admin")
+        <!-- only admins can see Create button -->
+        @if (userRole == "Admin")
+        {
+            <div class="mb-4">
+                <a asp-page="Create" class="btn btn-success">
+                    <i class="bi bi-plus-circle"></i> Create New Room
+                </a>
+            </div>
+        }
+
+        <!-- grid for the cards -->
+        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+            @foreach (var item in Model.Room)
             {
-                <div class="mb-4">
-                    <a asp-page="Create" class="btn btn-success">
-                        <i class="bi bi-plus-circle"></i> Create New Room
-                    </a>
-                </div>
-            }
-
-            <!-- grid for the cards -->
-            <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
-                @foreach (var item in Model.Room)
-                {
-                    <div class="col">
+                <div class="col">
                     <div class="card shadow-sm h-100">
                         @if (!string.IsNullOrEmpty(item.ImageUrl))
                         {
@@ -66,35 +106,50 @@
                         }
                         <div class="card-body d-flex flex-column">
 
-                                <!-- room name -->
-                                <h5 class="card-title">@item.RoomName</h5>
+                            <!-- room name -->
+                            <h5 class="card-title">@item.RoomName</h5>
 
-                                <!-- room type -->
-                                <p class="card-text text-muted mb-4">
-                                    @item.RoomType
-                                </p>
-
-                                <!-- action buttons -->
-                                <div class="mt-auto">
-                                    <div class="btn-group" role="group">
-                                        <a asp-page="./Details" asp-route-id="@item.RoomId" class="btn btn-sm btn-outline-primary">
-                                            <i class="bi bi-eye"></i> Details
-                                        </a>
-
-                                        @if (userRole == "Admin")
-                                        {
-                                            <a asp-page="./Edit" asp-route-id="@item.RoomId" class="btn btn-sm btn-outline-warning">
-                                                <i class="bi bi-pencil-square"></i> Edit
-                                            </a>
-                                            <a asp-page="./Delete" asp-route-id="@item.RoomId" class="btn btn-sm btn-outline-danger">
-                                                <i class="bi bi-trash"></i> Delete
-                                            </a>
-                                        }
+                            <!-- room type -->
+                            <p class="card-text text-muted mb-4">
+                                @item.RoomType
+                            </p>
+                            <div class="row">
+                                <div class="col-6">
+                                    <div class="d-flex align-items-center">
+                                        <i class="bi bi-house-door-fill me-2 text-primary"></i>
+                                        <span class="fw-bold">Building:</span> <span>@item.Building</span>
                                     </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="d-flex align-items-center">
+                                        <i class="bi bi-hdd-fill me-2 text-success"></i>
+                                        <span class="fw-bold">Floor:</span> <span>@item.Floor</span>
+                                    </div>
+                                </div>
+                            </div>
+
+
+                            <!-- action buttons -->
+                            <div class="mt-auto">
+                                <div class="btn-group" role="group">
+                                    <a asp-page="./Details" asp-route-id="@item.RoomId" class="btn btn-sm btn-outline-primary">
+                                        <i class="bi bi-eye"></i> Details
+                                    </a>
+
+                                    @if (userRole == "Admin")
+                                    {
+                                        <a asp-page="./Edit" asp-route-id="@item.RoomId" class="btn btn-sm btn-outline-warning">
+                                            <i class="bi bi-pencil-square"></i> Edit
+                                        </a>
+                                        <a asp-page="./Delete" asp-route-id="@item.RoomId" class="btn btn-sm btn-outline-danger">
+                                            <i class="bi bi-trash"></i> Delete
+                                        </a>
+                                    }
                                 </div>
                             </div>
                         </div>
                     </div>
-                }
-            </div>
+                </div>
+            }
         </div>
+    </div>

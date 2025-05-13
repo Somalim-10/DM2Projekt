@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using DM2Projekt.Data;
 using DM2Projekt.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace DM2Projekt.Pages.Rooms;
 
@@ -46,6 +47,15 @@ public class CreateModel : PageModel
 
         if (!ModelState.IsValid)
             return Page();
+
+        bool roomExists = await _context.Room
+        .AnyAsync(r => r.RoomName.ToLower() == Room.RoomName.ToLower());
+
+        if (roomExists)
+        {
+            ModelState.AddModelError("Room.RoomName", "Et rum med dette navn findes allerede.");
+            return Page();
+        }
 
         if (!string.IsNullOrWhiteSpace(NewProfileImageUrl))
         {
