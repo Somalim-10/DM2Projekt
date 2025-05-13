@@ -11,7 +11,7 @@ public static class SeedData
         using var context = new DM2ProjektContext(
             serviceProvider.GetRequiredService<DbContextOptions<DM2ProjektContext>>());
 
-        // skip seeding if there's already data
+        // skip if there's already stuff in the DB
         if (context.User.Any() || context.Room.Any() || context.Group.Any())
             return;
 
@@ -32,14 +32,9 @@ public static class SeedData
         // --------------------------
         var users = new List<User>
         {
-            // admin
             new() { FirstName = "Admin", LastName = "Zealand", Email = "admin@zealand.dk", Password = "admin", Role = Role.Admin },
-
-            // teachers
             new() { FirstName = "Martin", LastName = "Jensen", Email = "mj@zealand.dk", Password = "teacher1", Role = Role.Teacher, ProfileImagePath = avatarBrian },
             new() { FirstName = "Anne", LastName = "Larsen", Email = "al@zealand.dk", Password = "teacher2", Role = Role.Teacher, ProfileImagePath = avatarVivian },
-
-            // students
             new() { FirstName = "Sara", LastName = "Hansen", Email = "sara.h@edu.zealand.dk", Password = "student1", Role = Role.Student, ProfileImagePath = avatarAndrea },
             new() { FirstName = "Jonas", LastName = "Møller", Email = "jonas.m@edu.zealand.dk", Password = "student2", Role = Role.Student, ProfileImagePath = avatarEaston },
             new() { FirstName = "Katrine", LastName = "Nielsen", Email = "katrine.n@edu.zealand.dk", Password = "student3", Role = Role.Student, ProfileImagePath = avatarKatherine },
@@ -56,18 +51,11 @@ public static class SeedData
         // --------------------------
         // GROUPS
         // --------------------------
-        var groups = new List<Group>
-        {
-            new() { GroupName = "404 Not Found", CreatedByUserId = users[3].UserId },
-            new() { GroupName = "Byte Me", CreatedByUserId = users[5].UserId },
-            new() { GroupName = "Commit & Push", CreatedByUserId = users[4].UserId },
-            new() { GroupName = "Agile Avengers", CreatedByUserId = users[6].UserId },
-            new() { GroupName = "Coffee Overflow", CreatedByUserId = users[7].UserId },
-            new() { GroupName = "Runtime Terrors", CreatedByUserId = users[9].UserId },
-            new() { GroupName = "DevOps or Die", CreatedByUserId = users[10].UserId },
-            new() { GroupName = "Final Final Group v2", CreatedByUserId = users[11].UserId }
-        };
-        context.Group.AddRange(groups);
+        var group404 = new Group { GroupName = "404 Not Found", CreatedByUserId = users[3].UserId }; // Sara
+        var groupByteMe = new Group { GroupName = "Byte Me", CreatedByUserId = users[4].UserId };   // Jonas
+        var groupNullSquad = new Group { GroupName = "Null Squad", CreatedByUserId = users[5].UserId }; // Katrine
+
+        context.Group.AddRange(group404, groupByteMe, groupNullSquad);
         context.SaveChanges();
 
         // --------------------------
@@ -75,17 +63,20 @@ public static class SeedData
         // --------------------------
         var memberships = new List<UserGroup>
         {
-            new() { GroupId = groups[0].GroupId, UserId = users[3].UserId },
-            new() { GroupId = groups[0].GroupId, UserId = users[4].UserId },
+            // 404 Not Found
+            new() { GroupId = group404.GroupId, UserId = users[3].UserId }, // creator
+            new() { GroupId = group404.GroupId, UserId = users[4].UserId },
+            new() { GroupId = group404.GroupId, UserId = users[6].UserId },
 
-            new() { GroupId = groups[1].GroupId, UserId = users[5].UserId },
-            new() { GroupId = groups[1].GroupId, UserId = users[10].UserId },
+            // Byte Me
+            new() { GroupId = groupByteMe.GroupId, UserId = users[4].UserId }, // creator
+            new() { GroupId = groupByteMe.GroupId, UserId = users[5].UserId },
+            new() { GroupId = groupByteMe.GroupId, UserId = users[7].UserId },
 
-            new() { GroupId = groups[2].GroupId, UserId = users[4].UserId },
-            new() { GroupId = groups[2].GroupId, UserId = users[11].UserId },
-
-            new() { GroupId = groups[3].GroupId, UserId = users[6].UserId },
-            new() { GroupId = groups[3].GroupId, UserId = users[9].UserId }
+            // Null Squad
+            new() { GroupId = groupNullSquad.GroupId, UserId = users[5].UserId }, // creator
+            new() { GroupId = groupNullSquad.GroupId, UserId = users[8].UserId },
+            new() { GroupId = groupNullSquad.GroupId, UserId = users[9].UserId }
         };
         context.UserGroup.AddRange(memberships);
         context.SaveChanges();
