@@ -5,13 +5,13 @@
 }
 
 <div class="container mt-4">
-    <!-- Page header -->
+    <!-- Page header and create button -->
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2 class="mb-0">User Overview</h2>
+        <h2 class="mb-0">Let’s Manage Some Users 👥</h2>
         <a asp-page="Create" class="btn btn-success">+ Add User</a>
     </div>
 
-    <!-- Quick summary (just counts) -->
+    <!-- Quick stats (user counts by role) -->
     <div class="row mb-4 text-center">
         <div class="col">
             <div class="bg-light rounded p-3 border">
@@ -22,30 +22,24 @@
         <div class="col">
             <div class="bg-light rounded p-3 border">
                 <div class="text-muted small">Admins</div>
-                <div class="fw-bold text-primary">
-                    @Model.Users.Count(u => u.Role == DM2Projekt.Models.Enums.Role.Admin)
-                </div>
+                <div class="fw-bold text-primary">@Model.Users.Count(u => u.Role == DM2Projekt.Models.Enums.Role.Admin)</div>
             </div>
         </div>
         <div class="col">
             <div class="bg-light rounded p-3 border">
                 <div class="text-muted small">Teachers</div>
-                <div class="fw-bold text-info">
-                    @Model.Users.Count(u => u.Role == DM2Projekt.Models.Enums.Role.Teacher)
-                </div>
+                <div class="fw-bold text-info">@Model.Users.Count(u => u.Role == DM2Projekt.Models.Enums.Role.Teacher)</div>
             </div>
         </div>
         <div class="col">
             <div class="bg-light rounded p-3 border">
                 <div class="text-muted small">Students</div>
-                <div class="fw-bold text-success">
-                    @Model.Users.Count(u => u.Role == DM2Projekt.Models.Enums.Role.Student)
-                </div>
+                <div class="fw-bold text-success">@Model.Users.Count(u => u.Role == DM2Projekt.Models.Enums.Role.Student)</div>
             </div>
         </div>
     </div>
 
-    <!-- Search + role filter -->
+    <!-- Filter form -->
     <form method="get" class="row g-2 align-items-end mb-4">
         <div class="col-md-6">
             <label class="form-label">Search</label>
@@ -67,9 +61,12 @@
         </div>
     </form>
 
+    <!-- Show how many matched results -->
+    <p class="text-muted">Showing @Model.Users.Count result(s)</p>
+
     <!-- User table -->
     <table class="table table-striped table-hover align-middle">
-        <thead class="table-light">
+        <thead class="table-light sticky-top">
             <tr>
                 <th>Name</th>
                 <th>Email</th>
@@ -78,20 +75,36 @@
             </tr>
         </thead>
         <tbody>
-            @foreach (var user in Model.Users)
+            @if (!Model.Users.Any())
             {
                 <tr>
-                    <td>@user.FirstName @user.LastName</td>
-                    <td>@user.Email</td>
-                    <td>
-                        <span class="badge bg-secondary">@user.Role</span>
-                    </td>
-                    <td class="d-flex gap-2">
-                        <a asp-page="./Details" asp-route-id="@user.UserId" class="btn btn-sm btn-outline-info">Details</a>
-                        <a asp-page="./Edit" asp-route-id="@user.UserId" class="btn btn-sm btn-outline-primary">Edit</a>
-                        <a asp-page="./Delete" asp-route-id="@user.UserId" class="btn btn-sm btn-outline-danger">Delete</a>
-                    </td>
+                    <td colspan="4" class="text-center text-muted">No users found with those filters.</td>
                 </tr>
+            }
+            else
+            {
+                @foreach (var user in Model.Users)
+                {
+                    <tr>
+                        <td>@user.FirstName @user.LastName</td>
+                        <td>@user.Email</td>
+                        <td>
+                            <span class="badge
+                                @(user.Role == DM2Projekt.Models.Enums.Role.Admin ? "bg-primary" :
+                                  user.Role == DM2Projekt.Models.Enums.Role.Teacher ? "bg-info" :
+                                  "bg-success")">
+                                @user.Role
+                            </span>
+                        </td>
+                        <td>
+                            <div class="btn-group" role="group">
+                                <a asp-page="./Details" asp-route-id="@user.UserId" class="btn btn-sm btn-outline-info" title="View full user info">Details</a>
+                                <a asp-page="./Edit" asp-route-id="@user.UserId" class="btn btn-sm btn-outline-primary" title="Edit this user">Edit</a>
+                                <a asp-page="./Delete" asp-route-id="@user.UserId" class="btn btn-sm btn-outline-danger" title="Delete this user" onclick="return confirm('Are you sure?');">Delete</a>
+                            </div>
+                        </td>
+                    </tr>
+                }
             }
         </tbody>
     </table>

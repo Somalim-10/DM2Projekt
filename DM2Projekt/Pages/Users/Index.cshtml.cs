@@ -7,7 +7,8 @@ using DM2Projekt.Models.Enums;
 
 namespace DM2Projekt.Pages.Users;
 
-// admin-only user overview with search + filter
+// this page shows a list of users (admin-only)
+// has basic search + filtering by role
 public class IndexModel : PageModel
 {
     private readonly DM2ProjektContext _context;
@@ -19,11 +20,11 @@ public class IndexModel : PageModel
 
     public IList<User> Users { get; set; } = [];
 
-    // for search input (name/email)
+    // search input (by name/email)
     [BindProperty(SupportsGet = true)]
     public string? SearchTerm { get; set; }
 
-    // for role dropdown filter
+    // dropdown role filter
     [BindProperty(SupportsGet = true)]
     public Role? RoleFilter { get; set; }
 
@@ -36,10 +37,10 @@ public class IndexModel : PageModel
         if (userId == null) return RedirectToPage("/Login");
         if (userRole != "Admin") return RedirectToPage("/Index");
 
-        // start building the query
+        // start with all users
         var query = _context.User.AsQueryable();
 
-        // apply search (name or email)
+        // filter by search (first, last, or email)
         if (!string.IsNullOrWhiteSpace(SearchTerm))
         {
             query = query.Where(u =>
@@ -48,13 +49,13 @@ public class IndexModel : PageModel
                 u.Email.Contains(SearchTerm));
         }
 
-        // apply role filter
+        // filter by role
         if (RoleFilter != null)
         {
             query = query.Where(u => u.Role == RoleFilter);
         }
 
-        // get the final list
+        // final list
         Users = await query.ToListAsync();
         return Page();
     }
