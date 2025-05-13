@@ -29,6 +29,8 @@ public class DM2ProjektContext : DbContext
             .HasConversion<string>();
 
 
+
+
         modelBuilder.Entity<Room>()
             .Property(r => r.Building)
             .HasConversion<string>();
@@ -77,6 +79,13 @@ public class DM2ProjektContext : DbContext
             .WithMany(r => r.Bookings)
             .HasForeignKey(b => b.RoomId)
             .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<Booking>()
+    .HasOne(b => b.Room)
+    .WithMany()
+    .HasForeignKey(b => b.RoomId)
+    .OnDelete(DeleteBehavior.Cascade);
+
 
         // group has a creator (the user who made it)
         modelBuilder.Entity<Group>()
