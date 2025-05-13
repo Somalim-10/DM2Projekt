@@ -1,60 +1,69 @@
 ﻿@page
 @model DM2Projekt.Pages.Users.CreateModel
-
 @{
-    ViewData["Title"] = "Create";
+    ViewData["Title"] = "Create User";
 }
 
-<h1>Create</h1>
+<div class="container mt-4">
+    <!-- Page title + subtext -->
+    <h2 class="mb-1">Create New User</h2>
+    <p class="text-muted mb-4">Fill out the form below to register a new user. Once created, they’ll be able to log in immediately.</p>
 
-<h4>User</h4>
-<hr />
-<div class="row">
-    <div class="col-md-4">
+    <!-- Form card -->
+    <div class="card shadow-sm p-4">
         <form method="post">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <!-- Summary error box -->
+            <div asp-validation-summary="All" class="text-danger mb-3"></div>
 
-            <div class="form-group">
-                <label asp-for="User.FirstName" class="control-label"></label>
-                <input asp-for="User.FirstName" class="form-control" />
-                <span asp-validation-for="User.FirstName" class="text-danger"></span>
+            <!-- First name -->
+            <div class="mb-4">
+                <label asp-for="User.FirstName" class="form-label">First Name</label>
+                <input asp-for="User.FirstName" class="form-control" placeholder="Enter first name" />
+                <span asp-validation-for="User.FirstName" class="text-danger small"></span>
             </div>
 
-            <div class="form-group">
-                <label asp-for="User.LastName" class="control-label"></label>
-                <input asp-for="User.LastName" class="form-control" />
-                <span asp-validation-for="User.LastName" class="text-danger"></span>
+            <!-- Last name -->
+            <div class="mb-4">
+                <label asp-for="User.LastName" class="form-label">Last Name</label>
+                <input asp-for="User.LastName" class="form-control" placeholder="Enter last name" />
+                <span asp-validation-for="User.LastName" class="text-danger small"></span>
             </div>
 
-            <div class="form-group">
-                <label asp-for="User.Email" class="control-label"></label>
-                <input asp-for="User.Email" class="form-control" />
-                <span asp-validation-for="User.Email" class="text-danger"></span>
+            <!-- Email -->
+            <div class="mb-4">
+                <label asp-for="User.Email" class="form-label">Email</label>
+                <input asp-for="User.Email" class="form-control" placeholder="user@example.com" />
+                <span asp-validation-for="User.Email" class="text-danger small"></span>
             </div>
 
-            <div class="form-group">
-                <label asp-for="User.Password" class="control-label"></label>
-                <input asp-for="User.Password" class="form-control" type="password" />
-                <span asp-validation-for="User.Password" class="text-danger"></span>
+            <!-- Password -->
+            <div class="mb-4">
+                <label asp-for="User.Password" class="form-label">Password</label>
+                <input asp-for="User.Password" type="password" class="form-control" placeholder="Choose a secure password" />
+                <div class="form-text">This cannot be changed here later.</div>
+                <span asp-validation-for="User.Password" class="text-danger small"></span>
             </div>
 
-            <div class="form-group">
-                <label asp-for="User.Role" class="control-label"></label>
-                <select asp-for="User.Role" class="form-control" asp-items="Model.RoleOptions">
-                    <option value="">-- Vælg rolle --</option>
+            <!-- Role -->
+            <div class="mb-4">
+                <label asp-for="User.Role" class="form-label">Role</label>
+                <select asp-for="User.Role" class="form-select" asp-items="Model.RoleOptions">
+                    <option value="">-- Select role --</option>
                 </select>
-                <span asp-validation-for="User.Role" class="text-danger"></span>
+                <span asp-validation-for="User.Role" class="text-danger small"></span>
             </div>
 
-            <div class="form-group">
-                <input type="submit" value="Create" class="btn btn-primary" />
+            <!-- Button row -->
+            <div class="d-flex justify-content-between border-top pt-4 mt-4">
+                <a asp-page="Index" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left me-1"></i> Back to List
+                </a>
+                <button type="submit" class="btn btn-success">
+                    <i class="bi bi-plus-circle me-1"></i> Create User
+                </button>
             </div>
         </form>
     </div>
-</div>
-
-<div>
-    <a asp-page="Index">Back to List</a>
 </div>
 
 @section Scripts {

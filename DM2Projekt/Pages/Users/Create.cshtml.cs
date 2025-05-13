@@ -7,6 +7,7 @@ using DM2Projekt.Models.Enums;
 
 namespace DM2Projekt.Pages.Users;
 
+// admin-only: create a new user
 public class CreateModel : PageModel
 {
     private readonly DM2ProjektContext _context;
@@ -23,16 +24,39 @@ public class CreateModel : PageModel
 
     public IActionResult OnGet()
     {
+        if (!IsAdmin()) return RedirectToPage("/Login");
+
+        LoadRoleOptions();
+        return Page();
+    }
+
+    public async Task<IActionResult> OnPostAsync()
+    {
+        if (!IsAdmin()) return RedirectToPage("/Login");
+
+        if (!ModelState.IsValid)
+        {
+            LoadRoleOptions(); // reload dropdown values
+            return Page();
+        }
+
+        _context.User.Add(User); // save new user
+        await _context.SaveChangesAsync();
+
+        return RedirectToPage("./Index");
+    }
+
+    // helper: only allow logged-in admins
+    private bool IsAdmin()
+    {
         var userId = HttpContext.Session.GetInt32("UserId");
         var userRole = HttpContext.Session.GetString("UserRole");
+        return userId != null && userRole == "Admin";
+    }
 
-        if (userId == null) // not logged in
-            return RedirectToPage("/Login");
-
-        if (userRole != "Admin") // only Admin can create users
-            return RedirectToPage("/Index");
-
-        // load role options
+    // helper: populate the dropdown
+    private void LoadRoleOptions()
+    {
         RoleOptions = Enum.GetValues(typeof(Role))
                           .Cast<Role>()
                           .Select(r => new SelectListItem
@@ -40,39 +64,5 @@ public class CreateModel : PageModel
                               Value = ((int)r).ToString(),
                               Text = r.ToString()
                           });
-
-        return Page();
-    }
-
-    public async Task<IActionResult> OnPostAsync()
-    {
-        var userId = HttpContext.Session.GetInt32("UserId");
-        var userRole = HttpContext.Session.GetString("UserRole");
-
-        if (userId == null) // not logged in
-            return RedirectToPage("/Login");
-
-        if (userRole != "Admin") // only Admin can create users
-            return RedirectToPage("/Index");
-
-        if (!ModelState.IsValid)
-        {
-            // reload role options if invalid
-            RoleOptions = Enum.GetValues(typeof(Role))
-                              .Cast<Role>()
-                              .Select(r => new SelectListItem
-                              {
-                                  Value = ((int)r).ToString(),
-                                  Text = r.ToString()
-                              });
-
-            return Page();
-        }
-
-        // save new user
-        _context.User.Add(User);
-        await _context.SaveChangesAsync();
-
-        return RedirectToPage("./Index");
     }
 }
