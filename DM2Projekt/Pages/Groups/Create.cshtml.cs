@@ -10,16 +10,19 @@ public class CreateModel : PageModel
 {
     private readonly DM2ProjektContext _context;
 
+    // Constructor: injects the database context so we can access the database
     public CreateModel(DM2ProjektContext context)
     {
         _context = context;
     }
 
     [BindProperty]
+    // This property is bound to the form on the page. It holds the group being deleted.
     public Group Group { get; set; } = default!;
 
     public IActionResult OnGet()
     {
+        // Get the current user's role from the session
         var userRole = HttpContext.Session.GetString("UserRole");
 
         // only Admins and Students can make groups
@@ -35,15 +38,17 @@ public class CreateModel : PageModel
 
         if (userRole != "Admin" && userRole != "Student")
             return RedirectToPage("/Groups/Index");
-
+        // If form validation fails, redisplay the page with validation messages
         if (!ModelState.IsValid)
             return Page();
-
+        // Get the user ID from session, and If no user ID in session, redirect to login
         var userId = HttpContext.Session.GetInt32("UserId");
         if (userId == null)
             return RedirectToPage("/Login");
 
+        // Try to find the user in the database
         var user = await _context.User.FindAsync(userId);
+        // If the user doesn't exist, redirect to login
         if (user == null)
             return RedirectToPage("/Login");
 

@@ -9,17 +9,20 @@ namespace DM2Projekt.Pages.Groups;
 public class DeleteModel : PageModel
 {
     private readonly DM2ProjektContext _context;
-
+    // Constructor: injects the database context so we can access the database
     public DeleteModel(DM2ProjektContext context)
     {
         _context = context;
     }
 
     [BindProperty]
+    // This property is bound to the form on the page. It holds the group being deleted.
     public Group Group { get; set; } = default!;
 
+    // GET: Called when the user navigates to the delete page (usually to confirm deletion)
     public async Task<IActionResult> OnGetAsync(int? id)
     {
+        //If the ID doesn't exist, return error
         if (id == null)
             return NotFound();
 
@@ -41,12 +44,13 @@ public class DeleteModel : PageModel
         Group = group;
         return Page();
     }
-
+    // POST: Called when the user confirms the deletion and submits the form
     public async Task<IActionResult> OnPostAsync(int? id)
     {
+        // If no ID is provided, return error
         if (id == null)
             return NotFound();
-
+        // Try to find the group in the database
         var group = await _context.Group.FindAsync(id);
         if (group == null)
             return NotFound();

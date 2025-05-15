@@ -10,6 +10,7 @@ public class DetailsModel : PageModel
 {
     private readonly DM2ProjektContext _context;
 
+    // Constructor: injects the database context so we can access the database
     public DetailsModel(DM2ProjektContext context)
     {
         _context = context;
