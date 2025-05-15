@@ -45,10 +45,10 @@ public class EditModel : PageModel
         return Page();
     }
 
-    public async Task<IActionResult> OnPostAsync()
+    public async Task<IActionResult> OnPostAsync(string? testUserRole = null, int? testUserId = null)
     {
-        var userId = HttpContext.Session.GetInt32("UserId");
-        var userRole = HttpContext.Session.GetString("UserRole");
+        var userId = testUserId ?? HttpContext.Session.GetInt32("UserId");
+        var userRole = testUserRole ?? HttpContext.Session.GetString("UserRole");
 
         // must be logged in and be Admin
         if (userId == null || userRole != "Admin")

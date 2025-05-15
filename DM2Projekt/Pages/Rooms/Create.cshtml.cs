@@ -37,9 +37,10 @@ public class CreateModel : PageModel
         return Page();
     }
 
-    public async Task<IActionResult> OnPostAsync()
+    public async Task<IActionResult> OnPostAsync(string? testUserRole = null, int? testUserId = null)
     {
-        var userRole = HttpContext.Session.GetString("UserRole");
+        var userId = testUserId ?? HttpContext?.Session?.GetInt32("UserId");
+        var userRole = testUserRole ?? HttpContext?.Session?.GetString("UserRole");
 
         // only Admins can create
         if (userRole != "Admin")
@@ -48,8 +49,13 @@ public class CreateModel : PageModel
         if (!ModelState.IsValid)
             return Page();
 
-        bool roomExists = await _context.Room
-        .AnyAsync(r => r.RoomName.ToLower() == Room.RoomName.ToLower());
+        var existingRoomNames = await _context.Room
+     .Select(r => r.RoomName)
+     .ToListAsync();
+
+        bool roomExists = existingRoomNames
+            .Any(name => string.Equals(name, Room.RoomName, StringComparison.OrdinalIgnoreCase));
+
 
         if (roomExists)
         {
