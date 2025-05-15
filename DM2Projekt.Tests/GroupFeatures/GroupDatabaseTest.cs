@@ -150,7 +150,7 @@ public class GroupDatabaseTest
         context.SaveChanges();
 
         // Get test user from seeded data (e.g. Eren or Armin)
-        var currentUser = context.User.First(u => u.Email == "armin@edu.dk");
+        var currentUser = context.User.First(u => u.Email == "mikasa@edu.dk");
 
         // Act: try to create a group with same name by a different user
         var page = CreatePageModel(context, "Student", currentUser.UserId);
