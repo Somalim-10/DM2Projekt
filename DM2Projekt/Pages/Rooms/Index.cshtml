@@ -1,155 +1,204 @@
 ﻿@page
 @model DM2Projekt.Pages.Rooms.IndexModel
+@using DM2Projekt.Models.Enums
 
 @{
     ViewData["Title"] = "Rooms";
     var userRole = HttpContext.Session.GetString("UserRole");
 }
 
-<div class="bg-light p-3 rounded mb-4">
-    <form method="get" class="row g-3 align-items-end">
-        <!-- building filter dropdown -->
-        <div class="col-auto">
-            <label for="Building" class="form-label">Building</label>
-            <select id="Building" name="Building" class="form-select">
-                <option value="">-- All Buildings --</option>
-                @foreach (var b in Model.BuildingOptions)
-                {
-                    var selected = Model.Building.HasValue && Model.Building.Value.ToString() == b.Value ? "selected" : "";
-                    <option value="@b.Value" selected="@(Model.Building.HasValue && Model.Building.Value.ToString() == b.Value ? "selected" : null)">@b.Text</option>
+<!-- mobile: show/hide filters -->
+<div class="d-md-none mb-2">
+    <button class="btn btn-outline-secondary w-100"
+            type="button"
+            data-bs-toggle="collapse"
+            data-bs-target="#filterCollapse"
+            aria-expanded="true"
+            aria-controls="filterCollapse">
+        <i class="bi bi-filter"></i> Filters
+    </button>
+</div>
 
-                }
-            </select>
-        </div>
+<!-- filters panel -->
+<div class="collapse show d-md-block card mb-4" id="filterCollapse" aria-labelledby="filterHeading">
+    <div class="card-body py-3">
+        <h2 id="filterHeading" class="h5 mb-2">Filters</h2>
 
+        <!-- wrap filters in a grid that auto-wraps -->
+        <form method="get" class="row gx-3 gy-2 align-items-end">
 
-        <!-- floor filter dropdown -->
-        <div class="col-auto">
-            <label for="Floor" class="form-label">Floor</label>
-            <select id="Floor" name="Floor" class="form-select">
-                <option value="">-- All Floors --</option>
-                @foreach (var f in Model.FloorOptions)
-                {
-                    var selected = Model.Floor.HasValue && Model.Floor.Value.ToString() == f.Value ? "selected" : "";
-                    <option value="@f.Value" selected="@(Model.Floor.HasValue && Model.Floor.Value.ToString() == f.Value ? "selected" : null)">@f.Text</option>
-                }
-            </select>
-        </div>
+            <!-- 🔍 Search -->
+            <div class="col-auto flex-grow-1">
+                <label asp-for="SearchTerm" class="form-label">
+                    <i class="bi bi-search"></i> Search
+                </label>
+                <input asp-for="SearchTerm"
+                       class="form-control"
+                       placeholder="Search rooms…"
+                       autocomplete="off" />
+            </div>
 
-        <!-- RoomType filter dropdown -->
-        <div class="col-auto">
-            <label for="RoomType" class="form-label">RoomType</label>
-            <select id="RoomType" name="RoomType" class="form-select">
-                <option value="">-- All RoomTypes --</option>
-                @foreach (var rt in Model.RoomTypeOptions)
-                {
-                    var selected = Model.RoomType.HasValue && Model.RoomType.Value.ToString() == rt.Value ? "selected" : "";
-                    <option value="@rt.Value" selected="@(Model.RoomType.HasValue && Model.RoomType.Value.ToString() == rt.Value ? "selected" : null)">@rt.Text</option>
-                }
-            </select>
-        </div>
+            <!-- 🏠 Building -->
+            <div class="col-auto">
+                <label asp-for="Building" class="form-label">
+                    <i class="bi bi-house-door-fill"></i> Building
+                </label>
+                <select asp-for="Building"
+                        class="form-select"
+                        asp-items="Model.BuildingOptions">
+                    <option value="">Any</option>
+                </select>
+            </div>
 
-        <!-- room filter dropdown -->
-        <div class="col-auto">
-            <label for="RoomId" class="form-label">Room</label>
-            <select id="RoomId" name="RoomId" class="form-select">
-                <option value="">-- All Rooms --</option>
-                @if (Model.RoomOptions != null)
-                {
-                    foreach (var room in Model.RoomOptions)
-                    {
-                        int roomId = int.Parse(room.Value);
-                        if (Model.SelectedRoomId.HasValue && Model.SelectedRoomId.Value == roomId)
-                        {
-                            <option value="@room.Value" selected>@room.Text</option>
-                        }
-                        else
-                        {
-                            <option value="@room.Value">@room.Text</option>
-                        }
-                    }
-                }
-            </select>
-        </div>
-        <div class="col-auto d-flex gap-2">
-            <button type="submit" class="btn btn-primary">
-                <i class="bi bi-funnel"></i> Apply
-            </button>
-            <a asp-page="./Index" class="btn btn-outline-secondary">
-                <i class="bi bi-x-circle"></i> Clear
-            </a>
-        </div>
-    </form>
+            <!-- 📶 Floor -->
+            <div class="col-auto">
+                <label asp-for="Floor" class="form-label">
+                    <i class="bi bi-hdd-fill"></i> Floor
+                </label>
+                <select asp-for="Floor"
+                        class="form-select"
+                        asp-items="Model.FloorOptions">
+                    <option value="">Any</option>
+                </select>
+            </div>
 
-    <div class="container mt-4">
-        <h1 class="mb-4">Rooms</h1>
+            <!-- 🏷️ Type -->
+            <div class="col-auto">
+                <label asp-for="RoomType" class="form-label">
+                    <i class="bi bi-tags-fill"></i> Type
+                </label>
+                <select asp-for="RoomType"
+                        class="form-select"
+                        asp-items="Model.RoomTypeOptions">
+                    <option value="">Any</option>
+                </select>
+            </div>
 
-        <!-- only admins can see Create button -->
-        @if (userRole == "Admin")
-        {
-            <div class="mb-4">
-                <a asp-page="Create" class="btn btn-success">
-                    <i class="bi bi-plus-circle"></i> Create New Room
+            <!-- ⏰ Available next X hours -->
+            <div class="col-auto">
+                <label class="form-label">&nbsp;</label>
+                <button type="submit"
+                        name="ShowAvailable"
+                        value="true"
+                        class="btn btn-outline-primary text-nowrap"
+                        aria-pressed="@Model.ShowAvailable.ToString().ToLower()"
+                        aria-label="Show rooms available in next @Model.AvailableHours hours">
+                    <i class="bi bi-clock-history me-1"></i>
+                    Available next @Model.AvailableHours hours
+                </button>
+            </div>
+
+            <!-- ⚙️ Apply -->
+            <div class="col-auto">
+                <label class="form-label">&nbsp;</label>
+                <button type="submit"
+                        class="btn btn-primary text-nowrap"
+                        title="Apply filters">
+                    <i class="bi bi-funnel me-1"></i> Apply
+                </button>
+            </div>
+
+            <!-- ❌ Clear -->
+            <div class="col-auto">
+                <label class="form-label">&nbsp;</label>
+                <a asp-page="./Index"
+                   class="btn btn-outline-secondary text-nowrap"
+                   title="Clear filters">
+                    <i class="bi bi-x-circle me-1"></i> Clear
                 </a>
             </div>
-        }
+        </form>
+    </div>
+</div>
 
-        <!-- grid for the cards -->
-        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
-            @foreach (var item in Model.Room)
+<div class="container">
+    <!-- header: total + admin button -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="mb-0">
+            Rooms <span class="badge bg-secondary">@Model.Rooms.Count</span>
+        </h1>
+        @if (userRole == "Admin")
+        {
+            <a asp-page="./Create" class="btn btn-success">
+                <i class="bi bi-plus-circle"></i> New Room
+            </a>
+        }
+    </div>
+
+    @if (!Model.Rooms.Any())
+    {
+        <div class="alert alert-info">No rooms found. Try widening your filters.</div>
+    }
+    else
+    {
+        <!-- cards grid -->
+        <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 g-4">
+            @foreach (var room in Model.Rooms)
             {
                 <div class="col">
-                    <div class="card shadow-sm h-100">
-                        @if (!string.IsNullOrEmpty(item.ImageUrl))
+                    <div class="card h-100 shadow-sm hover-shadow">
+                        @* image *@
+                        @if (!string.IsNullOrEmpty(room.ImageUrl))
                         {
-                            <img src="@item.ImageUrl" class="card-img-top" alt="Room image" style="max-height: 200px; object-fit: cover;" />
+                            <img src="@room.ImageUrl"
+                                 alt="@room.RoomName"
+                                 class="card-img-top"
+                                 style="height:180px; object-fit:cover;" />
                         }
-                        <div class="card-body d-flex flex-column">
-
-                            <!-- room name -->
-                            <h5 class="card-title">@item.RoomName</h5>
-
-                            <!-- room type -->
-                            <p class="card-text text-muted mb-4">
-                                @item.RoomType
-                            </p>
-                            <div class="row">
-                                <div class="col-6">
-                                    <div class="d-flex align-items-center">
-                                        <i class="bi bi-house-door-fill me-2 text-primary"></i>
-                                        <span class="fw-bold">Building:</span> <span>@item.Building</span>
-                                    </div>
-                                </div>
-                                <div class="col-6">
-                                    <div class="d-flex align-items-center">
-                                        <i class="bi bi-hdd-fill me-2 text-success"></i>
-                                        <span class="fw-bold">Floor:</span> <span>@item.Floor</span>
-                                    </div>
-                                </div>
+                        <div class="card-body d-flex flex-column p-3">
+                            @* title + type *@
+                            <div class="d-flex align-items-center mb-1">
+                                <h5 class="card-title mb-0 me-2">@room.RoomName</h5>
+                                @{
+                                    var prettyType = room.RoomType
+                                    .ToString()
+                                    .Replace("MeetingRoom", "Meeting Room");
+                                }
+                                <span class="badge rounded-pill bg-info text-dark small">
+                                    @prettyType
+                                </span>
                             </div>
 
+                            @* building + floor in one line *@
+                            <p class="small text-muted mb-3">
+                                <i class="bi bi-house-door-fill me-1"></i>Building @room.Building
+                                <span class="mx-2">|</span>
+                                <i class="bi bi-hdd-fill me-1"></i>Floor @room.Floor
+                            </p>
 
-                            <!-- action buttons -->
-                            <div class="mt-auto">
-                                <div class="btn-group" role="group">
-                                    <a asp-page="./Details" asp-route-id="@item.RoomId" class="btn btn-sm btn-outline-primary">
-                                        <i class="bi bi-eye"></i> Details
+                            @* actions *@
+                            <div class="mt-auto d-flex justify-content-between">
+                                <a asp-page="./Details"
+                                   asp-route-id="@room.RoomId"
+                                   class="btn btn-sm btn-outline-primary">
+                                    <i class="bi bi-eye"></i> Details
+                                </a>
+
+                                @if (userRole == "Student")
+                                {
+                                    <a asp-page="/Bookings/Create"
+                                       asp-route-roomId="@room.RoomId"
+                                       class="btn btn-sm btn-primary">
+                                        <i class="bi bi-calendar-plus"></i> Book Now
                                     </a>
-
-                                    @if (userRole == "Admin")
-                                    {
-                                        <a asp-page="./Edit" asp-route-id="@item.RoomId" class="btn btn-sm btn-outline-warning">
-                                            <i class="bi bi-pencil-square"></i> Edit
-                                        </a>
-                                        <a asp-page="./Delete" asp-route-id="@item.RoomId" class="btn btn-sm btn-outline-danger">
-                                            <i class="bi bi-trash"></i> Delete
-                                        </a>
-                                    }
-                                </div>
+                                }
                             </div>
                         </div>
                     </div>
                 </div>
             }
         </div>
-    </div>
+    }
+</div>
+
+<style>
+    /* card hover lift */
+    .hover-shadow {
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+        .hover-shadow:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 16px rgba(0,0,0,0.15);
+        }
+</style>
