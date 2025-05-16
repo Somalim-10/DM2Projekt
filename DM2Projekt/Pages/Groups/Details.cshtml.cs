@@ -10,28 +10,21 @@ public class DetailsModel : PageModel
 {
     private readonly DM2ProjektContext _context;
 
-    // Constructor: injects the database context so we can access the database
     public DetailsModel(DM2ProjektContext context)
     {
         _context = context;
     }
 
-    // the group being viewed
     public Group Group { get; set; } = default!;
-
-    // who's in the group right now
     public List<User> Members { get; set; } = new();
-
-    // any invites that haven't been accepted/declined yet
     public List<GroupInvitation> PendingInvites { get; set; } = new();
 
-    // fields used by the post actions below
+    // used for actions (leave, kick, cancel invite)
     [BindProperty] public int LeaveGroupId { get; set; }
     [BindProperty] public int KickUserId { get; set; }
     [BindProperty] public int KickGroupId { get; set; }
     [BindProperty] public int CancelInviteId { get; set; }
 
-    // used for feedback after an action
     [TempData] public string? SuccessMessage { get; set; }
 
     public async Task<IActionResult> OnGetAsync(int? id)
@@ -39,7 +32,7 @@ public class DetailsModel : PageModel
         if (id == null)
             return NotFound();
 
-        // load group + members + creator
+        // pull full group info incl. creator + members
         var group = await _context.Group
             .Include(g => g.UserGroups).ThenInclude(ug => ug.User)
             .Include(g => g.CreatedByUser)
@@ -51,20 +44,19 @@ public class DetailsModel : PageModel
         var userId = HttpContext.Session.GetInt32("UserId");
         var role = HttpContext.Session.GetString("UserRole");
 
-        // check who this user is
         var isMember = group.UserGroups.Any(ug => ug.UserId == userId);
         var isCreator = group.CreatedByUserId == userId;
         var isAdmin = role == "Admin";
+        var isTeacher = role == "Teacher";
 
-        // only allow access to people involved (or teachers/admins)
-        var allowed = isMember || isCreator || isAdmin || role == "Teacher";
-        if (!allowed)
+        // you can view if you're involved in any way (or admin/teacher)
+        if (!(isMember || isCreator || isAdmin || isTeacher))
             return RedirectToPage("/Groups/Index");
 
         Group = group;
         Members = group.UserGroups.Select(ug => ug.User).ToList();
 
-        // if you're the group creator, you can see invites
+        // only the owner gets to see pending invites
         if (isCreator)
         {
             PendingInvites = await _context.GroupInvitation
@@ -74,22 +66,18 @@ public class DetailsModel : PageModel
         }
 
         ViewData["CanEdit"] = isAdmin || isCreator;
-
         return Page();
     }
 
-    // === student leaves group ===
+    // when a student leaves a group
     public async Task<IActionResult> OnPostLeaveAsync()
     {
         var userId = HttpContext.Session.GetInt32("UserId");
-        if (userId == null)
-            return RedirectToPage("/Login");
+        if (userId == null) return RedirectToPage("/Login");
 
         var group = await _context.Group.FindAsync(LeaveGroupId);
-
-        // group must exist and user can't leave their own group
         if (group == null || group.CreatedByUserId == userId)
-            return RedirectToPage(new { id = LeaveGroupId });
+            return RedirectToPage(new { id = LeaveGroupId }); // can't leave your own group
 
         var membership = await _context.UserGroup
             .FirstOrDefaultAsync(ug => ug.UserId == userId && ug.GroupId == LeaveGroupId);
@@ -103,22 +91,18 @@ public class DetailsModel : PageModel
         return RedirectToPage("/Groups/Index");
     }
 
-    // === group creator kicks a member ===
+    // when the owner kicks a member
     public async Task<IActionResult> OnPostKickAsync()
     {
         var userId = HttpContext.Session.GetInt32("UserId");
-        if (userId == null)
-            return RedirectToPage("/Login");
+        if (userId == null) return RedirectToPage("/Login");
 
         var group = await _context.Group.FindAsync(KickGroupId);
-
-        // can only kick if you're the creator
         if (group == null || group.CreatedByUserId != userId)
             return RedirectToPage("/Groups/Index");
 
-        // can't kick yourself!
         if (KickUserId == userId)
-            return RedirectToPage(new { id = KickGroupId });
+            return RedirectToPage(new { id = KickGroupId }); // can't kick yourself
 
         var membership = await _context.UserGroup
             .FirstOrDefaultAsync(ug => ug.UserId == KickUserId && ug.GroupId == KickGroupId);
@@ -132,19 +116,17 @@ public class DetailsModel : PageModel
         return RedirectToPage(new { id = KickGroupId });
     }
 
-    // === group creator cancels an invite ===
+    // cancel an invite if you're the owner
     public async Task<IActionResult> OnPostCancelInviteAsync()
     {
         var userId = HttpContext.Session.GetInt32("UserId");
-        if (userId == null)
-            return RedirectToPage("/Login");
+        if (userId == null) return RedirectToPage("/Login");
 
         var invite = await _context.GroupInvitation
             .Include(i => i.Group)
             .Include(i => i.InvitedUser)
             .FirstOrDefaultAsync(i => i.InvitationId == CancelInviteId);
 
-        // invite must exist and belong to the current user's group
         if (invite == null || invite.Group.CreatedByUserId != userId)
             return RedirectToPage("/Groups/Index");
 
