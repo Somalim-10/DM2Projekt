@@ -4,35 +4,35 @@
 @{
     ViewData["Title"] = "Groups";
 
-    var userRole = HttpContext.Session.GetString("UserRole");
-    var userId = HttpContext.Session.GetInt32("UserId");
-
-    var totalGroups = Model.Group.Count;
-
-    // Only relevant for students
-    var userGroups = (userRole == "Student")
-        ? Model.Group.Count(g => g.CreatedByUserId == userId || g.UserGroups.Any(ug => ug.UserId == userId))
-        : 0;
+    var userRole = Model.UserRole;
+    var userId = Model.UserId;
+    var totalGroups = Model.TotalGroupsCount;
+    var userGroups = Model.UserGroupsCount;
+    var searchTerm = Model.Search ?? "";
+    var filteredGroups = Model.Groups;
 }
 
 <div class="container mt-4">
-    <h1 class="mb-2">Groups</h1>
+    <h1 class="mb-3">Groups</h1>
 
+    @* Show user's joined groups count *@
     @if (userRole == "Student")
     {
-        <p class="text-muted">You are part of @userGroups of @totalGroups group(s).</p>
+        <p class="text-muted">
+            You’ve joined <strong>@userGroups</strong> out of your <strong>3</strong> available groups.
+        </p>
     }
     else if (userRole == "Teacher")
     {
-        <p class="text-muted">Viewing all student groups.</p>
+        <p class="text-muted">Viewing all student-created groups.</p>
     }
     else if (userRole == "Admin")
     {
-        <p class="text-muted">Admin view – full access to all groups.</p>
+        <p class="text-muted">Admin view — full access to all groups.</p>
     }
 
-    <!-- Only students and admins can create -->
-    @if (userRole == "Admin" || userRole == "Student")
+    @* Show create button only if allowed *@
+    @if (userRole == "Admin" || (userRole == "Student" && userGroups < 1))
     {
         <div class="mb-4">
             <a asp-page="Create" class="btn btn-primary">
@@ -41,7 +41,12 @@
         </div>
     }
 
-    @if (totalGroups == 0)
+    @* Search box *@
+    <form method="get" class="mb-4">
+        <input type="search" name="search" class="form-control" placeholder="Search groups by name" value="@searchTerm" autocomplete="off" />
+    </form>
+
+    @if (!filteredGroups.Any())
     {
         <div class="alert alert-info">
             <i class="bi bi-emoji-neutral"></i> No groups found.
@@ -54,7 +59,7 @@
     else
     {
         <div class="row">
-            @foreach (var group in Model.Group)
+            @foreach (var group in filteredGroups)
             {
                 var isOwner = group.CreatedByUserId == userId;
                 var isMember = group.UserGroups.Any(ug => ug.UserId == userId);
@@ -65,58 +70,74 @@
                 var canInvite = canEdit;
 
                 <div class="col-md-6 col-lg-4 mb-4">
-                    <div class="card h-100 shadow-sm">
+                    <div class="card h-100 shadow-sm position-relative">
+                        @* Read-only badge for teachers without access *@
+                        @if (userRole == "Teacher" && !(isOwner || isMember || userRole == "Admin"))
+                        {
+                            <span class="badge bg-secondary position-absolute top-0 end-0 m-2" title="Read-only">Read-only</span>
+                        }
+
                         <div class="card-body d-flex flex-column justify-content-between">
-                            <div>
-                                <h5 class="card-title">@group.GroupName</h5>
 
-                                <p class="card-text text-muted mb-1">
-                                    <i class="bi bi-person-circle me-1"></i>
-                                    Created by: @group.CreatedByUser.FirstName @group.CreatedByUser.LastName
-                                </p>
-
-                                @if (isOwner)
+                            @* Group name and badges for member (no owner badge here) *@
+                            <div class="mb-2 d-flex align-items-center">
+                                <h5 class="card-title flex-grow-1 mb-0">@group.GroupName</h5>
+                                @if (isMember && !isOwner)
                                 {
-                                    <span class="badge bg-primary">You are the owner</span>
-                                }
-                                else if (isMember)
-                                {
-                                    <span class="badge bg-success">You are a member</span>
+                                    <span class="badge bg-success ms-2" title="You are a member">Member</span>
                                 }
                             </div>
 
-                            <div class="mt-3 d-flex flex-wrap gap-2">
+                            @* Owner info with label and avatar *@
+                            <div class="d-flex align-items-center text-muted small mb-3">
+                                @if (!string.IsNullOrEmpty(group.CreatedByUser.ProfileImagePath))
+                                {
+                                    <img src="@group.CreatedByUser.ProfileImagePath"
+                                         alt="Owner Profile"
+                                         class="rounded-circle me-2"
+                                         style="width: 32px; height: 32px; object-fit: cover;"
+                                         onerror="this.onerror=null; this.src='/images/default-profile.png';" />
+                                }
+                                else
+                                {
+                                    <i class="bi bi-person-circle fs-4 me-2 text-secondary"></i>
+                                }
+                                <span>Owner: <strong>@group.CreatedByUser.FirstName @group.CreatedByUser.LastName</strong></span>
+                            </div>
+
+                            @* Member count under owner info *@
+                            <div class="text-muted small mb-3">
+                                Members: @group.UserGroups.Count
+                            </div>
+
+                            @* Action buttons *@
+                            <div class="d-flex flex-wrap gap-2 mt-auto">
                                 @if (canView)
                                 {
-                                    <a asp-page="./Details" asp-route-id="@group.GroupId" class="btn btn-sm btn-outline-primary">
+                                    <a asp-page="./Details" asp-route-id="@group.GroupId" class="btn btn-sm btn-outline-primary" title="View details">
                                         <i class="bi bi-eye"></i> Details
                                     </a>
                                 }
 
                                 @if (canEdit)
                                 {
-                                    <a asp-page="./Edit" asp-route-id="@group.GroupId" class="btn btn-sm btn-outline-warning">
+                                    <a asp-page="./Edit" asp-route-id="@group.GroupId" class="btn btn-sm btn-outline-warning" title="Edit group">
                                         <i class="bi bi-pencil-square"></i> Edit
                                     </a>
                                 }
 
                                 @if (canInvite)
                                 {
-                                    <a asp-page="/GroupInvitations/Create" asp-route-groupId="@group.GroupId" class="btn btn-sm btn-outline-success">
+                                    <a asp-page="/GroupInvitations/Create" asp-route-groupId="@group.GroupId" class="btn btn-sm btn-outline-success" title="Invite members">
                                         <i class="bi bi-person-plus"></i> Invite
                                     </a>
                                 }
 
                                 @if (canDelete)
                                 {
-                                    <a asp-page="./Delete" asp-route-id="@group.GroupId" class="btn btn-sm btn-outline-danger">
+                                    <a asp-page="./Delete" asp-route-id="@group.GroupId" class="btn btn-sm btn-outline-danger" title="Delete group">
                                         <i class="bi bi-trash"></i> Delete
                                     </a>
-                                }
-
-                                @if (!canEdit && !canDelete && !canInvite && userRole == "Teacher")
-                                {
-                                    <span class="text-muted small">Read-only</span>
                                 }
                             </div>
                         </div>
