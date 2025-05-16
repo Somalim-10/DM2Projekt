@@ -8,11 +8,11 @@
 <div class="container mt-4">
     <h1 class="mb-4">Create New Group</h1>
 
+    @* Block access for unauthorized roles *@
     @if (userRole != "Admin" && userRole != "Student")
     {
-        <!-- block access for others -->
         <div class="alert alert-danger">
-            🚫 You are not allowed to create groups.
+            🚫 No permission to create groups.
         </div>
 
         <a asp-page="./Index" class="btn btn-secondary mt-3">
@@ -21,23 +21,22 @@
     }
     else
     {
-        <!-- form card -->
         <div class="card shadow-sm">
             <div class="card-body">
-
                 <h5 class="card-title mb-3">Group Info</h5>
 
-                <!-- show any backend errors -->
+                @* Show validation errors here *@
                 <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
 
-                <form method="post">
+                <form method="post" novalidate>
                     <div class="mb-3">
                         <label asp-for="Group.GroupName" class="form-label">Group Name</label>
-                        <input asp-for="Group.GroupName" class="form-control" />
+                        <input asp-for="Group.GroupName" class="form-control" placeholder="Pick something cool" />
                         <span asp-validation-for="Group.GroupName" class="text-danger"></span>
+                        <small class="form-text text-muted mt-1">Names can be the same — just make it yours.</small>
                     </div>
 
-                    <!-- button row -->
+                    @* Buttons: cancel or create *@
                     <div class="d-flex justify-content-between mt-4">
                         <a asp-page="./Index" class="btn btn-outline-secondary">
                             <i class="bi bi-arrow-left"></i> Cancel
