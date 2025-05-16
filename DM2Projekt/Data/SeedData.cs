@@ -64,17 +64,17 @@ public static class SeedData
         var memberships = new List<UserGroup>
         {
             // 404 Not Found
-            new() { GroupId = group404.GroupId, UserId = users[3].UserId }, // creator
+            new() { GroupId = group404.GroupId, UserId = users[3].UserId },
             new() { GroupId = group404.GroupId, UserId = users[4].UserId },
             new() { GroupId = group404.GroupId, UserId = users[6].UserId },
 
             // Byte Me
-            new() { GroupId = groupByteMe.GroupId, UserId = users[4].UserId }, // creator
+            new() { GroupId = groupByteMe.GroupId, UserId = users[4].UserId },
             new() { GroupId = groupByteMe.GroupId, UserId = users[5].UserId },
             new() { GroupId = groupByteMe.GroupId, UserId = users[7].UserId },
 
             // Null Squad
-            new() { GroupId = groupNullSquad.GroupId, UserId = users[5].UserId }, // creator
+            new() { GroupId = groupNullSquad.GroupId, UserId = users[5].UserId },
             new() { GroupId = groupNullSquad.GroupId, UserId = users[8].UserId },
             new() { GroupId = groupNullSquad.GroupId, UserId = users[9].UserId }
         };
@@ -100,13 +100,14 @@ public static class SeedData
 
         var rooms = new List<Room>
         {
-            new() { RoomName = "Paris", RoomType = RoomType.MeetingRoom, Building = Building.A, Floor = Floor.First, BuildingName = "Building A", FloorName = "1st Floor", ImageUrl = meetingRoomImages[0] },
-            new() { RoomName = "Berlin", RoomType = RoomType.Classroom, Building = Building.B, Floor = Floor.Second, BuildingName = "Building B", FloorName = "2nd Floor", ImageUrl = classroomImages[0] },
-            new() { RoomName = "Rome", RoomType = RoomType.MeetingRoom, Building = Building.C, Floor = Floor.Ground, BuildingName = "Building C", FloorName = "Ground Floor", ImageUrl = meetingRoomImages[1] },
-            new() { RoomName = "Lisbon", RoomType = RoomType.Classroom, Building = Building.D, Floor = Floor.Third, BuildingName = "Building D", FloorName = "3rd Floor", ImageUrl = classroomImages[1] },
-            new() { RoomName = "Vienna", RoomType = RoomType.MeetingRoom, Building = Building.A, Floor = Floor.Second, BuildingName = "Building A", FloorName = "2nd Floor", ImageUrl = meetingRoomImages[2] },
-            new() { RoomName = "Oslo", RoomType = RoomType.Classroom, Building = Building.B, Floor = Floor.First, BuildingName = "Building B", FloorName = "1st Floor", ImageUrl = classroomImages[2] }
+            new() { RoomName = "Paris", RoomType = RoomType.MeetingRoom, Building = Building.A, Floor = Floor.First, ImageUrl = meetingRoomImages[0] },
+            new() { RoomName = "Berlin", RoomType = RoomType.Classroom, Building = Building.B, Floor = Floor.Second, ImageUrl = classroomImages[0] },
+            new() { RoomName = "Rome", RoomType = RoomType.MeetingRoom, Building = Building.C, Floor = Floor.Ground, ImageUrl = meetingRoomImages[1] },
+            new() { RoomName = "Lisbon", RoomType = RoomType.Classroom, Building = Building.D, Floor = Floor.Third, ImageUrl = classroomImages[1] },
+            new() { RoomName = "Vienna", RoomType = RoomType.MeetingRoom, Building = Building.A, Floor = Floor.Second, ImageUrl = meetingRoomImages[2] },
+            new() { RoomName = "Oslo", RoomType = RoomType.Classroom, Building = Building.B, Floor = Floor.First, ImageUrl = classroomImages[2] }
         };
+
         context.Room.AddRange(rooms);
         context.SaveChanges();
     }

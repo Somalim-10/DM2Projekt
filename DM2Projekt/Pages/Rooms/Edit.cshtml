@@ -51,7 +51,24 @@
                             </select>
                             <span asp-validation-for="Room.RoomType" class="text-danger"></span>
                         </div>
-                       
+
+                        <!-- building dropdown -->
+                        <div class="mb-3">
+                            <label asp-for="Room.Building" class="form-label"></label>
+                            <select asp-for="Room.Building" class="form-select"
+                                    asp-items="Html.GetEnumSelectList<DM2Projekt.Models.Enums.Building>()">
+                            </select>
+                            <span asp-validation-for="Room.Building" class="text-danger"></span>
+                        </div>
+
+                        <!-- floor dropdown -->
+                        <div class="mb-3">
+                            <label asp-for="Room.Floor" class="form-label"></label>
+                            <select asp-for="Room.Floor" class="form-select"
+                                    asp-items="Html.GetEnumSelectList<DM2Projekt.Models.Enums.Floor>()">
+                            </select>
+                            <span asp-validation-for="Room.Floor" class="text-danger"></span>
+                        </div>
 
                         <!-- save btn -->
                         <button type="submit" class="btn btn-success w-100">
