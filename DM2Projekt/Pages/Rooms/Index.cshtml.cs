@@ -11,39 +11,37 @@ namespace DM2Projekt.Pages.Rooms;
 public class IndexModel : PageModel
 {
     private readonly DM2ProjektContext _context;
-    public IndexModel(DM2ProjektContext context)
-        => _context = context;  // yo: DI our DB context
 
-    // 🔍 search + filters from query
+    public IndexModel(DM2ProjektContext context)
+        => _context = context; // 🎉 injected context, we love DI
+
+    // 🧾 filters from query string
     [BindProperty(SupportsGet = true)] public string? SearchTerm { get; set; }
     [BindProperty(SupportsGet = true)] public Building? Building { get; set; }
     [BindProperty(SupportsGet = true)] public Floor? Floor { get; set; }
     [BindProperty(SupportsGet = true)] public RoomType? RoomType { get; set; }
 
-    // dropdown options (populated every time)
+    // for dropdowns
     public List<SelectListItem> BuildingOptions { get; set; } = new();
     public List<SelectListItem> FloorOptions { get; set; } = new();
     public List<SelectListItem> RoomTypeOptions { get; set; } = new();
 
-    // final rooms to render
+    // actual rooms shown in UI
     public List<Room> Rooms { get; set; } = new();
 
     public async Task<IActionResult> OnGetAsync()
     {
-        // 👮‍♂️ block unauthenticated users
+        // 👮 make sure you're logged in
         if (HttpContext.Session.GetInt32("UserId") == null)
             return RedirectToPage("/Login");
 
-        // fill dropdowns with unique values
         await LoadDropdownOptionsAsync();
-
-        // fetch + filter rooms
         Rooms = await GetFilteredRoomsAsync();
 
         return Page();
     }
 
-    // 🧙 get dropdowns from all rooms (nothing fancy, just unique enums)
+    // loads dropdown options from all rooms in DB
     private async Task LoadDropdownOptionsAsync()
     {
         var allRooms = await _context.Room.ToListAsync();
@@ -70,12 +68,11 @@ public class IndexModel : PageModel
             .ToList();
     }
 
-    // 📦 fetch + filter all the rooms for display
+    // apply filters and return list
     private async Task<List<Room>> GetFilteredRoomsAsync()
     {
         var query = _context.Room.AsQueryable();
 
-        // apply filters (building/floor/type) if any
         if (Building.HasValue)
             query = query.Where(r => r.Building == Building.Value);
 
@@ -87,7 +84,7 @@ public class IndexModel : PageModel
 
         var list = await query.ToListAsync();
 
-        // text search (case-insensitive, C# side)
+        // basic string contains, case-insensitive
         if (!string.IsNullOrWhiteSpace(SearchTerm))
         {
             var st = SearchTerm.Trim();

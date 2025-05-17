@@ -120,9 +120,7 @@
             @foreach (var room in Model.Rooms)
             {
                 <div class="col">
-                    <!-- no fake links anymore, just a dope card -->
                     <div class="card h-100 shadow-sm hover-shadow">
-                        @* image if we got one *@
                         @if (!string.IsNullOrEmpty(room.ImageUrl))
                         {
                             <img src="@room.ImageUrl"
@@ -132,7 +130,6 @@
                         }
 
                         <div class="card-body d-flex flex-column p-3">
-                            @* title + type badge *@
                             <div class="d-flex align-items-center mb-1">
                                 <h5 class="card-title mb-0 me-2">@room.RoomName</h5>
                                 @{
@@ -145,12 +142,28 @@
                                 </span>
                             </div>
 
-                            @* location info *@
-                            <p class="small text-muted mb-0">
+                            <p class="small text-muted mb-3">
                                 <i class="bi bi-house-door-fill me-1"></i>Building @room.Building
                                 <span class="mx-2">|</span>
                                 <i class="bi bi-hdd-fill me-1"></i>Floor @room.Floor
                             </p>
+
+                            @if (userRole == "Admin")
+                            {
+                                <!-- admin buttons -->
+                                <div class="mt-auto d-flex justify-content-between">
+                                    <a asp-page="./Edit"
+                                       asp-route-id="@room.RoomId"
+                                       class="btn btn-sm btn-outline-primary">
+                                        <i class="bi bi-pencil"></i> Edit
+                                    </a>
+                                    <a asp-page="./Delete"
+                                       asp-route-id="@room.RoomId"
+                                       class="btn btn-sm btn-outline-danger">
+                                        <i class="bi bi-trash"></i> Delete
+                                    </a>
+                                </div>
+                            }
                         </div>
                     </div>
                 </div>
@@ -160,7 +173,6 @@
 </div>
 
 <style>
-    /* card hover pop */
     .hover-shadow {
         transition: transform 0.2s, box-shadow 0.2s;
     }
@@ -170,7 +182,6 @@
             box-shadow: 0 8px 16px rgba(0,0,0,0.15);
         }
 
-    /* no pointer cursor for non-clickable things */
     .card:hover {
         cursor: default;
     }
