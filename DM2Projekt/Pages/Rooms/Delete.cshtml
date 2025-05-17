@@ -6,49 +6,56 @@
 }
 
 <div class="container mt-4">
+    <!-- 🔥 heading of doom -->
     <h1 class="text-danger mb-4">Delete Room</h1>
 
-    <!-- warning message -->
-    <div class="alert alert-warning">
-        <h4 class="alert-heading">Are you sure?</h4>
-        <p>This will permanently delete the room. You can't undo this.</p>
+    <!-- 💀 danger alert -->
+    <div class="alert alert-warning shadow-sm">
+        <h4 class="alert-heading">Are you absolutely sure?</h4>
+        <p>This action <strong>cannot</strong> be undone. The room and its info will be gone forever. 😬</p>
     </div>
 
-    <!-- card showing room info -->
+    <!-- 🖼️ Room preview -->
     <div class="card shadow-sm mb-4">
-        <div class="card-body">
-            <h5 class="card-title">Room Info</h5>
-            <hr />
+        <div class="row g-0">
+            @* if we have an image, show it *@
+            @if (!string.IsNullOrEmpty(Model.Room.ImageUrl))
+            {
+                <div class="col-md-4 text-center p-2">
+                    <img src="@Model.Room.ImageUrl"
+                         alt="Room preview"
+                         class="img-fluid rounded"
+                         style="max-height: 180px; object-fit: cover;" />
+                </div>
+            }
 
-            <dl class="row">
-                <dt class="col-sm-4">
-                    @Html.DisplayNameFor(model => model.Room.RoomName)
-                </dt>
-                <dd class="col-sm-8">
-                    @Html.DisplayFor(model => model.Room.RoomName)
-                </dd>
-
-                <dt class="col-sm-4">
-                    @Html.DisplayNameFor(model => model.Room.RoomType)
-                </dt>
-                <dd class="col-sm-8">
-                    @Html.DisplayFor(model => model.Room.RoomType)
-                </dd>
-            </dl>
+            <div class="col-md-8">
+                <div class="card-body">
+                    <h5 class="card-title">@Model.Room.RoomName</h5>
+                    <p class="card-text text-muted mb-1">
+                        <i class="bi bi-tags-fill me-1"></i>@Model.Room.RoomType
+                    </p>
+                    <p class="card-text text-muted">
+                        <i class="bi bi-house-door-fill me-1"></i>Building @Model.Room.Building
+                        <span class="mx-2">|</span>
+                        <i class="bi bi-hdd-fill me-1"></i>Floor @Model.Room.Floor
+                    </p>
+                </div>
+            </div>
         </div>
     </div>
 
-    <!-- confirm delete form -->
-    <form method="post" class="d-flex gap-2">
+    <!-- 🧨 confirm form -->
+    <form method="post" class="d-flex gap-3">
         <input type="hidden" asp-for="Room.RoomId" />
 
-        <!-- delete button -->
-        <button type="submit" class="btn btn-danger">
-            <i class="bi bi-trash-fill"></i> Delete
+        <!-- ❌ nuke button -->
+        <button type="submit" class="btn btn-danger btn-lg">
+            <i class="bi bi-trash-fill"></i> Delete Room
         </button>
 
-        <!-- back button -->
-        <a asp-page="./Index" class="btn btn-secondary">
+        <!-- 🏃‍♀️ bail out button -->
+        <a asp-page="./Index" class="btn btn-outline-secondary btn-lg">
             <i class="bi bi-arrow-left"></i> Cancel
         </a>
     </form>
