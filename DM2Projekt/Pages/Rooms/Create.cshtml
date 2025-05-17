@@ -10,80 +10,143 @@
     <h1 class="mb-4">Create New Room</h1>
 
     <div class="row justify-content-center">
-        <div class="col-md-6">
-            <!-- lil card for the form -->
-            <div class="card shadow-sm">
-                <div class="card-body">
-                    <h4 class="card-title mb-4">Room Info</h4>
+        <div class="col-md-8">
+            <form method="post">
+                <!-- 🍞 validation summary -->
+                <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
 
-                    <form method="post">
-                        <!-- show validation errors -->
-                        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+                <!-- 🧱 Room Info Card -->
+                <div class="card shadow-sm mb-4">
+                    <div class="card-body">
+                        <h4 class="card-title mb-4">Room Info</h4>
 
-                        <!-- room name input -->
+                        <!-- room name -->
                         <div class="mb-3">
-                            <label asp-for="Room.RoomName" class="form-label"></label>
+                            <label asp-for="Room.RoomName" class="form-label">Room Name</label>
                             <input asp-for="Room.RoomName" class="form-control" />
                             <span asp-validation-for="Room.RoomName" class="text-danger"></span>
                         </div>
 
-
-                        <!-- room type dropdown -->
+                        <!-- type -->
                         <div class="mb-3">
-                            <label asp-for="Room.RoomType" class="form-label"></label>
+                            <label asp-for="Room.RoomType" class="form-label">Room Type</label>
                             <select asp-for="Room.RoomType" class="form-select"
-                                    asp-items="Html.GetEnumSelectList<DM2Projekt.Models.Enums.RoomType>()">
+                                    asp-items="Html.GetEnumSelectList<RoomType>()">
                             </select>
                             <span asp-validation-for="Room.RoomType" class="text-danger"></span>
                         </div>
 
-                        <!-- building dropdown -->
+                        <!-- building -->
                         <div class="mb-3">
-                            <label asp-for="Room.Building" class="form-label"></label>
+                            <label asp-for="Room.Building" class="form-label">Building</label>
                             <select asp-for="Room.Building" class="form-select"
-                                    asp-items="Html.GetEnumSelectList<DM2Projekt.Models.Enums.Building>()">
+                                    asp-items="Html.GetEnumSelectList<Building>()">
                             </select>
                             <span asp-validation-for="Room.Building" class="text-danger"></span>
                         </div>
 
-                        <!-- floor dropdown -->
+                        <!-- floor -->
                         <div class="mb-3">
-                            <label asp-for="Room.Floor" class="form-label"></label>
+                            <label asp-for="Room.Floor" class="form-label">Floor</label>
                             <select asp-for="Room.Floor" class="form-select"
-                                    asp-items="Html.GetEnumSelectList<DM2Projekt.Models.Enums.Floor>()">
+                                    asp-items="Html.GetEnumSelectList<Floor>()">
                             </select>
                             <span asp-validation-for="Room.Floor" class="text-danger"></span>
                         </div>
-
-                        <div class="mb-3">
-                            <label asp-for="NewProfileImageUrl" class="form-label">New Profile Image URL</label>
-                            <input asp-for="NewProfileImageUrl" class="form-control" />
-                            <span asp-validation-for="NewProfileImageUrl" class="text-danger"></span>
-                            @if (!string.IsNullOrEmpty(Model.ProfilePictureMessage))
-                            {
-                                <div class="alert mt-2 @(Model.ProfilePictureSuccess ? "alert-success" : "alert-danger")">
-                                    @Model.ProfilePictureMessage
-                                </div>
-                            }
-                        </div>
-
-                        <!-- buttons -->
-                        <div class="d-flex gap-2 mt-4">
-                            <a asp-page="./Index" class="btn btn-secondary w-100">
-                                <i class="bi bi-arrow-left"></i> Back
-                            </a>
-                            <button type="submit" class="btn btn-success w-100">
-                                <i class="bi bi-plus-circle"></i> Create
-                            </button>
-                        </div>
-                    </form>
+                    </div>
                 </div>
-            </div>
+
+                <!-- 🖼️ Image Card -->
+                <div class="card shadow-sm mb-4">
+                    <div class="card-body">
+                        <h4 class="card-title mb-4">Room Image</h4>
+
+                        <!-- preview + error message -->
+                        <div class="mb-3 text-center">
+                            <img id="imagePreview"
+                                 src=""
+                                 alt="Image preview"
+                                 class="img-thumbnail"
+                                 style="max-height: 200px; display: none;" />
+
+                            <div id="imageError" class="text-danger small mt-2" style="display: none;">
+                                ❌ Could not load image. Check the URL.
+                            </div>
+                        </div>
+
+                        <!-- image URL input -->
+                        <div class="mb-3">
+                            <label asp-for="NewProfileImageUrl" class="form-label">New Image URL</label>
+                            <input asp-for="NewProfileImageUrl"
+                                   class="form-control"
+                                   placeholder="Paste a direct image URL"
+                                   id="imageUrlInput" />
+                            <span asp-validation-for="NewProfileImageUrl" class="text-danger"></span>
+                        </div>
+
+                        <!-- server-side URL validation msg -->
+                        @if (!string.IsNullOrEmpty(Model.ProfilePictureMessage))
+                        {
+                            <div class="alert @(Model.ProfilePictureSuccess ? "alert-success" : "alert-danger")">
+                                @Model.ProfilePictureMessage
+                            </div>
+                        }
+                    </div>
+                </div>
+
+                <!-- 🧨 Buttons -->
+                <div class="d-grid gap-2">
+                    <button type="submit" class="btn btn-success">
+                        <i class="bi bi-plus-circle"></i> Create Room
+                    </button>
+                    <a asp-page="./Index" class="btn btn-outline-secondary">
+                        <i class="bi bi-arrow-left"></i> Cancel
+                    </a>
+                </div>
+            </form>
         </div>
     </div>
 </div>
 
+<style>
+    #imagePreview {
+        display: block;
+        margin: 0 auto;
+        max-height: 200px;
+        transition: opacity 0.2s ease-in-out;
+    }
+</style>
+
 @section Scripts {
+    <script>
+        // 🔮 live image preview (with error check)
+        const input = document.getElementById("imageUrlInput");
+        const preview = document.getElementById("imagePreview");
+        const errorMsg = document.getElementById("imageError");
+
+        input.addEventListener("input", () => {
+            const url = input.value.trim();
+
+            if (!url) {
+                preview.style.display = "none";
+                errorMsg.style.display = "none";
+                return;
+            }
+
+            const img = new Image();
+            img.onload = () => {
+                preview.src = url;
+                preview.style.display = "block";
+                errorMsg.style.display = "none";
+            };
+            img.onerror = () => {
+                preview.style.display = "none";
+                errorMsg.style.display = "block";
+            };
+            img.src = url;
+        });
+    </script>
+
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
