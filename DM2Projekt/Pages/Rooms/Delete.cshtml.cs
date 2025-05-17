@@ -6,6 +6,7 @@ using DM2Projekt.Models;
 
 namespace DM2Projekt.Pages.Rooms;
 
+// this page lets Admins delete rooms — risky biz!
 public class DeleteModel : PageModel
 {
     private readonly DM2ProjektContext _context;
@@ -22,7 +23,7 @@ public class DeleteModel : PageModel
     {
         var userRole = HttpContext.Session.GetString("UserRole");
 
-        // only Admins can view delete page
+        // Admins only, bro
         if (userRole != "Admin")
             return RedirectToPage("/Rooms/Index");
 
@@ -30,7 +31,6 @@ public class DeleteModel : PageModel
             return NotFound();
 
         var room = await _context.Room.FirstOrDefaultAsync(m => m.RoomId == id);
-
         if (room == null)
             return NotFound();
 
@@ -42,7 +42,7 @@ public class DeleteModel : PageModel
     {
         var userRole = HttpContext.Session.GetString("UserRole");
 
-        // only Admins can delete
+        // still Admins only
         if (userRole != "Admin")
             return RedirectToPage("/Rooms/Index");
 
