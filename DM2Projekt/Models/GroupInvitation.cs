@@ -13,7 +13,9 @@ public class GroupInvitation
     public int InvitedUserId { get; set; }
     public User InvitedUser { get; set; } = null!;
 
-    public bool? IsAccepted { get; set; } // null = pending, true = accepteret, false = afvist
+    // null = pending, true = accepted, false = rejected
+    public bool? IsAccepted { get; set; }
 
+    // default = now
     public DateTime SentAt { get; set; } = DateTime.Now;
 }

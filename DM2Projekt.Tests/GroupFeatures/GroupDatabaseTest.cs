@@ -1,6 +1,5 @@
 ﻿using DM2Projekt.Data;
 using DM2Projekt.Models;
-using DM2Projekt.Models.Enums;
 using DM2Projekt.Pages.Groups;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;

@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using DM2Projekt.Data;
 using DM2Projekt.Models;
-using DM2Projekt.Models.Enums;
 using System.ComponentModel.DataAnnotations;
 
 namespace DM2Projekt.Pages.Bookings;

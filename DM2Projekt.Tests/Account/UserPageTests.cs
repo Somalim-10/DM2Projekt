@@ -1,6 +1,5 @@
 ﻿using DM2Projekt.Data;
 using DM2Projekt.Models;
-using DM2Projekt.Models.Enums;
 using Microsoft.EntityFrameworkCore;
 using System.Text.RegularExpressions;
 

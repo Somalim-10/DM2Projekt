@@ -1,4 +1,5 @@
 ﻿@page
+@using DM2Projekt.Models
 @model DM2Projekt.Pages.Users.IndexModel
 @{
     ViewData["Title"] = "User Management";
@@ -22,19 +23,19 @@
         <div class="col">
             <div class="bg-light rounded p-3 border">
                 <div class="text-muted small">Admins</div>
-                <div class="fw-bold text-primary">@Model.Users.Count(u => u.Role == DM2Projekt.Models.Enums.Role.Admin)</div>
+                <div class="fw-bold text-primary">@Model.Users.Count(u => u.Role == Role.Admin)</div>
             </div>
         </div>
         <div class="col">
             <div class="bg-light rounded p-3 border">
                 <div class="text-muted small">Teachers</div>
-                <div class="fw-bold text-info">@Model.Users.Count(u => u.Role == DM2Projekt.Models.Enums.Role.Teacher)</div>
+                <div class="fw-bold text-info">@Model.Users.Count(u => u.Role == Role.Teacher)</div>
             </div>
         </div>
         <div class="col">
             <div class="bg-light rounded p-3 border">
                 <div class="text-muted small">Students</div>
-                <div class="fw-bold text-success">@Model.Users.Count(u => u.Role == DM2Projekt.Models.Enums.Role.Student)</div>
+                <div class="fw-bold text-success">@Model.Users.Count(u => u.Role == Role.Student)</div>
             </div>
         </div>
     </div>
@@ -49,7 +50,7 @@
             <label class="form-label">Role</label>
             <select name="RoleFilter" class="form-select">
                 <option value="">All roles</option>
-                @foreach (var role in Enum.GetValues(typeof(DM2Projekt.Models.Enums.Role)))
+                @foreach (var role in Enum.GetValues(typeof(Role)))
                 {
                     <option value="@role" selected="@(role.ToString() == Model.RoleFilter?.ToString())">@role</option>
                 }
@@ -90,8 +91,8 @@
                         <td>@user.Email</td>
                         <td>
                             <span class="badge
-                                @(user.Role == DM2Projekt.Models.Enums.Role.Admin ? "bg-primary" :
-                                  user.Role == DM2Projekt.Models.Enums.Role.Teacher ? "bg-info" :
+                                @(user.Role == Role.Admin ? "bg-primary" :
+                                  user.Role == Role.Teacher ? "bg-info" :
                                   "bg-success")">
                                 @user.Role
                             </span>
