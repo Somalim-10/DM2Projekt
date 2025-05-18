@@ -12,9 +12,9 @@ public class EmailService
         _config = config;
     }
 
-    // 🔧 central helper to build a configured SMTP client
     private SmtpClient CreateSmtpClient()
     {
+        // builds the SMTP client using config — nothing fancy
         var smtpHost = _config["Email:SmtpHost"];
         var smtpPort = int.Parse(_config["Email:SmtpPort"]);
         var smtpUser = _config["Email:SmtpUser"];
@@ -27,7 +27,6 @@ public class EmailService
         };
     }
 
-    // 📤 central helper to build a MailMessage object
     private MailMessage CreateMessage(string toEmail, string subject, string body)
     {
         var fromEmail = _config["Email:FromEmail"];
@@ -45,8 +44,16 @@ public class EmailService
         return message;
     }
 
-    // 📅 Reminder about upcoming booking
-    public virtual async Task SendReminderEmailAsync(string toEmail, string firstName, string roomName, DateTime startTime)
+    private async Task SendEmailAsync(string toEmail, string subject, string body)
+    {
+        // this is the only place that actually sends emails
+        // if stuff breaks, we know exactly where to look
+        using var client = CreateSmtpClient();
+        using var message = CreateMessage(toEmail, subject, body);
+        await client.SendMailAsync(message);
+    }
+
+    public virtual Task SendReminderEmailAsync(string toEmail, string firstName, string roomName, DateTime startTime)
     {
         var subject = "📅 Heads up – you've got a booking soon!";
         var body =
@@ -63,13 +70,10 @@ Don’t be late 😄
 – Zealand Booking Bot 👍
 """;
 
-        using var client = CreateSmtpClient();
-        using var message = CreateMessage(toEmail, subject, body);
-        await client.SendMailAsync(message);
+        return SendEmailAsync(toEmail, subject, body);
     }
 
-    // 🔐 Forgot password email
-    public async Task SendPasswordRecoveryEmailAsync(string toEmail, string firstName, string password)
+    public Task SendPasswordRecoveryEmailAsync(string toEmail, string firstName, string password)
     {
         var subject = "🔐 Your Zealand Booking Password";
         var body =
@@ -82,13 +86,11 @@ Here it is:
 
 🔑 Password: {password}
 
-If you didn’t ask for this, you can safely ignore the email.
+If you didn’t ask for this, just ignore it and move on.
 
 – Zealand Booking Bot 📨
 """;
 
-        using var client = CreateSmtpClient();
-        using var message = CreateMessage(toEmail, subject, body);
-        await client.SendMailAsync(message);
+        return SendEmailAsync(toEmail, subject, body);
     }
 }

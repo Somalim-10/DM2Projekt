@@ -1,22 +1,28 @@
 ﻿document.addEventListener("DOMContentLoaded", () => {
-    const roomSelect = document.getElementById("Booking_RoomId");
-    const weekPicker = document.getElementById("weekPicker");
-    const dayOfWeekSelect = document.getElementById("dayOfWeek");
-    const timeSlotSelect = document.getElementById("timeSlot");
+    const getEl = id => document.getElementById(id);
 
-    const startInput = document.getElementById("Booking_StartTime");
-    const endInput = document.getElementById("Booking_EndTime");
-    const smartboardCheckboxContainer = document.getElementById("smartboardCheckboxContainer");
-    const smartboardCheckbox = document.getElementById("Booking_UsesSmartboard");
+    const roomSelect = getEl("Booking_RoomId");
+    const weekPicker = getEl("weekPicker");
+    const dayOfWeekSelect = getEl("dayOfWeek");
+    const timeSlotSelect = getEl("timeSlot");
+
+    const startInput = getEl("Booking_StartTime");
+    const endInput = getEl("Booking_EndTime");
+    const smartboardCheckboxContainer = getEl("smartboardCheckboxContainer");
+    const smartboardCheckbox = getEl("Booking_UsesSmartboard");
 
     const selectedTimeSlotInput = document.querySelector('input[name="SelectedTimeSlot"]');
-    const selectedWeekInput = document.getElementById("SelectedWeek");
-    const selectedDayInput = document.getElementById("SelectedDay");
+    const selectedWeekInput = getEl("SelectedWeek");
+    const selectedDayInput = getEl("SelectedDay");
 
     const form = document.querySelector("form");
+    const imgInput = getEl("Room_ImageUrl");
 
     let isClassroom = false;
     let selectedRoomId = null;
+
+    const HOUR = 60 * 60 * 1000;
+    const SLOT_LENGTH = 2 * HOUR;
 
     function getSelectedDate() {
         const week = weekPicker.value;
@@ -25,35 +31,33 @@
 
         const [year, weekNum] = week.split("-W").map(Number);
         const janFirst = new Date(year, 0, 1);
-        const daysOffset = (janFirst.getDay() + 6) % 7;
+        const offset = (janFirst.getDay() + 6) % 7;
         const monday = new Date(janFirst);
-        monday.setDate(janFirst.getDate() - daysOffset + ((weekNum - 1) * 7) + 1);
+        monday.setDate(janFirst.getDate() - offset + (weekNum - 1) * 7 + 1);
         monday.setDate(monday.getDate() + (day - 1));
         return monday;
     }
 
     function updateAvailableTimeSlots() {
-        const roomId = selectedRoomId;
-        const selectedDate = getSelectedDate();
-        if (!roomId || !selectedDate) {
-            smartboardCheckboxContainer.style.display = "none";
-            smartboardCheckbox.checked = false;
+        const date = getSelectedDate();
+        if (!selectedRoomId || !date) {
+            hideSmartboard();
             return;
         }
 
-        const isoDate = selectedDate.toISOString().split("T")[0];
+        const isoDate = date.toISOString().split("T")[0];
 
-        fetch(`Create?handler=AvailableTimeSlots&roomId=${roomId}&date=${isoDate}`)
+        fetch(`Create?handler=AvailableTimeSlots&roomId=${selectedRoomId}&date=${isoDate}`)
             .then(res => res.json())
-            .then(data => {
+            .then(slots => {
                 timeSlotSelect.innerHTML = "";
 
-                if (!data.length) {
+                if (!slots.length) {
                     timeSlotSelect.innerHTML = '<option value="">No available slots</option>';
                     return;
                 }
 
-                data.forEach(slot => {
+                slots.forEach(slot => {
                     const option = new Option(`${slot.start} - ${slot.end}`, slot.value);
                     timeSlotSelect.appendChild(option);
                 });
@@ -64,23 +68,22 @@
                 }
 
                 if (isClassroom) {
-                    smartboardCheckboxContainer.style.display = "block";
-                    smartboardCheckbox.disabled = true;
+                    showSmartboard();
                 } else {
-                    smartboardCheckboxContainer.style.display = "none";
-                    smartboardCheckbox.checked = false;
+                    hideSmartboard();
                 }
             });
     }
 
-    function updateHiddenTimeInputs(selectedStart) {
-        if (!selectedStart) return;
+    function updateHiddenTimeInputs(start) {
+        if (!start) return;
 
-        const startDate = new Date(selectedStart);
-        const endDate = new Date(startDate.getTime() + 2 * 60 * 60 * 1000);
+        const startDate = new Date(start);
+        const endDate = new Date(startDate.getTime() + SLOT_LENGTH);
 
         startInput.value = startDate.toISOString();
         endInput.value = endDate.toISOString();
+
         if (selectedTimeSlotInput) {
             selectedTimeSlotInput.value = startDate.toISOString();
         }
@@ -94,10 +97,10 @@
     function checkSmartboardAvailability() {
         if (!isClassroom || !timeSlotSelect.value) return;
 
-        const startTime = new Date(timeSlotSelect.value);
-        const endTime = new Date(startTime.getTime() + 2 * 60 * 60 * 1000);
+        const start = new Date(timeSlotSelect.value);
+        const end = new Date(start.getTime() + SLOT_LENGTH);
 
-        fetch(`Create?handler=SmartboardCheck&roomId=${selectedRoomId}&start=${startTime.toISOString()}&end=${endTime.toISOString()}`)
+        fetch(`Create?handler=SmartboardCheck&roomId=${selectedRoomId}&start=${start.toISOString()}&end=${end.toISOString()}`)
             .then(res => res.json())
             .then(isBooked => {
                 smartboardCheckbox.disabled = isBooked;
@@ -105,59 +108,73 @@
             });
     }
 
-    // Event listeners
-    roomSelect.addEventListener("change", () => {
-        const roomId = roomSelect.value;
+    function hideSmartboard() {
+        smartboardCheckboxContainer.style.display = "none";
+        smartboardCheckbox.checked = false;
+    }
+
+    function showSmartboard() {
+        smartboardCheckboxContainer.style.display = "block";
+        smartboardCheckbox.disabled = true;
+    }
+
+    function handleRoomChange(roomId) {
         selectedRoomId = roomId;
 
         if (!roomId) {
-            smartboardCheckboxContainer.style.display = "none";
-            smartboardCheckbox.checked = false;
+            hideSmartboard();
             return;
         }
 
+        // Need to know if the selected room is a classroom
         fetch(`Create?handler=RoomType&roomId=${roomId}`)
             .then(res => res.json())
             .then(room => {
                 isClassroom = room.roomType === "Classroom";
                 updateAvailableTimeSlots();
             });
-    });
-
-    weekPicker.addEventListener("change", () => {
-        updateAvailableTimeSlots();
-        updateHiddenWeekDayInputs();
-    });
-
-    dayOfWeekSelect.addEventListener("change", () => {
-        updateAvailableTimeSlots();
-        updateHiddenWeekDayInputs();
-    });
-
-    timeSlotSelect.addEventListener("change", () => {
-        updateHiddenTimeInputs(timeSlotSelect.value);
-        checkSmartboardAvailability();
-    });
-
-    form.addEventListener("submit", () => {
-        updateHiddenTimeInputs(timeSlotSelect.value);
-        updateHiddenWeekDayInputs();
-    });
-
-    // Preload if room is already selected
-    if (roomSelect.value) {
-        roomSelect.dispatchEvent(new Event("change"));
     }
 
-    // Quick validation for image URL input (optional, but present in original)
-    const imgInput = document.getElementById("Room_ImageUrl");
-    if (imgInput) {
-        imgInput.addEventListener("input", function (e) {
-            const url = e.target.value;
-            const regex = /\.(jpg|jpeg|png|gif)$/i;
-            if (!regex.test(url)) {
-                alert("Please enter a valid image URL (e.g., ends with .jpg, .png).");
-            }
+    function attachListeners() {
+        roomSelect.addEventListener("change", () => {
+            handleRoomChange(roomSelect.value);
         });
+
+        weekPicker.addEventListener("change", () => {
+            updateAvailableTimeSlots();
+            updateHiddenWeekDayInputs();
+        });
+
+        dayOfWeekSelect.addEventListener("change", () => {
+            updateAvailableTimeSlots();
+            updateHiddenWeekDayInputs();
+        });
+
+        timeSlotSelect.addEventListener("change", () => {
+            updateHiddenTimeInputs(timeSlotSelect.value);
+            checkSmartboardAvailability();
+        });
+
+        form.addEventListener("submit", () => {
+            updateHiddenTimeInputs(timeSlotSelect.value);
+            updateHiddenWeekDayInputs();
+        });
+
+        if (imgInput) {
+            imgInput.addEventListener("input", e => {
+                const url = e.target.value;
+                const regex = /\.(jpg|jpeg|png|gif)$/i;
+                if (!regex.test(url)) {
+                    alert("Please enter a valid image URL (e.g., ends with .jpg, .png).");
+                }
+            });
+        }
     }
+
+    // This needs to run right away if the page is loading with a pre-selected room
+    if (roomSelect.value) {
+        handleRoomChange(roomSelect.value);
+    }
+
+    attachListeners();
 });

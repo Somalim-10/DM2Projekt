@@ -1,10 +1,9 @@
 ﻿using DM2Projekt.Data;
+using DM2Projekt.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace DM2Projekt.Services;
 
-// this background service quietly runs in the background while the app is up
-// its job: check for upcoming bookings and send out reminder emails
 public class BookingReminderService : BackgroundService
 {
     private readonly IServiceProvider _services;
@@ -16,77 +15,75 @@ public class BookingReminderService : BackgroundService
         _logger = logger;
     }
 
-    // this method is the main event — we use it to check for bookings and send reminders
-    // it’s called by the background loop below, but we can also call it manually in tests, etc.
+    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+    {
+        while (!stoppingToken.IsCancellationRequested)
+        {
+            // do the thing
+            await RunReminderCheckAsync();
+
+            // wait 30 mins and then do the thing again
+            await Task.Delay(TimeSpan.FromMinutes(30), stoppingToken);
+        }
+    }
+
     public async Task RunReminderCheckAsync()
     {
-        // grab a scoped version of our DB + services (since we're in a background thread)
         using var scope = _services.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<DM2ProjektContext>();
         var emailService = scope.ServiceProvider.GetRequiredService<EmailService>();
 
         var now = DateTime.Now;
-        var tomorrow = now.AddHours(24); // 24 hours ahead
+        var in24Hours = now.AddHours(24);
 
-        // look for bookings happening in the next 24 hours that haven't been reminded yet
-        var bookings = await context.Booking
-            .Include(b => b.Room) // we need room name for the email
-            .Include(b => b.Group) // need the group to get users
-                .ThenInclude(g => g.UserGroups) // group->user mapping
-                    .ThenInclude(ug => ug.User) // grab the actual user info
-            .Where(b =>
-                b.StartTime > now &&
-                b.StartTime <= tomorrow &&
-                !b.ReminderSent)
-            .ToListAsync();
+        // grab bookings that are coming up in the next 24 hours and haven’t been reminded yet
+        var upcomingBookings = await GetBookingsThatNeedRemindersAsync(context, now, in24Hours);
 
-        // loop through each booking that needs a reminder
-        foreach (var booking in bookings)
+        foreach (var booking in upcomingBookings)
         {
             try
             {
-                // get the actual users who are part of this group
-                var users = booking.Group.UserGroups.Select(ug => ug.User).ToList();
-
-                foreach (var user in users)
-                {
-                    // fire off a reminder email to each user
-                    await emailService.SendReminderEmailAsync(
-                        toEmail: user.Email,
-                        firstName: user.FirstName,
-                        roomName: booking.Room.RoomName,
-                        startTime: booking.StartTime!.Value
-                    );
-
-                    // log that we sent it (optional but nice for debugging)
-                    _logger.LogInformation($"✅ Reminder sent to {user.Email} for booking {booking.BookingId}");
-                }
-
-                // mark this booking as "reminder sent" so we don’t double-send later
-                booking.ReminderSent = true;
+                await SendRemindersToGroupAsync(emailService, booking);
+                booking.ReminderSent = true; // so we don’t spam them next time
             }
             catch (Exception ex)
             {
-                // if anything breaks (like email fails), log it and move on
-                _logger.LogError(ex, $"⚠️ Failed to send reminders for booking {booking.BookingId}");
+                _logger.LogError(ex, $"⚠️ Reminder failed for booking {booking.BookingId}. Skipping it.");
             }
         }
 
-        // save the "ReminderSent = true" changes back to the database
-        await context.SaveChangesAsync();
+        await context.SaveChangesAsync(); // save the updated ReminderSent flags
     }
 
-    // this is the thing that runs in the background automatically
-    // it just loops forever (or until the app shuts down), checking every 30 mins
-    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+    private async Task<List<Booking>> GetBookingsThatNeedRemindersAsync(DM2ProjektContext context, DateTime now, DateTime cutoff)
     {
-        while (!stoppingToken.IsCancellationRequested)
-        {
-            // check for bookings and send reminders
-            await RunReminderCheckAsync();
+        return await context.Booking
+            .Include(b => b.Room)
+            .Include(b => b.Group)
+                .ThenInclude(g => g.UserGroups)
+                    .ThenInclude(ug => ug.User)
+            .Where(b =>
+                b.StartTime > now &&
+                b.StartTime <= cutoff &&
+                !b.ReminderSent)
+            .ToListAsync();
+    }
 
-            // wait 30 minutes before running again — tweak this if needed
-            await Task.Delay(TimeSpan.FromMinutes(30), stoppingToken);
+    private async Task SendRemindersToGroupAsync(EmailService emailService, Booking booking)
+    {
+        var users = booking.Group.UserGroups.Select(ug => ug.User).ToList();
+
+        foreach (var user in users)
+        {
+            // every single user gets their own email
+            await emailService.SendReminderEmailAsync(
+                user.Email,
+                user.FirstName,
+                booking.Room.RoomName,
+                booking.StartTime!.Value
+            );
+
+            _logger.LogInformation($"✅ Sent reminder to {user.Email} for booking {booking.BookingId}");
         }
     }
 }
