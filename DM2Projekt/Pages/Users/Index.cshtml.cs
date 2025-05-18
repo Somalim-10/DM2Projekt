@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 using DM2Projekt.Data;
 using DM2Projekt.Models;
-using DM2Projekt.Models.Enums;
 
 namespace DM2Projekt.Pages.Users;
 

@@ -3,32 +3,31 @@ using System.ComponentModel.DataAnnotations;
 
 namespace DM2Projekt.Models;
 
-// Booking model
 public class Booking
 {
     [Key]
-    public int BookingId { get; set; } // primary key
+    public int BookingId { get; set; }
 
     [Required]
-    public int GroupId { get; set; } // group who owns booking
+    public int GroupId { get; set; }
 
     [Required]
-    public int RoomId { get; set; } // room being booked
+    public int RoomId { get; set; }
 
     [Required]
-    public int CreatedByUserId { get; set; } // who created booking
+    public int CreatedByUserId { get; set; }
 
     [ValidateNever]
-    public DateTime? StartTime { get; set; } // when booking starts
+    public DateTime? StartTime { get; set; }
 
     [ValidateNever]
-    public DateTime? EndTime { get; set; } // when booking ends
+    public DateTime? EndTime { get; set; }
 
-    public bool ReminderSent { get; set; } = false; // for email reminder
+    // used to check if reminder was already sent
+    public bool ReminderSent { get; set; } = false;
 
-    public bool UsesSmartboard { get; set; } // smartboard used?
+    public bool UsesSmartboard { get; set; }
 
-    // navigation properties
     [ValidateNever]
     public Room Room { get; set; }
 

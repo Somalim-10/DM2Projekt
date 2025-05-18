@@ -30,7 +30,7 @@ public class BookingReminderServiceTests
             FirstName = "Test",
             LastName = "User",
             Password = "123456", // not relevant here
-            Role = Models.Enums.Role.Student
+            Role = Role.Student
         };
 
         // 👥 Create a group and stick that user in it

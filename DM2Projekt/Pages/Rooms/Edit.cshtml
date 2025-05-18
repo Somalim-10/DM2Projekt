@@ -1,4 +1,5 @@
 ﻿@page
+@using DM2Projekt.Models
 @model DM2Projekt.Pages.Rooms.EditModel
 
 @{
@@ -33,7 +34,7 @@
                         <div class="mb-3">
                             <label asp-for="Room.RoomType" class="form-label">Room Type</label>
                             <select asp-for="Room.RoomType" class="form-select"
-                                    asp-items="Html.GetEnumSelectList<DM2Projekt.Models.Enums.RoomType>()">
+                                    asp-items="Html.GetEnumSelectList<RoomType>()">
                             </select>
                             <span asp-validation-for="Room.RoomType" class="text-danger"></span>
                         </div>
@@ -42,7 +43,7 @@
                         <div class="mb-3">
                             <label asp-for="Room.Building" class="form-label">Building</label>
                             <select asp-for="Room.Building" class="form-select"
-                                    asp-items="Html.GetEnumSelectList<DM2Projekt.Models.Enums.Building>()">
+                                    asp-items="Html.GetEnumSelectList<Building>()">
                             </select>
                             <span asp-validation-for="Room.Building" class="text-danger"></span>
                         </div>
@@ -51,7 +52,7 @@
                         <div class="mb-3">
                             <label asp-for="Room.Floor" class="form-label">Floor</label>
                             <select asp-for="Room.Floor" class="form-select"
-                                    asp-items="Html.GetEnumSelectList<DM2Projekt.Models.Enums.Floor>()">
+                                    asp-items="Html.GetEnumSelectList<Floor>()">
                             </select>
                             <span asp-validation-for="Room.Floor" class="text-danger"></span>
                         </div>

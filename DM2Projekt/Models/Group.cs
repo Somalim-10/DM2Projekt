@@ -3,7 +3,6 @@ using System.ComponentModel.DataAnnotations;
 
 namespace DM2Projekt.Models;
 
-// group model
 public class Group
 {
     [Key]
@@ -13,12 +12,13 @@ public class Group
     public string GroupName { get; set; }
 
     public int CreatedByUserId { get; set; }
-    [ValidateNever] // prevents ModelState errors during form POST
-    public User CreatedByUser { get; set; } = null!; // nav property
 
-    // users in this group
+    [ValidateNever] // not posted from forms, skip validation
+    public User CreatedByUser { get; set; } = null!;
+
+    // users in the group
     public ICollection<UserGroup> UserGroups { get; set; } = [];
 
-    // bookings made by this group
+    // bookings made by the group
     public ICollection<Booking> Bookings { get; set; } = [];
 }

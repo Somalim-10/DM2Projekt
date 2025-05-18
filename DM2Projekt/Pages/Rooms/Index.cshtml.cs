@@ -4,7 +4,6 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using DM2Projekt.Data;
 using DM2Projekt.Models;
-using DM2Projekt.Models.Enums;
 
 namespace DM2Projekt.Pages.Rooms;
 

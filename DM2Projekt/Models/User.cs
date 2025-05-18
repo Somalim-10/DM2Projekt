@@ -1,9 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using DM2Projekt.Models.Enums;
 
 namespace DM2Projekt.Models;
 
-// user model
 public class User
 {
     [Key]
@@ -15,20 +13,21 @@ public class User
     [Required]
     public string LastName { get; set; }
 
-    public string? ProfileImagePath { get; set; } // e.g., "/uploads/profiles/3.jpg"
+    // optional – used for avatar
+    public string? ProfileImagePath { get; set; }
 
     [Required, EmailAddress]
     public string Email { get; set; }
 
     [Required]
-    public Role Role { get; set; } // student or teacher
+    public Role Role { get; set; }
 
     [Required]
     public string Password { get; set; }
 
-    // groups this user is in
+    // reverse nav: which groups user is in
     public ICollection<UserGroup> UserGroups { get; set; } = [];
 
-    // bookings this user made
+    // reverse nav: bookings user created
     public ICollection<Booking> Bookings { get; set; } = [];
 }
