@@ -1,8 +1,10 @@
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
 using DM2Projekt.Data;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// load appsettings.Local.json if it exists (so we can keep secrets out of GitHub)
+builder.Configuration.AddJsonFile("appsettings.Local.json", optional: true, reloadOnChange: true);
 
 // add razor pages support
 builder.Services.AddRazorPages();
