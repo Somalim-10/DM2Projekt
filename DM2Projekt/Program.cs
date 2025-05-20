@@ -3,8 +3,12 @@ using DM2Projekt.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// load appsettings.Local.json if it exists (so we can keep secrets out of GitHub)
-builder.Configuration.AddJsonFile("appsettings.Local.json", optional: true, reloadOnChange: true);
+// load config files:
+// - appsettings.json is always loaded
+// - appsettings.Local.json is optional and only used locally (not published)
+builder.Configuration
+    .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+    .AddJsonFile("appsettings.Local.json", optional: true, reloadOnChange: true); // for dev use only
 
 // add razor pages support
 builder.Services.AddRazorPages();
