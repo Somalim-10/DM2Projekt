@@ -3,7 +3,7 @@ using DM2Projekt.Models;
 
 namespace DM2Projekt.Data;
 
-// database context – holds all our data tables
+// Sets up how everything connects in the database
 public class DM2ProjektContext : DbContext
 {
     public DM2ProjektContext(DbContextOptions<DM2ProjektContext> options)
@@ -11,7 +11,7 @@ public class DM2ProjektContext : DbContext
     {
     }
 
-    // these are mapped to DB tables
+    // Tables
     public DbSet<Room> Room { get; set; } = default!;
     public DbSet<User> User { get; set; } = default!;
     public DbSet<Group> Group { get; set; } = default!;
@@ -23,7 +23,7 @@ public class DM2ProjektContext : DbContext
     {
         base.OnModelCreating(modelBuilder);
 
-        // save enums as strings in DB – easier to read/debug
+        // Save enums like RoomType as strings in the database
         modelBuilder.Entity<Room>(room =>
         {
             room.Property(r => r.RoomType).HasConversion<string>();
@@ -31,54 +31,54 @@ public class DM2ProjektContext : DbContext
             room.Property(r => r.Floor).HasConversion<string>();
         });
 
+        // Same for user roles
         modelBuilder.Entity<User>()
             .Property(u => u.Role)
             .HasConversion<string>();
 
-        // link table – combo of user+group is the key
+        // Set up the many-to-many link between users and groups
         modelBuilder.Entity<UserGroup>()
             .HasKey(ug => new { ug.UserId, ug.GroupId });
 
-        // connect user <-> usergroups
         modelBuilder.Entity<UserGroup>()
             .HasOne(ug => ug.User)
             .WithMany(u => u.UserGroups)
             .HasForeignKey(ug => ug.UserId);
 
-        // connect group <-> usergroups
         modelBuilder.Entity<UserGroup>()
             .HasOne(ug => ug.Group)
             .WithMany(g => g.UserGroups)
             .HasForeignKey(ug => ug.GroupId);
 
-        // keep bookings even if user/group gets deleted
-        modelBuilder.Entity<Booking>()
-            .HasOne(b => b.CreatedByUser)
-            .WithMany(u => u.Bookings)
-            .HasForeignKey(b => b.CreatedByUserId)
-            .OnDelete(DeleteBehavior.Restrict);
-
-        modelBuilder.Entity<Booking>()
-            .HasOne(b => b.Group)
-            .WithMany(g => g.Bookings)
-            .HasForeignKey(b => b.GroupId)
-            .OnDelete(DeleteBehavior.Restrict);
-
-        // if a room is deleted, delete its bookings too
-        modelBuilder.Entity<Booking>()
-            .HasOne(b => b.Room)
-            .WithMany(r => r.Bookings)
-            .HasForeignKey(b => b.RoomId)
-            .OnDelete(DeleteBehavior.Cascade);
-
-        // group creator (user) – don't remove groups if user is deleted
+        // A group knows who created it, but don't cascade delete to avoid SQL Server conflicts
         modelBuilder.Entity<Group>()
             .HasOne(g => g.CreatedByUser)
             .WithMany()
             .HasForeignKey(g => g.CreatedByUserId)
             .OnDelete(DeleteBehavior.Restrict);
 
-        // handle invites
+        // When a group gets deleted, delete its bookings too
+        modelBuilder.Entity<Booking>()
+            .HasOne(b => b.Group)
+            .WithMany(g => g.Bookings)
+            .HasForeignKey(b => b.GroupId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        // Same for rooms, delete bookings if the room is removed
+        modelBuilder.Entity<Booking>()
+            .HasOne(b => b.Room)
+            .WithMany(r => r.Bookings)
+            .HasForeignKey(b => b.RoomId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        // Don’t automatically delete bookings if the user is deleted, that’s handled manually
+        modelBuilder.Entity<Booking>()
+            .HasOne(b => b.CreatedByUser)
+            .WithMany(u => u.Bookings)
+            .HasForeignKey(b => b.CreatedByUserId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        // Invitations are linked to both a group and a user
         modelBuilder.Entity<GroupInvitation>()
             .HasOne(i => i.Group)
             .WithMany()
