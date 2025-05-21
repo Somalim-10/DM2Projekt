@@ -3,22 +3,22 @@ using DM2Projekt.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// load config files:
-// - appsettings.json is always loaded
-// - appsettings.Local.json is optional and only used locally (not published)
+// Load config files:
+// - appsettings.json is always loaded (this one’s public, no secrets here)
+// - appsettings.Local.json is optional, only on your machine with secrets
 builder.Configuration
     .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
-    .AddJsonFile("appsettings.Local.json", optional: true, reloadOnChange: true); // for dev use only
+    .AddJsonFile("appsettings.Local.json", optional: true, reloadOnChange: true);
 
-// add razor pages support
+// Add Razor Pages support — gotta have those web pages!
 builder.Services.AddRazorPages();
 
-// connect to db
+// Hook up your DB context using connection string from config
 builder.Services.AddDbContext<DM2ProjektContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DM2ProjektContext")
-        ?? throw new InvalidOperationException("Connection string 'DM2ProjektContext' not found.")));
+        ?? throw new InvalidOperationException("No connection string found — please check your config!")));
 
-// session stuff
+// Set up session — keep users logged in for 30 minutes
 builder.Services.AddSession(options =>
 {
     options.IdleTimeout = TimeSpan.FromMinutes(30);
@@ -26,28 +26,28 @@ builder.Services.AddSession(options =>
     options.Cookie.IsEssential = true;
 });
 
-// so we can use httpcontext easily
+// Make HttpContext easy to access anywhere
 builder.Services.AddHttpContextAccessor();
 
-// background service that sends email reminders
+// Background service to send email reminders — automatic, nice!
 builder.Services.AddHostedService<DM2Projekt.Services.BookingReminderService>();
 
-// email service for sending mails
+// Email service for sending out those emails
 builder.Services.AddTransient<DM2Projekt.Services.EmailService>();
 
 var app = builder.Build();
 
-// apply migrations and seed data
+// Run migrations and seed some starter data — ready to roll!
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
     var context = services.GetRequiredService<DM2ProjektContext>();
 
-    context.Database.Migrate(); // migrate db if needed
-    SeedData.Initialize(services); // put starter data
+    context.Database.Migrate(); // apply any pending DB changes
+    SeedData.Initialize(services); // add starter data if needed
 }
 
-// error handling if prod
+// Error handling if not in dev mode — keep it smooth for users
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Error");
@@ -58,12 +58,10 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseRouting();
 
-// enable session
 app.UseSession();
 
 app.UseAuthorization();
 
-// map razor pages
 app.MapRazorPages();
 
 app.Run();

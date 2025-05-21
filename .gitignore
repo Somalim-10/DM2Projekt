@@ -364,6 +364,3 @@ FodyWeavers.xsd
 
 # Custom local settings (not for GitHub)
 appsettings.Local.json
-
-# For production
-appsettings.Production.json
