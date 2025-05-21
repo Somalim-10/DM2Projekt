@@ -14,6 +14,7 @@ Features:
 - Book, aflys og se lokaleoversigt
 - Roller (studerende / underviser)
 - Regler for booking af smartboards og klasselokaler
+- Og andet 😅
 
 Alt er coded, dokumenteret og afleveret. 😎
 
