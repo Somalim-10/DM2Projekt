@@ -1,21 +1,21 @@
 # Lokale Booking App 🏫💻
 
-Vi har valgt Case 2 fra eksamensprojektet – Zealand Lokale Booking.
+Vi kørte med Case 2. Zealand Lokale Booking.
 
-App'en gør det muligt for studerende at booke ledige møde- og klasselokaler hjemmefra.
+App'en gør det muligt at tjekke og booke ledige lokaler hjemmefra, så man ikke spilder turen
 
 Bygget med:
 - C#
 - Razor Pages
-- MSSQL DB
+- MSSQL
 - Visual Studio
 
 Features:
-- Book, aflys og se lokaleoversigt
-- Roller (studerende / underviser)
-- Regler for booking af smartboards og klasselokaler
-- Og andet 😅
+- Book og aflys lokaler nemt
+- Roller (studs og undervisere)
+- Regler for smartboards og store lokaler
+- Og andet nice stuff 😎
 
-Alt er coded, dokumenteret og afleveret. 😎
+Alt er coded, dokumenteret og done
 
 Peace out ✌️
