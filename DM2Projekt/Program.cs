@@ -1,24 +1,25 @@
-using Microsoft.EntityFrameworkCore;
+ï»¿using Microsoft.EntityFrameworkCore;
 using DM2Projekt.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Load config files:
-// - appsettings.json is always loaded (this one’s public, no secrets here)
-// - appsettings.Local.json is optional, only on your machine with secrets
+// load appsettings.json no matter what
+// if Local.json is there, it overrides the stuff above
 builder.Configuration
     .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
     .AddJsonFile("appsettings.Local.json", optional: true, reloadOnChange: true);
 
-// Add Razor Pages support — gotta have those web pages!
+// razor pages. needed for web stuff
 builder.Services.AddRazorPages();
 
-// Hook up your DB context using connection string from config
+// set up db connection
+// if Local.json exists, that one wins
+// if not, fallback in appsettings.json gets used
 builder.Services.AddDbContext<DM2ProjektContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DM2ProjektContext")
-        ?? throw new InvalidOperationException("No connection string found — please check your config!")));
+        ?? throw new InvalidOperationException("No DB string found. Add one to appsettings.")));
 
-// Set up session — keep users logged in for 30 minutes
+// session settings. keeps stuff in memory for a bit
 builder.Services.AddSession(options =>
 {
     options.IdleTimeout = TimeSpan.FromMinutes(30);
@@ -26,28 +27,28 @@ builder.Services.AddSession(options =>
     options.Cookie.IsEssential = true;
 });
 
-// Make HttpContext easy to access anywhere
+// grab http context anywhere
 builder.Services.AddHttpContextAccessor();
 
-// Background service to send email reminders — automatic, nice!
+// background email job. runs by itself
 builder.Services.AddHostedService<DM2Projekt.Services.BookingReminderService>();
 
-// Email service for sending out those emails
+// email sending service
 builder.Services.AddTransient<DM2Projekt.Services.EmailService>();
 
 var app = builder.Build();
 
-// Run migrations and seed some starter data — ready to roll!
+// do db migrations and seed data when starting up
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
     var context = services.GetRequiredService<DM2ProjektContext>();
 
-    context.Database.Migrate(); // apply any pending DB changes
-    SeedData.Initialize(services); // add starter data if needed
+    context.Database.Migrate();
+    SeedData.Initialize(services);
 }
 
-// Error handling if not in dev mode — keep it smooth for users
+// custom error stuff. only when not in dev mode
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Error");
@@ -59,9 +60,7 @@ app.UseStaticFiles();
 app.UseRouting();
 
 app.UseSession();
-
 app.UseAuthorization();
 
 app.MapRazorPages();
-
 app.Run();
