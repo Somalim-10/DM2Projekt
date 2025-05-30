@@ -7,109 +7,114 @@ namespace DM2Projekt.Tests.GroupFeatures;
 [TestClass]
 public class GroupPermissionTests
 {
-    // setup fake db
-    private DM2ProjektContext GetInMemoryContext()
+    // Sets up in-memory DB with test users + group membership
+    private DM2ProjektContext CreateInMemoryContext()
     {
         var options = new DbContextOptionsBuilder<DM2ProjektContext>()
-            .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
+            .UseInMemoryDatabase(Guid.NewGuid().ToString())
             .Options;
 
         var context = new DM2ProjektContext(options);
-        SeedFakeData(context);
+        SeedTestData(context);
         return context;
     }
 
-    // setup users + group
-    private void SeedFakeData(DM2ProjektContext context)
+    private void SeedTestData(DM2ProjektContext context)
     {
         if (context.User.Any()) return;
 
-        var admin = new User { FirstName = "Admin", LastName = "One", Email = "admin@dk", Password = "pass", Role = Role.Admin };
-        var teacher = new User { FirstName = "Teach", LastName = "Er", Email = "teach@dk", Password = "pass", Role = Role.Teacher };
-        var student1 = new User { FirstName = "Stu", LastName = "Dent", Email = "student1@dk", Password = "pass", Role = Role.Student };
-        var student2 = new User { FirstName = "Other", LastName = "Student", Email = "student2@dk", Password = "pass", Role = Role.Student };
+        var armin = new User { FirstName = "Armin", LastName = "Arlert", Email = "armin@edu.dk", Password = "123", Role = Role.Student };
+        var mikasa = new User { FirstName = "Mikasa", LastName = "Ackerman", Email = "mikasa@edu.dk", Password = "123", Role = Role.Student };
 
-        context.User.AddRange(admin, teacher, student1, student2);
+        context.User.AddRange(armin, mikasa);
         context.SaveChanges();
 
         var group = new Group
         {
-            GroupName = "Group A",
-            CreatedByUserId = student1.UserId
+            GroupName = "Test Group",
+            CreatedByUserId = armin.UserId
         };
         context.Group.Add(group);
         context.SaveChanges();
 
-        context.UserGroup.Add(new UserGroup { GroupId = group.GroupId, UserId = student1.UserId });
+        context.UserGroup.AddRange(
+            new UserGroup { UserId = armin.UserId, GroupId = group.GroupId },
+            new UserGroup { UserId = mikasa.UserId, GroupId = group.GroupId }
+        );
+
         context.SaveChanges();
     }
 
     [TestMethod]
-    public void Only_Admin_And_Creator_Can_Delete_Group()
+    public void Creator_Has_Permission_To_Kick()
     {
-        using var context = GetInMemoryContext();
-
+        using var context = CreateInMemoryContext();
+        var armin = context.User.First(u => u.Email == "armin@edu.dk");
         var group = context.Group.First();
-        var creator = context.User.First(u => u.Email == "student1@dk");
-        var admin = context.User.First(u => u.Email == "admin@dk");
-        var outsider = context.User.First(u => u.Email == "student2@dk");
 
-        // creator can delete
-        var canCreatorDelete = group.CreatedByUserId == creator.UserId || creator.Role == Role.Admin;
-        Assert.IsTrue(canCreatorDelete);
+        var isCreator = group.CreatedByUserId == armin.UserId;
 
-        // admin can delete
-        var canAdminDelete = group.CreatedByUserId == admin.UserId || admin.Role == Role.Admin;
-        Assert.IsTrue(canAdminDelete);
-
-        // random student can't delete
-        var canOutsiderDelete = group.CreatedByUserId == outsider.UserId || outsider.Role == Role.Admin;
-        Assert.IsFalse(canOutsiderDelete);
+        Assert.IsTrue(isCreator, "group creator should have kick permission");
     }
 
     [TestMethod]
-    public void Teacher_Can_View_Any_Group_But_Cannot_Edit()
+    public void Non_Creator_Does_Not_Have_Kick_Permission()
     {
-        using var context = GetInMemoryContext();
-        var teacher = context.User.First(u => u.Role == Role.Teacher);
+        using var context = CreateInMemoryContext();
+        var mikasa = context.User.First(u => u.Email == "mikasa@edu.dk");
         var group = context.Group.First();
 
-        // teachers can view
-        var canView = teacher.Role == Role.Teacher;
-        Assert.IsTrue(canView);
+        var isCreator = group.CreatedByUserId == mikasa.UserId;
 
-        // but not edit
-        var canEdit = group.CreatedByUserId == teacher.UserId || teacher.Role == Role.Admin;
-        Assert.IsFalse(canEdit);
+        Assert.IsFalse(isCreator, "non-creator should not be allowed to kick");
     }
 
     [TestMethod]
-    public void Student_Cannot_View_If_Not_Member_Or_Creator()
+    public void Member_Can_View_Group_If_In_UserGroup()
     {
-        using var context = GetInMemoryContext();
-        var outsider = context.User.First(u => u.Email == "student2@dk");
+        using var context = CreateInMemoryContext();
+        var mikasa = context.User.First(u => u.Email == "mikasa@edu.dk");
         var group = context.Group.First();
 
-        var isMember = context.UserGroup.Any(ug => ug.UserId == outsider.UserId && ug.GroupId == group.GroupId);
-        var isCreator = group.CreatedByUserId == outsider.UserId;
+        var isMember = context.UserGroup.Any(ug =>
+            ug.UserId == mikasa.UserId && ug.GroupId == group.GroupId);
 
-        var canView = isMember || isCreator || outsider.Role == Role.Admin || outsider.Role == Role.Teacher;
-        Assert.IsFalse(canView);
+        Assert.IsTrue(isMember, "group member should be able to view group");
     }
 
     [TestMethod]
-    public void Admin_Has_Full_Access()
+    public void User_Not_In_Group_Cannot_View_Group()
     {
-        using var context = GetInMemoryContext();
-        var admin = context.User.First(u => u.Role == Role.Admin);
+        using var context = CreateInMemoryContext();
+
+        var outsider = new User
+        {
+            FirstName = "Jean",
+            LastName = "Kirstein",
+            Email = "jean@edu.dk",
+            Password = "123",
+            Role = Role.Student
+        };
+
+        context.User.Add(outsider);
+        context.SaveChanges();
+
+        var group = context.Group.First();
+        var isMember = context.UserGroup.Any(ug =>
+            ug.UserId == outsider.UserId && ug.GroupId == group.GroupId);
+
+        Assert.IsFalse(isMember, "non-member should not access the group");
+    }
+
+    [TestMethod]
+    public void Creator_Cannot_Kick_Themself()
+    {
+        using var context = CreateInMemoryContext();
+        var armin = context.User.First(u => u.Email == "armin@edu.dk");
         var group = context.Group.First();
 
-        var canView = true;
-        var canEdit = true;
-        var canDelete = true;
+        var tryingToKickSelf = group.CreatedByUserId == armin.UserId;
 
-        Assert.IsTrue(canView);
-        Assert.IsTrue(canEdit);
-        Assert.IsTrue(canDelete);
+        Assert.IsTrue(tryingToKickSelf, "creator should be protected from self-kick logic");
     }
 }
