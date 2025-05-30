@@ -21,7 +21,6 @@ public class RoomTests
     [TestMethod]
     public async Task OnGetAsync_Filters_By_SearchTerm()
     {
-        // Arrange
         var context = GetInMemoryContext();
         context.Room.AddRange(
             new Room { RoomId = 1, RoomName = "Lokale A", Building = Building.A, Floor = Floor.Ground, RoomType = RoomType.MeetingRoom },
@@ -31,25 +30,24 @@ public class RoomTests
 
         var model = new IndexModel(context);
 
-        // Simulate session (mock-style)
+        // simulate session and login
         var httpContext = new DefaultHttpContext();
-        httpContext.Session = new TestSession(); // test session class below
-        httpContext.Session.SetInt32("UserId", 123); // simulate logged in user
+        httpContext.Session = new TestSession();
+        httpContext.Session.SetInt32("UserId", 123); // fake user ID
+
         model.PageContext = new Microsoft.AspNetCore.Mvc.RazorPages.PageContext
         {
             HttpContext = httpContext
         };
 
-        // Act
         model.SearchTerm = "Lokale A";
         await model.OnGetAsync();
 
-        // Assert
         Assert.AreEqual(1, model.Rooms.Count);
         Assert.AreEqual("Lokale A", model.Rooms[0].RoomName);
     }
 
-    // fake session implementation so we can set stuff
+    // Fake session so we can use session in tests
     private class TestSession : ISession
     {
         private readonly Dictionary<string, byte[]> _sessionStorage = new();
@@ -59,14 +57,10 @@ public class RoomTests
         public bool IsAvailable => true;
 
         public void Clear() => _sessionStorage.Clear();
-
         public Task CommitAsync(CancellationToken cancellationToken = default) => Task.CompletedTask;
         public Task LoadAsync(CancellationToken cancellationToken = default) => Task.CompletedTask;
-
         public void Remove(string key) => _sessionStorage.Remove(key);
-
         public void Set(string key, byte[] value) => _sessionStorage[key] = value;
-
         public bool TryGetValue(string key, out byte[] value) => _sessionStorage.TryGetValue(key, out value);
     }
 }
