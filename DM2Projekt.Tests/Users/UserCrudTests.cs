@@ -47,10 +47,9 @@ public class UserCrudTests
         context.User.Add(newUser);
         context.SaveChanges();
 
-        // make sure it was saved and we can grab it
         var found = context.User.FirstOrDefault(u => u.Email == "eren@paradis.com");
 
-        Assert.IsNotNull(found, "User should be in DB now");
+        Assert.IsNotNull(found);
         Assert.AreEqual("Eren", found.FirstName);
     }
 
@@ -60,14 +59,11 @@ public class UserCrudTests
         using var context = GetContext();
 
         var user = context.User.First();
-
-        // give them a new name and email
         user.FirstName = "Updated";
         user.Email = "updated@example.com";
 
         context.SaveChanges();
 
-        // make sure the changes stuck
         var updated = context.User.First();
         Assert.AreEqual("Updated", updated.FirstName);
         Assert.AreEqual("updated@example.com", updated.Email);
@@ -79,8 +75,6 @@ public class UserCrudTests
         using var context = GetContext();
 
         var user = context.User.First();
-
-        // yeet the user
         context.User.Remove(user);
         context.SaveChanges();
 
@@ -95,8 +89,7 @@ public class UserCrudTests
 
         var user = context.User.FirstOrDefault(u => u.Email == "test@example.com");
 
-        // just making sure the seed user is actually there
-        Assert.IsNotNull(user, "Should find our test user");
+        Assert.IsNotNull(user);
         Assert.AreEqual("Test", user.FirstName);
         Assert.AreEqual(Role.Admin, user.Role);
     }
@@ -122,7 +115,7 @@ public class UserCrudTests
         }
         catch (DbUpdateException)
         {
-            // good — this means the model validation is working
+            // good. model validation is working
         }
     }
 
@@ -147,18 +140,17 @@ public class UserCrudTests
         }
         catch (DbUpdateException)
         {
-            // perfect — password can't be null
+            // good. password can't be null
         }
     }
 
     [TestMethod]
     public void Role_ShouldContainValidValues()
     {
-        // just sanity checking our enum setup
         var roles = Enum.GetValues(typeof(Role)).Cast<Role>().ToList();
 
-        Assert.IsTrue(roles.Contains(Role.Admin), "Should have Admin");
-        Assert.IsTrue(roles.Contains(Role.Teacher), "Should have Teacher");
-        Assert.IsTrue(roles.Contains(Role.Student), "Should have Student");
+        Assert.IsTrue(roles.Contains(Role.Admin));
+        Assert.IsTrue(roles.Contains(Role.Teacher));
+        Assert.IsTrue(roles.Contains(Role.Student));
     }
 }
