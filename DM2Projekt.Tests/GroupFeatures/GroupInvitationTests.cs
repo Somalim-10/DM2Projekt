@@ -7,20 +7,20 @@ namespace DM2Projekt.Tests.GroupFeatures;
 [TestClass]
 public class GroupInvitationTests
 {
-    // make new in-memory db each time so tests are fresh
-    private DM2ProjektContext GetInMemoryContext()
+    // Creates a fresh DB and seeds some test data
+    private DM2ProjektContext CreateInMemoryContext()
     {
         var options = new DbContextOptionsBuilder<DM2ProjektContext>()
-            .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
+            .UseInMemoryDatabase(Guid.NewGuid().ToString())
             .Options;
 
         var context = new DM2ProjektContext(options);
-        SeedFakeData(context);
+        SeedTestData(context);
         return context;
     }
 
-    // setup some fake users, 1 group, 1 invite
-    private void SeedFakeData(DM2ProjektContext context)
+    // Adds 3 users, a group, and a pending invite
+    private void SeedTestData(DM2ProjektContext context)
     {
         if (context.User.Any()) return;
 
@@ -40,9 +40,7 @@ public class GroupInvitationTests
         context.SaveChanges();
 
         context.UserGroup.Add(new UserGroup { UserId = armin.UserId, GroupId = group.GroupId });
-        context.SaveChanges();
 
-        // send 1 invite to levi
         context.GroupInvitation.Add(new GroupInvitation
         {
             GroupId = group.GroupId,
@@ -57,7 +55,7 @@ public class GroupInvitationTests
     [TestMethod]
     public void Can_See_Pending_Invitations_For_Student()
     {
-        using var context = GetInMemoryContext();
+        using var context = CreateInMemoryContext();
         var levi = context.User.First(u => u.Email == "levi@edu.dk");
 
         var pending = context.GroupInvitation
@@ -70,7 +68,7 @@ public class GroupInvitationTests
     [TestMethod]
     public void Accepting_Invite_Adds_User_To_Group()
     {
-        using var context = GetInMemoryContext();
+        using var context = CreateInMemoryContext();
         var levi = context.User.First(u => u.Email == "levi@edu.dk");
 
         var invite = context.GroupInvitation.First(i => i.InvitedUserId == levi.UserId);
@@ -84,7 +82,6 @@ public class GroupInvitationTests
 
         context.SaveChanges();
 
-        // check levi joined the group
         var isMember = context.UserGroup.Any(ug =>
             ug.UserId == levi.UserId && ug.GroupId == invite.GroupId);
 
@@ -94,7 +91,7 @@ public class GroupInvitationTests
     [TestMethod]
     public void Declining_Invite_Stores_Rejection()
     {
-        using var context = GetInMemoryContext();
+        using var context = CreateInMemoryContext();
         var levi = context.User.First(u => u.Email == "levi@edu.dk");
 
         var invite = context.GroupInvitation.First(i => i.InvitedUserId == levi.UserId);
@@ -102,7 +99,6 @@ public class GroupInvitationTests
 
         context.SaveChanges();
 
-        // check it got declined
         var updated = context.GroupInvitation.First(i => i.InvitationId == invite.InvitationId);
         Assert.IsFalse(updated.IsAccepted, "invite should be marked as declined");
     }
@@ -110,11 +106,10 @@ public class GroupInvitationTests
     [TestMethod]
     public void Cannot_Reinvite_If_Pending_Exists()
     {
-        using var context = GetInMemoryContext();
+        using var context = CreateInMemoryContext();
         var group = context.Group.First();
         var levi = context.User.First(u => u.Email == "levi@edu.dk");
 
-        // already pending?
         var pendingExists = context.GroupInvitation.Any(i =>
             i.GroupId == group.GroupId &&
             i.InvitedUserId == levi.UserId &&
@@ -122,23 +117,20 @@ public class GroupInvitationTests
 
         Assert.IsTrue(pendingExists, "levi already has a pending invite");
 
-        // test logic that blocks double invites
-        bool canReinvite = !pendingExists;
+        var canReinvite = !pendingExists;
         Assert.IsFalse(canReinvite, "should not allow duplicate pending invite");
     }
 
     [TestMethod]
     public void Creator_Can_Cancel_Pending_Invite()
     {
-        using var context = GetInMemoryContext();
+        using var context = CreateInMemoryContext();
 
-        var armin = context.User.First(u => u.Email == "armin@edu.dk"); // creator
         var levi = context.User.First(u => u.Email == "levi@edu.dk");
         var invite = context.GroupInvitation
             .Include(i => i.Group)
             .First(i => i.InvitedUserId == levi.UserId);
 
-        // Simulate cancellation
         context.GroupInvitation.Remove(invite);
         context.SaveChanges();
 
@@ -149,9 +141,8 @@ public class GroupInvitationTests
     [TestMethod]
     public void Only_Creator_Can_Cancel_Invite()
     {
-        using var context = GetInMemoryContext();
-
-        var mikasa = context.User.First(u => u.Email == "mikasa@edu.dk"); // NOT the creator
+        using var context = CreateInMemoryContext();
+        var mikasa = context.User.First(u => u.Email == "mikasa@edu.dk");
         var invite = context.GroupInvitation
             .Include(i => i.Group)
             .First();

@@ -21,20 +21,18 @@ public class RoomEditTests
     [TestMethod]
     public async Task EditRoom_UpdatesRoomName_WhenValid()
     {
-        // Arrange
         var context = GetInMemoryContext();
 
         var room = new Room { RoomId = 1, RoomName = "Originalt Navn", ImageUrl = "http://test.img" };
         context.Room.Add(room);
         await context.SaveChangesAsync();
 
-        // Act
         var roomToEdit = await context.Room.FindAsync(1);
         roomToEdit.RoomName = "Opdateret Navn";
+
         context.Room.Update(roomToEdit);
         await context.SaveChangesAsync();
 
-        // Assert
         var updatedRoom = await context.Room.FindAsync(1);
         Assert.AreEqual("Opdateret Navn", updatedRoom.RoomName);
     }
@@ -42,27 +40,25 @@ public class RoomEditTests
     [TestMethod]
     public async Task EditRoom_UpdatesImageUrl_WhenValidUrl()
     {
-        // Arrange
         var context = GetInMemoryContext();
 
         var room = new Room { RoomId = 2, RoomName = "Testlokale", ImageUrl = "http://old.img" };
         context.Room.Add(room);
         await context.SaveChangesAsync();
 
-        // Act
         var roomToEdit = await context.Room.FindAsync(2);
-        roomToEdit.ImageUrl = "https://example.com/image.jpg"; // simulerer ny billede-URL
+        roomToEdit.ImageUrl = "https://example.com/image.jpg";
+
         context.Room.Update(roomToEdit);
         await context.SaveChangesAsync();
 
-        // Assert
         var updatedRoom = await context.Room.FindAsync(2);
         Assert.AreEqual("https://example.com/image.jpg", updatedRoom.ImageUrl);
     }
+
     [TestMethod]
     public async Task EditRoom_ChangesRoomName_WhenUserIsAdmin()
     {
-        // Arrange
         var context = GetInMemoryContext();
 
         var room = new Room { RoomId = 1, RoomName = "GamleNavn" };
@@ -70,23 +66,17 @@ public class RoomEditTests
         await context.SaveChangesAsync();
 
         var editModel = new EditModel(context);
-
-        // Hent den eksisterende room fra context og ændr navn
         var roomFromDb = await context.Room.FindAsync(1);
         editModel.Room = roomFromDb!;
         editModel.Room.RoomName = "NytNavn";
         editModel.NewProfileImageUrl = null;
 
-        editModel.ModelState.Clear(); // Vigtigt
+        editModel.ModelState.Clear(); // make sure ModelState is clean
 
-        // Act
         var result = await editModel.OnPostAsync(testUserRole: "Admin", testUserId: 123);
 
-        // Assert
         var updatedRoom = await context.Room.FindAsync(1);
         Assert.AreEqual("NytNavn", updatedRoom?.RoomName);
         Assert.IsInstanceOfType(result, typeof(RedirectToPageResult));
     }
-
-
 }

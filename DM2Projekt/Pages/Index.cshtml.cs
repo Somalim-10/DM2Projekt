@@ -36,7 +36,7 @@ public class IndexModel : PageModel
     // What admin sees about groups
     public int GroupCount { get; set; }
 
-    // what admin sees about bookings
+    // What admin sees about bookings
     public int BookingCount { get; set; }
     public int UpcomingBookingCount { get; set; }
     public int PastBookingCount { get; set; }
@@ -51,62 +51,75 @@ public class IndexModel : PageModel
         var soon = now.AddHours(1);
 
         if (role == "Student" && userId != null)
-        {
-            var groupIds = await _context.UserGroup
-                .Where(ug => ug.UserId == userId)
-                .Select(ug => ug.GroupId)
-                .ToListAsync();
-
-            var upcoming = await _context.Booking
-                .Include(b => b.Room)
-                .Include(b => b.Group)
-                .Where(b => b.EndTime > now)
-                .OrderBy(b => b.StartTime)
-                .ToListAsync();
-
-            NextBooking = upcoming.FirstOrDefault(b =>
-                b.CreatedByUserId == userId || groupIds.Contains(b.GroupId));
-        }
+            await LoadStudentData(userId.Value, now);
 
         if (role == "Teacher" && userId != null)
-        {
-            var cutoff = now.AddDays(3);
-            CancellableBookingCount = await _context.Booking
-                .CountAsync(b => b.StartTime > cutoff);
-
-            var teacher = await _context.User.FirstOrDefaultAsync(u => u.UserId == userId);
-            TeacherProfileImagePath = teacher?.ProfileImagePath;
-        }
+            await LoadTeacherData(userId.Value, now);
 
         if (role == "Admin")
-        {
-            // Users
-            UserCount = await _context.User.CountAsync();
-            StudentCount = await _context.User.CountAsync(u => u.Role == Role.Student);
-            TeacherCount = await _context.User.CountAsync(u => u.Role == Role.Teacher);
-            AdminCount = await _context.User.CountAsync(u => u.Role == Role.Admin);
+            await LoadAdminData(now, soon);
+    }
 
-            // Rooms
-            RoomCount = await _context.Room.CountAsync();
-            ClassroomCount = await _context.Room.CountAsync(r => r.RoomType == RoomType.Classroom);
-            MeetingRoomCount = await _context.Room.CountAsync(r => r.RoomType == RoomType.MeetingRoom);
+    private async Task LoadStudentData(int userId, DateTime now)
+    {
+        var groupIds = await _context.UserGroup
+            .Where(ug => ug.UserId == userId)
+            .Select(ug => ug.GroupId)
+            .ToListAsync();
 
-            MostUsedRoomName = await _context.Booking
-                .GroupBy(b => b.Room.RoomName)
-                .OrderByDescending(g => g.Count())
-                .Select(g => g.Key)
-                .FirstOrDefaultAsync();
+        var upcoming = await _context.Booking
+            .Include(b => b.Room)
+            .Include(b => b.Group)
+            .Where(b => b.EndTime > now)
+            .OrderBy(b => b.StartTime)
+            .ToListAsync();
 
-            // Groups
-            GroupCount = await _context.Group.CountAsync();
+        // find booking for user or their groups
+        NextBooking = upcoming.FirstOrDefault(b =>
+            b.CreatedByUserId == userId || groupIds.Contains(b.GroupId));
+    }
 
-            // Bookings
-            BookingCount = await _context.Booking.CountAsync();
-            UpcomingBookingCount = await _context.Booking.CountAsync(b => b.StartTime > now);
-            PastBookingCount = await _context.Booking.CountAsync(b => b.EndTime < now);
-            OngoingBookingCount = await _context.Booking.CountAsync(b => b.StartTime <= now && b.EndTime > now);
-            StartingSoonBookingCount = await _context.Booking.CountAsync(b => b.StartTime > now && b.StartTime <= soon);
-        }
+    private async Task LoadTeacherData(int userId, DateTime now)
+    {
+        var cutoff = now.AddDays(3);
+
+        CancellableBookingCount = await _context.Booking
+            .CountAsync(b => b.StartTime > cutoff);
+
+        TeacherProfileImagePath = await _context.User
+            .Where(u => u.UserId == userId)
+            .Select(u => u.ProfileImagePath)
+            .FirstOrDefaultAsync();
+    }
+
+    private async Task LoadAdminData(DateTime now, DateTime soon)
+    {
+        // Users
+        UserCount = await _context.User.CountAsync();
+        StudentCount = await _context.User.CountAsync(u => u.Role == Role.Student);
+        TeacherCount = await _context.User.CountAsync(u => u.Role == Role.Teacher);
+        AdminCount = await _context.User.CountAsync(u => u.Role == Role.Admin);
+
+        // Rooms
+        RoomCount = await _context.Room.CountAsync();
+        ClassroomCount = await _context.Room.CountAsync(r => r.RoomType == RoomType.Classroom);
+        MeetingRoomCount = await _context.Room.CountAsync(r => r.RoomType == RoomType.MeetingRoom);
+
+        MostUsedRoomName = await _context.Booking
+            .GroupBy(b => b.Room.RoomName)
+            .OrderByDescending(g => g.Count())
+            .Select(g => g.Key)
+            .FirstOrDefaultAsync();
+
+        // Groups
+        GroupCount = await _context.Group.CountAsync();
+
+        // Bookings
+        BookingCount = await _context.Booking.CountAsync();
+        UpcomingBookingCount = await _context.Booking.CountAsync(b => b.StartTime > now);
+        PastBookingCount = await _context.Booking.CountAsync(b => b.EndTime < now);
+        OngoingBookingCount = await _context.Booking.CountAsync(b => b.StartTime <= now && b.EndTime > now);
+        StartingSoonBookingCount = await _context.Booking.CountAsync(b => b.StartTime > now && b.StartTime <= soon);
     }
 
     public static string GetRelativeTime(DateTime target)

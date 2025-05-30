@@ -7,14 +7,13 @@ namespace DM2Projekt.Tests.Account;
 [TestClass]
 public class LoginTests
 {
-    private DM2ProjektContext GetContext()
+    private static DM2ProjektContext CreateInMemoryContext()
     {
         var options = new DbContextOptionsBuilder<DM2ProjektContext>()
             .UseInMemoryDatabase(Guid.NewGuid().ToString())
             .Options;
 
         var context = new DM2ProjektContext(options);
-
         context.User.Add(new User
         {
             FirstName = "Mikasa",
@@ -23,16 +22,15 @@ public class LoginTests
             Password = "123",
             Role = Role.Student
         });
-
         context.SaveChanges();
+
         return context;
     }
 
     [TestMethod]
     public void Login_With_Correct_Credentials_Should_Work()
     {
-        using var context = GetContext();
-
+        using var context = CreateInMemoryContext();
         var user = context.User.FirstOrDefault(u =>
             u.Email == "mikasa@edu.dk" && u.Password == "123");
 
@@ -42,8 +40,7 @@ public class LoginTests
     [TestMethod]
     public void Login_With_Wrong_Password_Should_Fail()
     {
-        using var context = GetContext();
-
+        using var context = CreateInMemoryContext();
         var user = context.User.FirstOrDefault(u =>
             u.Email == "mikasa@edu.dk" && u.Password == "wrong");
 
@@ -53,8 +50,7 @@ public class LoginTests
     [TestMethod]
     public void Login_With_Unknown_Email_Should_Fail()
     {
-        using var context = GetContext();
-
+        using var context = CreateInMemoryContext();
         var user = context.User.FirstOrDefault(u =>
             u.Email == "idontexist@edu.dk");
 

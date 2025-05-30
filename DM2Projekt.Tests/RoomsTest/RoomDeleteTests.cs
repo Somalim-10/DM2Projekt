@@ -17,22 +17,21 @@ public class RoomDeleteTests
     }
 
     [TestMethod]
-
     public async Task DeleteRoom_RemovesRoom_WhenExists()
     {
-        // Arrange
         var context = GetInMemoryContext();
 
+        // Create a test room
         var room = new Room { RoomId = 1, RoomName = "TestLokale" };
         context.Room.Add(room);
         await context.SaveChangesAsync();
 
-        // Act
+        // Now try deleting it
         var roomToDelete = await context.Room.FindAsync(1);
         context.Room.Remove(roomToDelete);
         await context.SaveChangesAsync();
 
-        // Assert
+        // Should be gone
         var roomExists = await context.Room.FindAsync(1);
         Assert.IsNull(roomExists);
     }

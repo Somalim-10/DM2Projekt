@@ -12,28 +12,30 @@ public class LogoutTests
     public void Logout_Should_Clear_Session_And_Redirect()
     {
         var model = new LogoutModel();
-        var httpContext = new DefaultHttpContext();
+        var httpContext = new DefaultHttpContext
+        {
+            Session = new DummySession()
+        };
 
-        var pageContext = new PageContext
+        model.PageContext = new PageContext
         {
             HttpContext = httpContext
         };
 
-        model.PageContext = pageContext;
-
-        httpContext.Session = new DummySession(); // mock session
-
-        // simulate logout
         var result = model.OnPost() as RedirectToPageResult;
 
         Assert.IsNotNull(result);
         Assert.AreEqual("../Index", result.PageName, "should redirect to index");
     }
 
-    // simple fake session for testing
+    private static class DummySessionFactory
+    {
+        public static ISession Create() => new DummySession();
+    }
+
     private class DummySession : ISession
     {
-        private Dictionary<string, byte[]> _store = new();
+        private readonly Dictionary<string, byte[]> _store = new();
 
         public IEnumerable<string> Keys => _store.Keys;
         public string Id => Guid.NewGuid().ToString();

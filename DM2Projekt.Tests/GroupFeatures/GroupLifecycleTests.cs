@@ -7,22 +7,21 @@ namespace DM2Projekt.Tests.GroupFeatures;
 [TestClass]
 public class GroupLifecycleTests
 {
-    // 🧪 Creates a fresh in-memory db for each test run
-    private DM2ProjektContext GetInMemoryContext()
+    // Builds a fresh database and loads test users, group, and invite
+    private DM2ProjektContext CreateInMemoryContext()
     {
         var options = new DbContextOptionsBuilder<DM2ProjektContext>()
-            .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
+            .UseInMemoryDatabase(Guid.NewGuid().ToString())
             .Options;
 
         var context = new DM2ProjektContext(options);
-        SeedFakeData(context); // load dummy data
+        SeedTestData(context);
         return context;
     }
 
-    // 🔁 Fakes realistic users, groups, invites etc.
-    private void SeedFakeData(DM2ProjektContext context)
+    private void SeedTestData(DM2ProjektContext context)
     {
-        if (context.User.Any()) return; // skip if already seeded
+        if (context.User.Any()) return;
 
         var armin = new User { FirstName = "Armin", LastName = "Arlert", Email = "armin@edu.dk", Password = "123", Role = Role.Student };
         var mikasa = new User { FirstName = "Mikasa", LastName = "Ackerman", Email = "mikasa@edu.dk", Password = "123", Role = Role.Student };
@@ -58,49 +57,45 @@ public class GroupLifecycleTests
     [TestMethod]
     public void Student_Cannot_Create_Multiple_Groups()
     {
-        using var context = GetInMemoryContext();
+        using var context = CreateInMemoryContext();
         var armin = context.User.First(u => u.Email == "armin@edu.dk");
 
-        // ✅ Armin already created one group
         var alreadyCreated = context.Group.Any(g => g.CreatedByUserId == armin.UserId);
-        Assert.IsTrue(alreadyCreated);
+        var canCreateAnother = !alreadyCreated;
 
-        // ❌ Should not be allowed to create another
-        var canCreateAnother = !context.Group.Any(g => g.CreatedByUserId == armin.UserId);
-        Assert.IsFalse(canCreateAnother);
+        Assert.IsTrue(alreadyCreated);
+        Assert.IsFalse(canCreateAnother, "student should not create more than one group");
     }
 
     [TestMethod]
     public void Student_Cannot_Be_In_More_Than_Three_Groups()
     {
-        using var context = GetInMemoryContext();
+        using var context = CreateInMemoryContext();
         var mikasa = context.User.First(u => u.Email == "mikasa@edu.dk");
 
-        // Add 2 more memberships to hit 3 total
+        // Add 2 more group memberships to reach 3
         for (int i = 0; i < 2; i++)
         {
-            var group = new Group { GroupName = $"ExtraGroup{i + 1}", CreatedByUserId = mikasa.UserId };
-            context.Group.Add(group);
+            var extraGroup = new Group { GroupName = $"ExtraGroup{i + 1}", CreatedByUserId = mikasa.UserId };
+            context.Group.Add(extraGroup);
             context.SaveChanges();
 
-            context.UserGroup.Add(new UserGroup { UserId = mikasa.UserId, GroupId = group.GroupId });
+            context.UserGroup.Add(new UserGroup { UserId = mikasa.UserId, GroupId = extraGroup.GroupId });
         }
 
         context.SaveChanges();
 
-        // ✅ Already in 3 groups
         var groupCount = context.UserGroup.Count(ug => ug.UserId == mikasa.UserId);
-        Assert.AreEqual(3, groupCount);
+        var canJoinAnother = groupCount < 3;
 
-        // ❌ Should not allow another
-        bool canJoinAnother = groupCount < 3;
-        Assert.IsFalse(canJoinAnother);
+        Assert.AreEqual(3, groupCount);
+        Assert.IsFalse(canJoinAnother, "should block joining more than 3 groups");
     }
 
     [TestMethod]
     public void Can_Invite_Student_Who_Is_Not_Already_Invited_Or_Member()
     {
-        using var context = GetInMemoryContext();
+        using var context = CreateInMemoryContext();
         var group = context.Group.First();
         var levi = context.User.First(u => u.Email == "levi@edu.dk");
 
@@ -114,35 +109,32 @@ public class GroupLifecycleTests
 
         var canInvite = !alreadyInvited && !alreadyMember;
 
-        // ❌ Levi already invited — should not allow it again
-        Assert.IsFalse(canInvite);
+        Assert.IsFalse(canInvite, "levi already invited, should not be invited again");
     }
 
     [TestMethod]
     public void Member_Can_Leave_Group()
     {
-        using var context = GetInMemoryContext();
+        using var context = CreateInMemoryContext();
         var mikasa = context.User.First(u => u.Email == "mikasa@edu.dk");
         var groupId = context.Group.First().GroupId;
 
         var membership = context.UserGroup.FirstOrDefault(ug =>
             ug.UserId == mikasa.UserId && ug.GroupId == groupId);
 
-        // ✅ She's in the group
-        Assert.IsNotNull(membership);
-
-        // ➡ Remove her from it
         context.UserGroup.Remove(membership);
         context.SaveChanges();
 
-        var stillMember = context.UserGroup.Any(ug => ug.UserId == mikasa.UserId && ug.GroupId == groupId);
-        Assert.IsFalse(stillMember);
+        var stillMember = context.UserGroup.Any(ug =>
+            ug.UserId == mikasa.UserId && ug.GroupId == groupId);
+
+        Assert.IsFalse(stillMember, "membership should be removed");
     }
 
     [TestMethod]
     public void Creator_Can_Kick_Member()
     {
-        using var context = GetInMemoryContext();
+        using var context = CreateInMemoryContext();
         var armin = context.User.First(u => u.Email == "armin@edu.dk");
         var mikasa = context.User.First(u => u.Email == "mikasa@edu.dk");
         var group = context.Group.First(g => g.CreatedByUserId == armin.UserId);
@@ -150,14 +142,12 @@ public class GroupLifecycleTests
         var membership = context.UserGroup.FirstOrDefault(ug =>
             ug.UserId == mikasa.UserId && ug.GroupId == group.GroupId);
 
-        // ✅ Mikasa is a member
-        Assert.IsNotNull(membership);
-
-        // ➡ Armin kicks her
-        context.UserGroup.Remove(membership!);
+        context.UserGroup.Remove(membership);
         context.SaveChanges();
 
-        var stillMember = context.UserGroup.Any(ug => ug.UserId == mikasa.UserId && ug.GroupId == group.GroupId);
-        Assert.IsFalse(stillMember);
+        var stillMember = context.UserGroup.Any(ug =>
+            ug.UserId == mikasa.UserId && ug.GroupId == group.GroupId);
+
+        Assert.IsFalse(stillMember, "member should be kicked");
     }
 }

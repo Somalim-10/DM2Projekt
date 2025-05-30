@@ -21,39 +21,29 @@ public class RoomCreate
     [TestMethod]
     public async Task CreateRoom_ReturnsPage_WhenRoomNameAlreadyExists()
     {
-        // Arrange
         var context = GetInMemoryContext();
 
+        // Add a room that already exists
         var existingRoom = new Room { RoomName = "TestRoom" };
         context.Room.Add(existingRoom);
         await context.SaveChangesAsync();
 
         var createModel = new CreateModel(context)
         {
-            Room = new Room { RoomName = "TestRoom" }, // Samme navn som eksisterende rum
+            Room = new Room { RoomName = "TestRoom" }, // Same name as the existing one
             NewProfileImageUrl = null
         };
 
-        // Simulér at modellen er gyldig (ellers springer den fejl-check over)
-        createModel.ModelState.Clear(); // sørg for den ikke er invalid
+        createModel.ModelState.Clear(); // make sure model state is valid
 
-        // Act
         var result = await createModel.OnPostAsync(testUserRole: "Admin");
 
-        // Assert
         Assert.IsInstanceOfType<PageResult>(result);
 
-        Assert.IsTrue(createModel.ModelState.ContainsKey("Room.RoomName"),
-            "ModelState indeholder ikke 'Room.RoomName'");
-
+        Assert.IsTrue(createModel.ModelState.ContainsKey("Room.RoomName"));
         var modelStateEntry = createModel.ModelState["Room.RoomName"];
-        Assert.IsNotNull(modelStateEntry, "ModelState entry for 'Room.RoomName' er null");
-        Assert.IsTrue(modelStateEntry.Errors.Count > 0,
-            "Ingen fejl fundet på Room.RoomName");
-
-        Assert.AreEqual("Et rum med dette navn findes allerede.",
-            modelStateEntry.Errors[0].ErrorMessage);
+        Assert.IsNotNull(modelStateEntry);
+        Assert.IsTrue(modelStateEntry.Errors.Count > 0);
+        Assert.AreEqual("Et rum med dette navn findes allerede.", modelStateEntry.Errors[0].ErrorMessage);
     }
-
-
 }
