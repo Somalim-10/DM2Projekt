@@ -6,7 +6,7 @@ using DM2Projekt.Models;
 
 namespace DM2Projekt.Pages.Rooms;
 
-// this page lets Admins delete rooms — risky biz!
+// this page lets Admins delete rooms. risky biz!
 public class DeleteModel : PageModel
 {
     private readonly DM2ProjektContext _context;

@@ -19,6 +19,7 @@ public class DM2ProjektContext : DbContext
     public DbSet<Booking> Booking { get; set; } = default!;
     public DbSet<GroupInvitation> GroupInvitation { get; set; } = default!;
 
+    // Used for setting up relations and other stuff related to the tables
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
@@ -31,7 +32,7 @@ public class DM2ProjektContext : DbContext
             room.Property(r => r.Floor).HasConversion<string>();
         });
 
-        // Same for user roles
+        // Save enum Role for users as strings
         modelBuilder.Entity<User>()
             .Property(u => u.Role)
             .HasConversion<string>();

@@ -14,7 +14,7 @@ public class EmailService
 
     private SmtpClient CreateSmtpClient()
     {
-        // builds the SMTP client using config — nothing fancy
+        // builds the SMTP client using config. nothing fancy
         var smtpHost = _config["Email:SmtpHost"];
         var smtpPort = int.Parse(_config["Email:SmtpPort"]);
         var smtpUser = _config["Email:SmtpUser"];

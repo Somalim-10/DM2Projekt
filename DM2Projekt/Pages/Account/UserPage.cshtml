@@ -24,13 +24,13 @@
 
 <div class="container mt-5">
 
-    <!-- 🧍 Profile Card -->
+    <!-- Profile Card -->
     <div class="row justify-content-center mb-4">
         <div class="col-md-6">
             <div class="card shadow-sm border-0">
                 <div class="card-body text-center">
 
-                    <!-- 📸 Profile Image or Icon + Edit Button -->
+                    <!-- Profile Image or Icon + Edit Button -->
                     <div class="position-relative d-inline-block">
                         @if (!string.IsNullOrEmpty(Model.ProfileImagePath))
                         {
@@ -53,7 +53,7 @@
                         </button>
                     </div>
 
-                    <!-- 🌐 Update Profile Picture Form (URL) -->
+                    <!-- Update Profile Picture Form (URL) -->
                     <div id="pictureForm" class="mt-3 @(showPictureForm ? "" : "d-none")">
                         <form method="post" asp-page-handler="SetProfilePictureUrl" class="text-center">
                             <input type="url" name="NewProfileImageUrl"
@@ -75,7 +75,7 @@
                         }
                     </div>
 
-                    <!-- 🧾 User Name + Email + Change Password Toggle -->
+                    <!-- User Name + Email + Change Password Toggle -->
                     <h4 class="card-title mt-3">@Model.UserName</h4>
                     <p class="mb-1 text-muted">@Model.UserEmail</p>
 
@@ -88,7 +88,7 @@
         </div>
     </div>
 
-    <!-- 🔐 Change Password Section -->
+    <!-- Change Password Section -->
     <div class="row justify-content-center collapse @(Model.PasswordChangeMessage != "" ? "show" : "")" id="changePasswordForm">
         <div class="col-md-6">
             <div class="card shadow-sm border-0">
@@ -122,7 +122,7 @@
         </div>
     </div>
 
-    <!-- 👇 Scroll to Password Form if it has feedback -->
+    <!-- Scroll to Password Form if it has feedback -->
     @if (!string.IsNullOrEmpty(Model.PasswordChangeMessage))
     {
         <script>
@@ -132,7 +132,7 @@
         </script>
     }
 
-    <!-- 🗓️ Upcoming Bookings -->
+    <!-- Upcoming Bookings -->
     @if (Model.UpcomingBookings.Any())
     {
         <div class="row justify-content-center mb-4">
@@ -218,7 +218,7 @@
         </div>
     }
 
-    <!-- 👥 User Groups -->
+    <!-- User Groups -->
     @if (Model.UserGroups.Any())
     {
         <div class="row justify-content-center mb-5">

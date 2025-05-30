@@ -24,7 +24,7 @@
         <h2 id="filterHeading" class="h5 mb-2">Filters</h2>
 
         <form method="get" class="row gx-3 gy-2 align-items-end">
-            <!-- 🔍 Search -->
+            <!-- Search -->
             <div class="col-auto flex-grow-1">
                 <label asp-for="SearchTerm" class="form-label">
                     <i class="bi bi-search"></i> Search
@@ -35,7 +35,7 @@
                        autocomplete="off" />
             </div>
 
-            <!-- 🏠 Building -->
+            <!-- Building -->
             <div class="col-auto">
                 <label asp-for="Building" class="form-label">
                     <i class="bi bi-house-door-fill"></i> Building
@@ -47,7 +47,7 @@
                 </select>
             </div>
 
-            <!-- 📶 Floor -->
+            <!-- Floor -->
             <div class="col-auto">
                 <label asp-for="Floor" class="form-label">
                     <i class="bi bi-hdd-fill"></i> Floor
@@ -59,7 +59,7 @@
                 </select>
             </div>
 
-            <!-- 🏷️ Type -->
+            <!-- Type -->
             <div class="col-auto">
                 <label asp-for="RoomType" class="form-label">
                     <i class="bi bi-tags-fill"></i> Type
@@ -71,7 +71,7 @@
                 </select>
             </div>
 
-            <!-- ✅ Apply -->
+            <!-- Apply -->
             <div class="col-auto">
                 <label class="form-label">&nbsp;</label>
                 <button type="submit"
@@ -81,7 +81,7 @@
                 </button>
             </div>
 
-            <!-- ❌ Clear -->
+            <!-- Clear -->
             <div class="col-auto">
                 <label class="form-label">&nbsp;</label>
                 <a asp-page="./Index"

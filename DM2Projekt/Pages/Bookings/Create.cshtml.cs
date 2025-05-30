@@ -294,6 +294,7 @@ public class CreateModel : PageModel
         return new JsonResult(taken);
     }
 
+    // Without this we get a mismatch between how data is stored in JS vs C#
     private bool AreTimesEqualToMinute(DateTime a, DateTime b) =>
         a.ToUniversalTime().ToString("yyyy-MM-dd HH:mm") ==
         b.ToUniversalTime().ToString("yyyy-MM-dd HH:mm");

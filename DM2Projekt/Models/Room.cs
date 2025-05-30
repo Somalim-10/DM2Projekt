@@ -12,7 +12,7 @@ public class Room
 
     public RoomType RoomType { get; set; }
 
-    // optional – for UI display
+    // optional. for UI display
     [Url]
     [RegularExpression(@".*\.(jpg|jpeg|png|gif|bmp|webp)$", ErrorMessage = "URL skal pege på et billede (.jpg, .jpeg, .png, .gif, .bmp, .webp)")]
     public string? ImageUrl { get; set; }
@@ -23,6 +23,6 @@ public class Room
     [Required(ErrorMessage = "Etage skal vælges.")]
     public Floor Floor { get; set; }
 
-    // reverse nav: bookings for this room
+    // bookings for this room
     public ICollection<Booking> Bookings { get; set; } = [];
 }

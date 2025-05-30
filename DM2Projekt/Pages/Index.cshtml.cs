@@ -14,29 +14,29 @@ public class IndexModel : PageModel
         _context = context;
     }
 
-    // 🧑‍🎓 Student
+    // What students see
     public Booking? NextBooking { get; set; }
 
-    // 👨‍🏫 Teacher
+    // What teacher sees
     public int CancellableBookingCount { get; set; }
     public string? TeacherProfileImagePath { get; set; }
 
-    // 👑 Admin – Users
+    // What admin sees about users
     public int UserCount { get; set; }
     public int StudentCount { get; set; }
     public int TeacherCount { get; set; }
     public int AdminCount { get; set; }
 
-    // 👑 Admin – Rooms
+    // What admin sees about rooms
     public int RoomCount { get; set; }
     public int ClassroomCount { get; set; }
     public int MeetingRoomCount { get; set; }
     public string? MostUsedRoomName { get; set; }
 
-    // 👑 Admin – Groups
+    // What admin sees about groups
     public int GroupCount { get; set; }
 
-    // 👑 Admin – Bookings
+    // what admin sees about bookings
     public int BookingCount { get; set; }
     public int UpcomingBookingCount { get; set; }
     public int PastBookingCount { get; set; }

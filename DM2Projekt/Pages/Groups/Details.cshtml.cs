@@ -32,7 +32,7 @@ public class DetailsModel : PageModel
         if (id == null)
             return NotFound();
 
-        // pull full group info incl. creator + members
+        // pull full group info
         var group = await _context.Group
             .Include(g => g.UserGroups).ThenInclude(ug => ug.User)
             .Include(g => g.CreatedByUser)
@@ -49,7 +49,7 @@ public class DetailsModel : PageModel
         var isAdmin = role == "Admin";
         var isTeacher = role == "Teacher";
 
-        // you can view if you're involved in any way (or admin/teacher)
+        // user can view if involved in any way (or admin/teacher)
         if (!(isMember || isCreator || isAdmin || isTeacher))
             return RedirectToPage("/Groups/Index");
 

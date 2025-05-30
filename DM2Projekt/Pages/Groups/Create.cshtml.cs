@@ -1,5 +1,4 @@
-﻿// Create.cshtml.cs - backend logic for creating a group
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using DM2Projekt.Data;
 using DM2Projekt.Models;
@@ -50,7 +49,7 @@ public class CreateModel : PageModel
         if (user == null)
             return RedirectToPage("/Login");
 
-        // You can only create one group max
+        // User can only create one group max
         bool alreadyCreated = await _context.Group.AnyAsync(g => g.CreatedByUserId == userId);
         if (alreadyCreated)
         {
@@ -66,7 +65,7 @@ public class CreateModel : PageModel
             return Page();
         }
 
-        // All good, assign ownership and save group
+        // assign ownership and save group
         Group.CreatedByUserId = user.UserId;
         _context.Group.Add(Group);
         await _context.SaveChangesAsync();
@@ -79,7 +78,6 @@ public class CreateModel : PageModel
         });
         await _context.SaveChangesAsync();
 
-        // Done! Back to groups list
         return RedirectToPage("./Index");
     }
 }

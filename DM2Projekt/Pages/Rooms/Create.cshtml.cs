@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace DM2Projekt.Pages.Rooms;
 
-// this is the “Add New Room” page — Admins only, VIP access
+// this is the “Add New Room” page. Admins only.
 public class CreateModel : PageModel
 {
     private readonly DM2ProjektContext _context;
@@ -20,7 +20,7 @@ public class CreateModel : PageModel
     public Room Room { get; set; } = default!;
 
     [BindProperty]
-    public string? NewProfileImageUrl { get; set; } // 🖼 optional image input
+    public string? NewProfileImageUrl { get; set; } // optional image input
 
     public string ProfilePictureMessage { get; set; } = "";
     public bool ProfilePictureSuccess { get; set; } = false;
@@ -29,7 +29,7 @@ public class CreateModel : PageModel
     {
         var userRole = HttpContext.Session.GetString("UserRole");
 
-        // 🛑 no sneaky users allowed
+        // no sneaky users allowed
         if (userRole != "Admin")
             return RedirectToPage("/Rooms/Index");
 
@@ -47,7 +47,7 @@ public class CreateModel : PageModel
         if (!ModelState.IsValid)
             return Page();
 
-        // 🤔 check if name already exists (case-insensitive)
+        // check if name already exists (case-insensitive)
         var existingRoomNames = await _context.Room
             .Select(r => r.RoomName)
             .ToListAsync();
@@ -61,7 +61,7 @@ public class CreateModel : PageModel
             return Page();
         }
 
-        // 🧪 validate new image URL (if given)
+        // validate new image URL (if given)
         if (!string.IsNullOrWhiteSpace(NewProfileImageUrl))
         {
             if (!await UrlExistsAsync(NewProfileImageUrl))
@@ -71,7 +71,7 @@ public class CreateModel : PageModel
                 return Page();
             }
 
-            Room.ImageUrl = NewProfileImageUrl; // ✅ good to go
+            Room.ImageUrl = NewProfileImageUrl; // good to go
         }
 
         _context.Room.Add(Room);
@@ -80,7 +80,7 @@ public class CreateModel : PageModel
         return RedirectToPage("./Index");
     }
 
-    // 🕵️‍♂️ double-checks image URL actually points to an image
+    // double-checks image URL actually points to an image
     private async Task<bool> UrlExistsAsync(string url)
     {
         try

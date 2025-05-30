@@ -13,7 +13,7 @@ public class User
     [Required]
     public string LastName { get; set; }
 
-    // optional – used for avatar
+    // optional. used for avatar
     public string? ProfileImagePath { get; set; }
 
     [Required, EmailAddress]
@@ -25,9 +25,9 @@ public class User
     [Required]
     public string Password { get; set; }
 
-    // reverse nav: which groups user is in
+    // which groups user is in
     public ICollection<UserGroup> UserGroups { get; set; } = [];
 
-    // reverse nav: bookings user created
+    // bookings user created
     public ICollection<Booking> Bookings { get; set; } = [];
 }

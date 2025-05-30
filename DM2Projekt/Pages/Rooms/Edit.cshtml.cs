@@ -6,7 +6,7 @@ using DM2Projekt.Models;
 
 namespace DM2Projekt.Pages.Rooms;
 
-// yo this page handles editing rooms — only for the VIPs (admins)
+// yo this page handles editing rooms. only for the VIPs (admins)
 public class EditModel : PageModel
 {
     private readonly DM2ProjektContext _context;
@@ -27,7 +27,7 @@ public class EditModel : PageModel
 
     public async Task<IActionResult> OnGetAsync(int? id)
     {
-        // 🛑 no login, no service
+        // no login, no service
         var userId = HttpContext.Session.GetInt32("UserId");
         var userRole = HttpContext.Session.GetString("UserRole");
 
@@ -37,7 +37,7 @@ public class EditModel : PageModel
         if (id == null)
             return NotFound();
 
-        // 📦 grab the room by id
+        // grab the room by id
         var room = await _context.Room.FirstOrDefaultAsync(m => m.RoomId == id);
         if (room == null)
             return NotFound();
@@ -48,7 +48,6 @@ public class EditModel : PageModel
 
     public async Task<IActionResult> OnPostAsync(string? testUserRole = null, int? testUserId = null)
     {
-        // 🧪 support test overrides
         var userId = testUserId ?? HttpContext.Session.GetInt32("UserId");
         var userRole = testUserRole ?? HttpContext.Session.GetString("UserRole");
 
@@ -58,7 +57,7 @@ public class EditModel : PageModel
         if (!ModelState.IsValid)
             return Page();
 
-        // 🎯 validate image url if user typed one
+        // validate image url if user typed one
         if (!string.IsNullOrWhiteSpace(NewProfileImageUrl))
         {
             if (!await UrlExistsAsync(NewProfileImageUrl))
@@ -71,7 +70,7 @@ public class EditModel : PageModel
                 return Page();
             }
 
-            // 💾 looks good — update the room image
+            // looks good. update the room image
             Room.ImageUrl = NewProfileImageUrl;
         }
 
@@ -92,7 +91,7 @@ public class EditModel : PageModel
         return RedirectToPage("./Index");
     }
 
-    // 👀 lightweight check to make sure the url is real + is an image
+    // lightweight check to make sure the url is real + is an image
     private async Task<bool> UrlExistsAsync(string url)
     {
         try
@@ -109,7 +108,7 @@ public class EditModel : PageModel
         }
     }
 
-    // 🧠 sanity check to see if room even exists
+    // check to see if room even exists
     private bool RoomExists(int id)
     {
         return _context.Room.Any(e => e.RoomId == id);

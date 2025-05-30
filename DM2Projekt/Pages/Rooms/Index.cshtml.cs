@@ -12,9 +12,9 @@ public class IndexModel : PageModel
     private readonly DM2ProjektContext _context;
 
     public IndexModel(DM2ProjektContext context)
-        => _context = context; // 🎉 injected context, we love DI
+        => _context = context; // injected context
 
-    // 🧾 filters from query string
+    // filters from query string
     [BindProperty(SupportsGet = true)] public string? SearchTerm { get; set; }
     [BindProperty(SupportsGet = true)] public Building? Building { get; set; }
     [BindProperty(SupportsGet = true)] public Floor? Floor { get; set; }
@@ -30,7 +30,7 @@ public class IndexModel : PageModel
 
     public async Task<IActionResult> OnGetAsync()
     {
-        // 👮 make sure you're logged in
+        // make sure you're logged in
         if (HttpContext.Session.GetInt32("UserId") == null)
             return RedirectToPage("/Login");
 

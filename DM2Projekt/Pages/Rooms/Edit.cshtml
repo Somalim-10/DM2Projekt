@@ -12,13 +12,13 @@
     <div class="row justify-content-center">
         <div class="col-md-8">
             <form method="post">
-                <!-- 💣 any broken validation errors will show up here -->
+                <!-- any broken validation errors will show up here -->
                 <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
 
-                <!-- 😎 we don't wanna show ID in UI, but still need it -->
+                <!-- we don't wanna show ID in UI, but still need it -->
                 <input type="hidden" asp-for="Room.RoomId" />
 
-                <!-- 🧱 Basic Room Info -->
+                <!-- Basic Room Info -->
                 <div class="card shadow-sm mb-4">
                     <div class="card-body">
                         <h4 class="card-title mb-4">Room Info</h4>
@@ -59,7 +59,7 @@
                     </div>
                 </div>
 
-                <!-- 🖼 Image Upload Section -->
+                <!-- Image Upload Section -->
                 <div class="card shadow-sm mb-4">
                     <div class="card-body">
                         <h4 class="card-title mb-4">Room Image</h4>
@@ -97,7 +97,7 @@
                     </div>
                 </div>
 
-                <!-- 🧨 Save / Cancel Buttons -->
+                <!-- Save / Cancel Buttons -->
                 <div class="d-grid gap-2">
                     <button type="submit" class="btn btn-success">
                         <i class="bi bi-check-circle"></i> Save Changes
@@ -114,7 +114,7 @@
 
 @section Scripts {
     <script>
-        // 🪄 Live preview magic — updates image as user types
+        // Live preview magic. updates image as user types
         const input = document.getElementById("imageUrlInput");
         const preview = document.getElementById("imagePreview");
         const errorMsg = document.getElementById("imageError");

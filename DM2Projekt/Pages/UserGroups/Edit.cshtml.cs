@@ -41,7 +41,7 @@ public class EditModel : PageModel
         if (UserGroup == null)
             return NotFound();
 
-        // fetch user + group separately for display
+        // fetch user + group for display
         CurrentUser = UserGroup.User;
         CurrentGroup = UserGroup.Group;
 

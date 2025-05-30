@@ -10,7 +10,6 @@ public class DeleteModel : PageModel
 {
     private readonly DM2ProjektContext _context;
 
-    // inject DB context
     public DeleteModel(DM2ProjektContext context)
     {
         _context = context;

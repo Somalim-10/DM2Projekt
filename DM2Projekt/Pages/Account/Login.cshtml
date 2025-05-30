@@ -11,35 +11,35 @@
                 <div class="card-body p-4">
                     <h2 class="text-center mb-4">Welcome Back 👋</h2>
 
-                    <!-- 🚪 Login form -->
+                    <!-- Login form -->
                     <form method="post" novalidate>
-                        <!-- 📧 Email -->
+                        <!-- Email -->
                         <div class="mb-3">
                             <label asp-for="Input.Email" class="form-label">Email</label>
                             <input asp-for="Input.Email" class="form-control" placeholder="you@example.com" />
                             <span asp-validation-for="Input.Email" class="text-danger"></span>
                         </div>
 
-                        <!-- 🔐 Password -->
+                        <!-- Password -->
                         <div class="mb-3">
                             <label asp-for="Input.Password" class="form-label">Password</label>
                             <input asp-for="Input.Password" type="password" class="form-control" placeholder="your password" />
                             <span asp-validation-for="Input.Password" class="text-danger"></span>
                         </div>
 
-                        <!-- 🚨 Error if login fails -->
+                        <!-- Error if login fails -->
                         @if (!string.IsNullOrEmpty(Model.ErrorMessage))
                         {
                             <div class="alert alert-danger mt-2">@Model.ErrorMessage</div>
                         }
 
-                        <!-- 🟦 Login button -->
+                        <!-- Login button -->
                         <div class="d-grid mt-3">
                             <button type="submit" class="btn btn-primary">Log In</button>
                         </div>
                     </form>
 
-                    <!-- 🔗 Extra links -->
+                    <!-- Extra links -->
                     <div class="text-center mt-4">
                         <a asp-page="/Account/ForgotPassword" class="link-secondary">Forgot your password?</a>
                     </div>
