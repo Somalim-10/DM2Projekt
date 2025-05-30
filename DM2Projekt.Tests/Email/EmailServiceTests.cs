@@ -7,7 +7,7 @@ namespace DM2Projekt.Tests.Email;
 [TestClass]
 public class EmailServiceTests
 {
-    private EmailService GetEmailService()
+    private EmailService CreateEmailService()
     {
         var config = new ConfigurationBuilder()
             .AddInMemoryCollection(new Dictionary<string, string?>
@@ -27,27 +27,25 @@ public class EmailServiceTests
     [TestMethod]
     public async Task SendReminderEmailAsync_Should_Not_Throw()
     {
-        // arrange
-        var service = GetEmailService();
+        var service = CreateEmailService();
 
-        // act
         try
         {
             await service.SendReminderEmailAsync(
-                "someone@test.com",
-                "Alex",
-                "Room A",
-                DateTime.Now.AddDays(1)
+                toEmail: "someone@test.com",
+                firstName: "Alex",
+                roomName: "Room A",
+                startTime: DateTime.Now.AddDays(1)
             );
         }
         catch (SmtpException)
         {
-            // if smtp fails (expected in test), that's fine
+            // This is fine. there's no real SMTP here
             Assert.IsTrue(true);
             return;
         }
 
-        // we never want it to just crash
+        // If it runs, we're good
         Assert.IsTrue(true);
     }
 }

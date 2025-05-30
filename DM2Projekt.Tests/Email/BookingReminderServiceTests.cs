@@ -15,69 +15,63 @@ public class BookingReminderServiceTests
     [TestMethod]
     public async Task BookingReminder_Should_Set_ReminderSent()
     {
-        // 🧪 Set up an in-memory database just for this test
-        // super fast, nothing is saved for real
+        // Set up a fresh in-memory DB
         var options = new DbContextOptionsBuilder<DM2ProjektContext>()
-            .UseInMemoryDatabase(Guid.NewGuid().ToString()) // unique name = clean test
+            .UseInMemoryDatabase(Guid.NewGuid().ToString())
             .Options;
 
         using var context = new DM2ProjektContext(options);
 
-        // 👤 Create a fake user (they'll get the email)
+        // Add fake user
         var user = new User
         {
             Email = "test@test.com",
             FirstName = "Test",
             LastName = "User",
-            Password = "123456", // not relevant here
+            Password = "123456",
             Role = Role.Student
         };
 
-        // 👥 Create a group and stick that user in it
+        // Add group and put user in it
         var group = new Group
         {
             GroupName = "Test Group",
-            UserGroups =
-            [
-                new() { User = user }
-            ]
+            UserGroups = { new UserGroup { User = user } }
         };
 
-        // 🏠 Set up a room booking starting in 2 hours — should trigger a reminder
+        // Add booking that starts in 2 hours (so it should trigger)
         context.Booking.Add(new Booking
         {
             Room = new Room { RoomName = "Test Room" },
             Group = group,
             StartTime = DateTime.Now.AddHours(2),
             EndTime = DateTime.Now.AddHours(4),
-            ReminderSent = false // ✅ we're checking if this gets flipped
+            ReminderSent = false
         });
 
-        await context.SaveChangesAsync(); // save to the fake db
+        await context.SaveChangesAsync();
 
-        // 📧 Create a fake EmailService so we don't actually send emails
+        // Fake the email service. don't send anything real
         var emailMock = new Mock<EmailService>(MockBehavior.Strict, (IConfiguration?)null);
-
-        // whenever SendReminderEmailAsync gets called, just say "yep, cool"
         emailMock.Setup(x =>
             x.SendReminderEmailAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<DateTime>())
         ).Returns(Task.CompletedTask);
 
-        // 🧰 Build a fake service container — kinda like how ASP.NET Core would
+        // Set up fake services like ASP.NET would
         var services = new ServiceCollection()
             .AddSingleton(_ => context)
             .AddSingleton(_ => emailMock.Object)
             .BuildServiceProvider();
 
-        // 📒 Logger isn't needed here, just give it a mock
+        // Logger isn’t used, just pass in a mock
         var loggerMock = new Mock<ILogger<BookingReminderService>>();
         var service = new BookingReminderService(services, loggerMock.Object);
 
-        // 🚀 Run the reminder logic directly — no timers, no waiting
+        // Run it
         await service.RunReminderCheckAsync();
 
-        // ✅ Now grab the booking and double-check that the flag got flipped
+        // Check that the reminder flag got flipped
         var booking = context.Booking.First();
-        Assert.IsTrue(booking.ReminderSent);
+        Assert.IsTrue(booking.ReminderSent, "ReminderSent should be true after check");
     }
 }

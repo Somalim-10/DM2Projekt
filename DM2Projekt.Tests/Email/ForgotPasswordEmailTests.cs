@@ -7,9 +7,8 @@ namespace DM2Projekt.Tests.Email;
 [TestClass]
 public class ForgotPasswordEmailTests
 {
-    private EmailService GetEmailService()
+    private EmailService CreateEmailService()
     {
-        // use in-memory config
         var config = new ConfigurationBuilder()
             .AddInMemoryCollection(new Dictionary<string, string?>
             {
@@ -28,12 +27,10 @@ public class ForgotPasswordEmailTests
     [TestMethod]
     public async Task SendPasswordRecoveryEmailAsync_Should_Not_Throw()
     {
-        // 🧪 Arrange
-        var service = GetEmailService();
+        var service = CreateEmailService();
 
         try
         {
-            // 🚀 Act
             await service.SendPasswordRecoveryEmailAsync(
                 toEmail: "forgot@test.com",
                 firstName: "Forgotty",
@@ -42,12 +39,11 @@ public class ForgotPasswordEmailTests
         }
         catch (SmtpException)
         {
-            // ✅ Expected: no SMTP server in test — totally fine
+            // Totally fine. expected in test setup
             Assert.IsTrue(true);
             return;
         }
 
-        // ✅ If it doesn't crash, we’re still good
-        Assert.IsTrue(true);
+        Assert.IsTrue(true); // All good
     }
 }
