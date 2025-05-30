@@ -8,20 +8,22 @@ namespace DM2Projekt.Tests.Account;
 [TestClass]
 public class UserPageTests
 {
-    private DM2ProjektContext GetContext()
+    private const string ValidPassword = "123";
+    private const string ImageUrlPattern = @"^https?:\/\/.*\.(jpg|jpeg|png|gif|webp|bmp|svg)$";
+
+    private DM2ProjektContext CreateInMemoryContext()
     {
         var options = new DbContextOptionsBuilder<DM2ProjektContext>()
             .UseInMemoryDatabase(Guid.NewGuid().ToString())
             .Options;
 
         var context = new DM2ProjektContext(options);
-
         context.User.Add(new User
         {
             FirstName = "Armin",
             LastName = "Arlert",
             Email = "armin@edu.dk",
-            Password = "123",
+            Password = ValidPassword,
             Role = Role.Student
         });
 
@@ -29,33 +31,33 @@ public class UserPageTests
         return context;
     }
 
+    // Password change validation
+
     [TestMethod]
     public void ChangePassword_Should_Fail_If_Current_Wrong()
     {
-        using var context = GetContext();
+        using var context = CreateInMemoryContext();
         var user = context.User.First();
-        var wrongInput = "notright";
+        var wrongPassword = "notright";
 
-        Assert.AreNotEqual(user.Password, wrongInput, "should fail if current password is wrong");
+        Assert.AreNotEqual(user.Password, wrongPassword, "should fail if current password is wrong");
     }
 
     [TestMethod]
     public void ChangePassword_Should_Fail_If_Same_As_Old()
     {
-        using var context = GetContext();
+        using var context = CreateInMemoryContext();
         var user = context.User.First();
 
-        var same = user.Password;
-
-        Assert.AreEqual("123", same, "new password is same as old");
+        Assert.AreEqual(ValidPassword, user.Password, "new password is same as old");
     }
 
     [TestMethod]
     public void ChangePassword_Should_Fail_If_Too_Short()
     {
-        var newPassword = "abc"; // less than 6
+        var shortPassword = "abc"; // less than 6
 
-        Assert.IsTrue(newPassword.Length < 6, "password is too short");
+        Assert.IsTrue(shortPassword.Length < 6, "password is too short");
     }
 
     [TestMethod]
@@ -67,46 +69,40 @@ public class UserPageTests
         Assert.AreNotEqual(newPass, confirm, "confirm password doesn't match");
     }
 
+    // Relative time formatting
+
     [TestMethod]
     public void GetRelativeTime_Should_Show_Today()
     {
-        var today = DateTime.Now;
-
-        var result = Pages.Account.UserPageModel.GetRelativeTime(today);
-
+        var result = Pages.Account.UserPageModel.GetRelativeTime(DateTime.Now);
         Assert.AreEqual("today", result);
     }
 
     [TestMethod]
     public void GetRelativeTime_Should_Show_Tomorrow()
     {
-        var tomorrow = DateTime.Now.AddDays(1);
-
-        var result = Pages.Account.UserPageModel.GetRelativeTime(tomorrow);
-
+        var result = Pages.Account.UserPageModel.GetRelativeTime(DateTime.Now.AddDays(1));
         Assert.AreEqual("tomorrow", result);
     }
 
     [TestMethod]
     public void GetRelativeTime_Should_Show_Number_Of_Days()
     {
-        var inFiveDays = DateTime.Now.AddDays(5);
-
-        var result = Pages.Account.UserPageModel.GetRelativeTime(inFiveDays);
-
+        var result = Pages.Account.UserPageModel.GetRelativeTime(DateTime.Now.AddDays(5));
         Assert.AreEqual("in 5 days", result);
     }
+
+    // Profile picture URL validation
 
     [TestMethod]
     public void SetProfilePicture_Should_Accept_Valid_Image_Url()
     {
-        using var context = GetContext();
+        using var context = CreateInMemoryContext();
         var user = context.User.First();
 
         var validUrl = "https://example.com/image.png";
-        var pattern = @"^https?:\/\/.*\.(jpg|jpeg|png|gif|webp|bmp|svg)$";
+        var isValid = Regex.IsMatch(validUrl, ImageUrlPattern, RegexOptions.IgnoreCase);
 
-        var isValid = Regex.IsMatch(validUrl, pattern, RegexOptions.IgnoreCase);
         Assert.IsTrue(isValid, "URL should match allowed image extensions");
 
         user.ProfileImagePath = validUrl;
@@ -120,9 +116,7 @@ public class UserPageTests
     public void SetProfilePicture_Should_Reject_Invalid_Image_Url()
     {
         var invalidUrl = "https://example.com/image.txt";
-        var pattern = @"^https?:\/\/.*\.(jpg|jpeg|png|gif|webp|bmp|svg)$";
-
-        var isValid = Regex.IsMatch(invalidUrl, pattern, RegexOptions.IgnoreCase);
+        var isValid = Regex.IsMatch(invalidUrl, ImageUrlPattern, RegexOptions.IgnoreCase);
 
         Assert.IsFalse(isValid, "Should reject unsupported image extension");
     }
