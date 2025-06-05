@@ -32,7 +32,7 @@
     }
 
     @* Show create button only if allowed *@
-    @if (userRole == "Admin" || (userRole == "Student" && userGroups < 1))
+    @if (userRole == "Admin" || (userRole == "Student"))
     {
         <div class="mb-4">
             <a asp-page="Create" class="btn btn-primary">
